@@ -2,12 +2,14 @@ package Data;
 
 import Main.Inventory;
 import Main.Main;
+import androidx.compose.runtime.snapshots.SnapshotStateList;
+import main.Sidebar;
 
-import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Read {
     private static final Read instance = new Read();
@@ -30,14 +32,16 @@ public class Read {
     private static void readJSON() {
         System.out.println("Reading JSON");
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(JsonUtil.getDataPath(), "*.json")) {
+            SnapshotStateList<Inventory> preInvs = new SnapshotStateList<>();
             for (Path path : stream) {
                 try {
                     Inventory inv = JsonUtil.getMapper().readValue(path.toFile(), Inventory.class);
-                    Main.inventories.add(inv);
+                    preInvs.add(inv);
                 } catch (Exception e) {
                     System.err.println("Fehler beim Laden von Datei " + path.getFileName() + ": " + e.getMessage());
                 }
             }
+            Sidebar.INSTANCE.setInventoryMutableList(preInvs);
         } catch (Exception e) {
             System.err.println("Konnte Verzeichnis nicht lesen: " + e.getMessage());
         }
