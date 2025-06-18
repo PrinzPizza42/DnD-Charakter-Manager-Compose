@@ -25,13 +25,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import main.InventoryDisplay.displayInv
 
 object Sidebar {
-    var openBoolean = true;
-    lateinit var inventoryMutableList: SnapshotStateList<Inventory>;
+    var openBoolean = true
+    lateinit var inventoryMutableList: SnapshotStateList<Inventory>
 
     @Composable
-    fun sidebar() {
+    fun sidebar(selectedInventory: MutableState<Inventory?>) {
         val inventories = remember { inventoryMutableList }
 
         var open by remember { mutableStateOf(true) }
@@ -56,7 +57,7 @@ object Sidebar {
                     Modifier
                         .weight(1f)
                 ){
-                    addSidebarItems(inventories)
+                    addSidebarItems(inventories, selectedInventory)
                 }
             }
         }
@@ -118,7 +119,7 @@ object Sidebar {
     }
 
     @Composable
-    fun addSidebarItems(inventories: SnapshotStateList<Inventory>) {
+    fun addSidebarItems(inventories: SnapshotStateList<Inventory>, selectedInventory: MutableState<Inventory?>) {
         LazyColumn(
             Modifier
                 .fillMaxWidth()
@@ -129,20 +130,13 @@ object Sidebar {
                     .fillMaxWidth()
                     .height(8.dp))
 
-                sidebarItem(inv, inventories)
-            }
-
-            items(100) { i ->
-                Divider(Modifier
-                    .fillMaxWidth()
-                    .height(8.dp))
-                Text("Text $i")
+                sidebarItem(inv, inventories, selectedInventory)
             }
         }
     }
 
     @Composable
-    fun sidebarItem(inv: Inventory, inventories: SnapshotStateList<Inventory>) {
+    fun sidebarItem(inv: Inventory, inventories: SnapshotStateList<Inventory>, selectedInventory: MutableState<Inventory?>) {
         var showDelete by remember { mutableStateOf(false) }
 
         Box(Modifier
@@ -157,6 +151,7 @@ object Sidebar {
                 Button(
                     onClick = {
                         println("opening inv " + inv.getName()) //TODO implement
+                        selectedInventory.value = inv
                     },
                     content = {
                         Text(inv.getName())
