@@ -3,6 +3,7 @@ package main
 import Main.Inventory
 import Main.ItemClasses.Item
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -10,9 +11,18 @@ import androidx.compose.material.Button
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 
@@ -31,8 +41,10 @@ object InventoryDisplay {
 
     @Composable
     fun displayInv(inv: Inventory, modifier: Modifier) {
-        //TODO set opened backpack image as background here (maybe splitt in three pieces so it does not stretch when the width changes?)
+        //TODO set opened backpack image as background here (maybe split in three pieces so it does not stretch when the width changes?)
         //TODO set randomly selected scenery behind backpack
+        val items = remember { mutableStateListOf<Item>() }
+
         Column (modifier
             .fillMaxHeight()
         ) {
@@ -43,22 +55,25 @@ object InventoryDisplay {
 
     @Composable
     fun sceneryAndBackPackTop() {
-        Box(Modifier
-            .fillMaxWidth()
-            .height(150.dp)
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(150.dp)
         ) {
             //Background
-            Box(Modifier
-                .zIndex(0f)
-                .background(Color.Green)
-                .fillMaxSize()
-                .wrapContentSize(Alignment.Center)
+            Box(
+                Modifier
+                    .zIndex(0f)
+                    .background(Color.Green)
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Center)
             ) {
             }
 
             //Foreground
-            Column (Modifier
-                .fillMaxWidth()
+            Column(
+                Modifier
+                    .fillMaxWidth()
             ) {
                 Box(
                     Modifier
@@ -81,8 +96,9 @@ object InventoryDisplay {
             }
 
             //Sorting
-            Column (Modifier
-                .fillMaxWidth()
+            Column(
+                Modifier
+                    .fillMaxWidth()
 
             ) {
                 Box(
@@ -139,17 +155,25 @@ object InventoryDisplay {
 
     @Composable
     fun backPack(inv: Inventory) {
+        val draggedIndex = remember { mutableStateOf<Int?>(null) }
+        val overIndex = remember { mutableStateOf<Int?>(null) }
+        val items = remember { mutableStateListOf<Item>() }
+        items.addAll(inv.items)
+        val itemCoordinates = remember { mutableStateMapOf<Int, LayoutCoordinates>() }
+        val dragOffset = remember { mutableStateOf(Offset.Zero) }
+
         //Background
-        Box(Modifier
-            .fillMaxSize()
-        ) {
-            Box(Modifier
-                .zIndex(1f)
+        Box(
+            Modifier
                 .fillMaxSize()
+        ) {
+            Box(
+                Modifier
+                    .zIndex(1f)
+                    .fillMaxSize()
             ) {
 
             }
-
             //Foreground
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 100.dp),
@@ -163,24 +187,85 @@ object InventoryDisplay {
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 println("Displaying inv " + inv.name)
-                items(inv.items.size) { index ->
-                    item(inv.items[index])
+                items(items.size) { index ->
+                    invItem(items[index], draggedIndex, overIndex, index, items, itemCoordinates, inv)
                 }
             }
         }
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    fun item(item: Item) {
-        Box(Modifier
-            .fillMaxSize()
-            .background(Color.Green)
-            .aspectRatio(1f)
+    fun invItem(item: Item, draggedIndex: MutableState<Int?>, overIndex: MutableState<Int?>, index: Int, items: SnapshotStateList<Item>, itemCoordinates: SnapshotStateMap<Int, LayoutCoordinates>, inv: Inventory) {
+        val isBeingDragged = draggedIndex.value == index
+        val localCoordinates = remember { mutableStateOf<LayoutCoordinates?>(null) }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Green)
+                .aspectRatio(1f)
+                .onGloballyPositioned { coords ->
+                    localCoordinates.value = coords
+                    itemCoordinates[index] = coords
+                    println(itemCoordinates[index]?.size.toString())
+                }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = {
+                            println("onDragStart")
+                            draggedIndex.value = index
+                        },
+                        onDragEnd = {
+                            println("onDragEnd")
+                            val from = draggedIndex.value
+                            val to = overIndex.value
+                            println("onDragEnd from $from to $to")
+
+                            //changing item index
+                            if (from != null && to != null && from != to) {
+                                println("changing index to " + to)
+                                items.removeAt(from)
+                                items.add(to, item)
+
+                                //in inventory object
+                                inv.items.removeAt(from)
+                                inv.items.add(to, item)
+                            }
+                            draggedIndex.value = null
+                            overIndex.value = null
+                        },
+                        onDragCancel = {
+                            println("onDragCancel")
+                            draggedIndex.value = null
+                            overIndex.value = null
+                        },
+                        onDrag = { change, _ ->
+                            change.consume()
+
+                            val localPos = change.position // relativ zum Composable
+                            val absolutePos = localCoordinates.value?.localToRoot(localPos) // absolut im Root
+
+                            if(absolutePos != null) {
+                                val hitIndex = itemCoordinates.entries.find { (_, coords) ->
+                                    val bounds = coords.boundsInRoot()
+                                    val hit = bounds.contains(absolutePos)
+                                    hit
+                                }?.key
+
+                                if (hitIndex != null && hitIndex != draggedIndex.value) {
+                                    overIndex.value = hitIndex
+                                }
+                            }
+
+                        }
+                    )
+                }
         )
         {
-            Column(Modifier
-                .fillMaxSize()
-
+            Column(
+                Modifier
+                    .fillMaxSize()
             ) {
                 //Name
                 Text(
