@@ -2,6 +2,7 @@ package main
 
 import Main.Inventory
 import Main.ItemClasses.Item
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
@@ -23,6 +24,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.modifier.modifierLocalMapOf
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 
@@ -160,7 +163,6 @@ object InventoryDisplay {
         val items = remember { mutableStateListOf<Item>() }
         items.addAll(inv.items)
         val itemCoordinates = remember { mutableStateMapOf<Int, LayoutCoordinates>() }
-        val dragOffset = remember { mutableStateOf(Offset.Zero) }
 
         //Background
         Box(
@@ -191,20 +193,24 @@ object InventoryDisplay {
                     invItem(items[index], draggedIndex, overIndex, index, items, itemCoordinates, inv)
                 }
             }
+
+
         }
     }
 
-    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     fun invItem(item: Item, draggedIndex: MutableState<Int?>, overIndex: MutableState<Int?>, index: Int, items: SnapshotStateList<Item>, itemCoordinates: SnapshotStateMap<Int, LayoutCoordinates>, inv: Inventory) {
-        val isBeingDragged = draggedIndex.value == index
         val localCoordinates = remember { mutableStateOf<LayoutCoordinates?>(null) }
+        val isDragged = overIndex.value == index
+
+        val targetColor = if (overIndex.value == index) Color.Yellow else Color.Green
+        val animatedColor by animateColorAsState(targetColor, label = "BackgroundColor")
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Green)
                 .aspectRatio(1f)
+                .background(animatedColor)
                 .onGloballyPositioned { coords ->
                     localCoordinates.value = coords
                     itemCoordinates[index] = coords
@@ -213,30 +219,17 @@ object InventoryDisplay {
                 .pointerInput(Unit) {
                     detectDragGestures(
                         onDragStart = {
-                            println("onDragStart")
                             draggedIndex.value = index
+                            if(draggedIndex != null) {
+                                inv.items.removeAt(draggedIndex.value!!)
+                                items.removeAt(draggedIndex.value!!)
+                            }
                         },
                         onDragEnd = {
-                            println("onDragEnd")
-                            val from = draggedIndex.value
-                            val to = overIndex.value
-                            println("onDragEnd from $from to $to")
-
-                            //changing item index
-                            if (from != null && to != null && from != to) {
-                                println("changing index to " + to)
-                                items.removeAt(from)
-                                items.add(to, item)
-
-                                //in inventory object
-                                inv.items.removeAt(from)
-                                inv.items.add(to, item)
-                            }
                             draggedIndex.value = null
                             overIndex.value = null
                         },
                         onDragCancel = {
-                            println("onDragCancel")
                             draggedIndex.value = null
                             overIndex.value = null
                         },
@@ -253,8 +246,17 @@ object InventoryDisplay {
                                     hit
                                 }?.key
 
-                                if (hitIndex != null && hitIndex != draggedIndex.value) {
+                                if (hitIndex != null && items.indexOf(item) != hitIndex) {
                                     overIndex.value = hitIndex
+                                    println("changing index to " + overIndex.value!!)
+
+                                    items.remove(item)
+                                    inv.items.remove(item)
+
+                                    items.add(overIndex.value!!, item)
+
+                                    //in inventory object
+                                    inv.items.add(overIndex.value!!, item)
                                 }
                             }
 
