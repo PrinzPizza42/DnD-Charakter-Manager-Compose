@@ -1,5 +1,6 @@
 package Main;
 
+import androidx.compose.runtime.MutableState;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import Main.ItemClasses.Consumable;
 import Main.ItemClasses.Item;
