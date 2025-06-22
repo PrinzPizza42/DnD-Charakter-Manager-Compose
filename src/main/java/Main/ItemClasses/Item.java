@@ -32,6 +32,15 @@ public class Item {
     protected String iconName = "Log of Wood.png";
     @JsonIgnore
     private UUID uuid;
+    private Boolean isEquipped = false;
+
+    public Boolean getEquipped() {
+        return isEquipped;
+    }
+
+    public void setEquipped(Boolean equipped) {
+        isEquipped = equipped;
+    }
 
     public String getName() {
         return name;

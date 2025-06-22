@@ -2,7 +2,6 @@ package main
 
 import Data.Read
 import Main.Inventory
-import Main.ItemClasses.EmptySlot
 import Main.ItemClasses.Item
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Box
@@ -31,6 +30,8 @@ fun App() {
 
     val refreshTrigger = remember { mutableStateOf(0) }
 
+    val showSortedInv = remember { mutableStateOf(false) }
+
     Box(Modifier.fillMaxSize()) {
         Row(Modifier
             .fillMaxSize()
@@ -41,13 +42,13 @@ fun App() {
             val triggerValue = refreshTrigger.value
 
             if(selectedInventory.value != null) {
-                displayInv(selectedInventory as MutableState<Inventory>, modifier, showItemDisplay, itemDisplayItem, refreshTrigger)
+                displayInv(selectedInventory as MutableState<Inventory>, modifier, showItemDisplay, itemDisplayItem, refreshTrigger, showSortedInv)
+                scrollDisplay(modifier)
             }
             else {
                 displayEmptyDisplay(modifier)
             }
 
-            scrollDisplay(modifier)
 
 
         }
