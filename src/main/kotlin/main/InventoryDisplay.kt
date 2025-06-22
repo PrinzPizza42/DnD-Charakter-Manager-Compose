@@ -2,18 +2,17 @@ package main
 
 import Main.Inventory
 import Main.ItemClasses.Consumable
+import Main.ItemClasses.EmptySlot
 import Main.ItemClasses.Item
 import Main.ItemClasses.Miscellaneous
 import Main.ItemClasses.Potion
 import Main.ItemClasses.Weapons.ShortRangeWeapon
 import Main.ItemClasses.Weapons.Weapon
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.onClick
 import androidx.compose.material.Button
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Text
@@ -21,21 +20,25 @@ import androidx.compose.material.TextField
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
+import java.util.UUID
 
 object InventoryDisplay {
-    var removedItemsCount: Int = 0
-    var addedItemsCount: Int = 0
 
     @Composable
     fun displayEmptyDisplay(modifier: Modifier) {
@@ -49,18 +52,17 @@ object InventoryDisplay {
     }
 
     @Composable
-    fun displayInv(inv: Inventory, modifier: Modifier, showItemDisplay: MutableState<Boolean>, itemDisplayItem: MutableState<Item?>, refreshTrigger: MutableState<Int>) {
+    fun displayInv(inv: MutableState<Inventory>, modifier: Modifier, showItemDisplay: MutableState<Boolean>, itemDisplayItem: MutableState<Item?>, refreshTrigger: MutableState<Int>) {
         //TODO set opened backpack image as background here (maybe split in three pieces so it does not stretch when the width changes?)
         //TODO set randomly selected scenery behind backpack
         val int = refreshTrigger.value
-
 
         Box(modifier.fillMaxHeight()) {
             Column (modifier
                 .fillMaxHeight()
             ) {
                 sceneryAndBackPackTop(showItemDisplay)
-                backPack(inv, refreshTrigger)
+                backPack(inv, refreshTrigger, showItemDisplay, itemDisplayItem)
             }
         }
     }
@@ -171,6 +173,8 @@ object InventoryDisplay {
         var selectedClass by remember { mutableStateOf(classes[0]) }
         val hasSelected = remember { mutableStateOf(false) }
 
+        val int = refreshTrigger.value
+
         //InvDisplay overlay
         Box(
             Modifier
@@ -207,8 +211,10 @@ object InventoryDisplay {
 
                     }
 
-                    Box() {
-
+                    Box(
+                        Modifier
+                            .weight(1f)
+                    ) {
                     }
                 }
 
@@ -251,7 +257,6 @@ object InventoryDisplay {
                                                     }
                                                     selectedInventory.value?.items?.add(0, itemDisplayItem.value!!)
 
-                                                    selectedInventory.value = selectedInventory.value
                                                     refreshTrigger.value++
                                                 }
                                             )
@@ -422,132 +427,343 @@ object InventoryDisplay {
         }
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    fun backPack(inv: Inventory, refreshTrigger: MutableState<Int>) {
-        val draggedIndex = remember { mutableStateOf<Int?>(null) }
+    fun backPack(
+        inv: MutableState<Inventory>,
+        refreshTrigger: MutableState<Int>,
+        showItemDisplay: MutableState<Boolean>,
+        itemDisplayItem: MutableState<Item?>
+    ) {
+        var mousePosition by remember { mutableStateOf(Offset.Zero) }
         val overIndex = remember { mutableStateOf<Int?>(null) }
-        val items = remember { mutableStateListOf<Item>() }
-        items.clear()
-        items.addAll(inv.items)
-        println("loaded different inv " + inv.name)
-        val itemCoordinates = remember { mutableStateMapOf<Int, LayoutCoordinates>() }
+        val hitItem = remember { mutableStateOf<Item?>(null) }
+        val draggedIndex = remember { mutableStateOf<Int?>(null) }
+        val draggedItem = remember { mutableStateOf<Item?>(null) }
+        val itemCoordinates = remember { mutableStateMapOf<UUID, LayoutCoordinates>() }
+        val boxCoords  = remember { mutableStateOf<LayoutCoordinates?>(null) }
 
-        val int = refreshTrigger.value
+        val totalSlots = 30
+        val itemSize = 100.dp
 
-        //Background
-        Box(
+        val items = remember(inv.value, refreshTrigger.value) {
+            mutableStateListOf<Item?>().apply {
+                addAll(inv.value.items.take(totalSlots))
+                repeat(totalSlots - size) {
+                    add(EmptySlot())
+                }
+            }
+        }
+
+        BoxWithConstraints(
             Modifier
                 .fillMaxSize()
+                .onGloballyPositioned { coords ->
+                    boxCoords.value = coords
+                }
+                .pointerMoveFilter(
+                    onMove = {
+                        mousePosition = it
+                        false
+                    }
+                )
         ) {
-            Box(
-                Modifier
-                    .zIndex(1f)
-                    .fillMaxSize()
-            ) {
+            val columns = (maxWidth / itemSize).toInt()
+            val rows = totalSlots / columns
+            Column(modifier = Modifier.fillMaxWidth()) {
+                for (row in 0 until rows) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        for (col in 0 until columns) {
+                            val index = row * columns + col
+                            val item: Item? = items[index]
 
-            }
-            //Foreground
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 100.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
-                    .background(Color.Red)
-                    .zIndex(2f),
-                contentPadding = PaddingValues(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                items(items.size) { index ->
-                    invItem(items[index], draggedIndex, overIndex, index, items, itemCoordinates, inv, refreshTrigger)
+                            Box(
+                                modifier = Modifier
+                                    .size(itemSize)
+//                                    .background(Color.Gray.copy(alpha = 0.1f))
+                            ) {
+                                if (item != null) {
+                                    invItem(
+                                        item = item,
+                                        index = index,
+                                        items = items,
+                                        draggedItem = draggedItem,
+                                        draggedIndex = draggedIndex,
+                                        overIndex = overIndex,
+                                        itemCoordinates = itemCoordinates,
+                                        inv = inv,
+                                        refreshTrigger = refreshTrigger,
+                                        mousePosition = mousePosition,
+                                        boxCoords = boxCoords,
+                                        hitItem = hitItem,
+                                        showItemDisplay = showItemDisplay,
+                                        itemDisplayItem = itemDisplayItem
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
     @Composable
-    fun invItem(item: Item, draggedIndex: MutableState<Int?>, overIndex: MutableState<Int?>, index: Int, items: SnapshotStateList<Item>, itemCoordinates: SnapshotStateMap<Int, LayoutCoordinates>, inv: Inventory, refreshTrigger: MutableState<Int>) {
-        val localCoordinates = remember { mutableStateOf<LayoutCoordinates?>(null) }
-        val targetColor = if (overIndex.value == index) Color.Yellow else Color.Green
-        val animatedColor by animateColorAsState(targetColor, label = "BackgroundColor")
-        val int = refreshTrigger.value
-        val draggedItem = remember { mutableStateOf<Item?>(null) }
+    fun invItem(
+        item: Item,
+        index: Int,
+        items: SnapshotStateList<Item?>,
+        draggedItem: MutableState<Item?>,
+        draggedIndex: MutableState<Int?>,
+        overIndex: MutableState<Int?>,
+        itemCoordinates: MutableMap<UUID, LayoutCoordinates>,
+        inv: MutableState<Inventory>,
+        refreshTrigger: MutableState<Int>,
+        mousePosition: Offset,
+        boxCoords: MutableState<LayoutCoordinates?>,
+        hitItem: MutableState<Item?>,
+        showItemDisplay: MutableState<Boolean>,
+        itemDisplayItem: MutableState<Item?>
+    ) {
+        val backGroundColor = remember { mutableStateOf(Color.LightGray) }
+        val positionRelativeToBox = remember { mutableStateOf<Offset?>(null) }
+        val localCoordinates = mutableStateOf<LayoutCoordinates?>(null)
+        val size = remember { mutableStateOf<Size?>(null) }
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .aspectRatio(1f)
-                .background(animatedColor)
+                .padding(2.dp)
                 .onGloballyPositioned { coords ->
                     localCoordinates.value = coords
-                    itemCoordinates[index] = coords
+                    val cachedCoords = coords.localPositionOf(boxCoords.value!!, Offset.Zero)
+                    positionRelativeToBox.value = Offset(cachedCoords.x * -1, cachedCoords.y * -1)
+                    size.value = coords.size.toSize()
+                    itemCoordinates[item.uuid] = coords
+                    if(Rect(positionRelativeToBox.value!!, size.value!!).contains(mousePosition) && item != hitItem.value) {
+                        backGroundColor.value = Color.Red
+                    }
+                    else if(item == hitItem.value) {
+                        backGroundColor.value = Color.Blue
+                    }
+                    else backGroundColor.value = Color.LightGray
                 }
+                .background(backGroundColor.value)
                 .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = {
-                            draggedItem.value = item
-                            println("Set draggedItem " + draggedItem.value!!.name)
-                        },
-                        onDragEnd = {
-                            draggedIndex.value = null
-                            overIndex.value = null
-                        },
-                        onDragCancel = {
-                            draggedIndex.value = null
-                            overIndex.value = null
-                        },
-                        onDrag = { change, _ ->
-                            change.consume()
-
-                            val localPos = change.position // relativ to Composable
-                            val absolutePos = localCoordinates.value?.localToRoot(localPos) // absolut im Root
-
-                            if(absolutePos != null) {
-                                val hitIndex = runCatching {
-                                    itemCoordinates.entries.find { (_, coords) ->
-                                        coords.isAttached && coords.boundsInRoot().contains(absolutePos)
-                                    }?.key
-                                }.getOrNull()
-
-                                if (hitIndex != null && items.indexOf(item) != hitIndex) {
-                                    val dragged = draggedItem.value ?: return@detectDragGestures
-                                    items.remove(dragged)
-                                    items.add(hitIndex, dragged)
-
-                                }
-                            }
-                        }
-                    )
+                    detectTapGestures( onTap = {
+                        refreshTrigger.value++
+                        itemDisplayItem.value = item
+                        showItemDisplay.value = true
+                    })
                 }
-        )
-        {
-            Column(
-                Modifier
-                    .fillMaxSize()
-            ) {
-                //Name
-                Text(
-                    item.name,
+//                .pointerInput(Unit) {
+//                    detectDragGestures(
+//                        onDragStart = {
+//                            if(item !is EmptySlot) {
+//                                draggedItem.value = item
+//                                draggedIndex.value = index
+//                                println("Drag started at " + draggedIndex.value)
+//                            }
+//                        },
+//                        onDragEnd = {
+//                            if(item !is EmptySlot) {
+//                                println("Drag ended at " + overIndex.value)
+//                                if(overIndex.value != null) {
+//                                    val target = overIndex.value
+//                                    if (target != null && target != index && target in 0..30 && hitItem.value != null && draggedItem.value != null && draggedItem.value !is EmptySlot && target < items.size) {
+//                                        items[target] = draggedItem.value
+//                                        items[index] = hitItem.value
+//                                        println("Item " + draggedItem.value!!.name + " was moved from index " + index + " to " + target)
+//                                        inv.value.items[target] = draggedItem.value
+//                                        inv.value.items[index] = hitItem.value
+//
+//                                        inv.value = inv.value.copy()
+//                                        refreshTrigger.value++
+//                                    }
+//                                    draggedItem.value = null
+//                                    draggedIndex.value = null
+//                                    overIndex.value = null
+//                                    draggedItem.value = null
+//                                    hitItem.value = null
+//                                }
+//                                else println("Drag ended at invalid target")
+//                            }
+//                        },
+//                        onDragCancel = {
+//                            //TODO reset item to draggedIndex
+//                            println("Drag cancelled")
+//                            draggedItem.value = null
+//                            draggedIndex.value = null
+//                            overIndex.value = null
+//                            draggedItem.value = null
+//                        },
+//                        onDrag = { change, _ ->
+//                            if(item !is EmptySlot) {
+//                                change.consume()
+//
+//                                val localPos = change.position // relative to Composable
+//                                val absolutePos = localCoordinates.value?.localToRoot(localPos) // absolute in Root
+//
+//                                if(absolutePos != null && boxCoords != null) {
+//                                    val hitUUID = itemCoordinates.entries.find { (_, coords) ->
+//                                        coords.isAttached && coords.boundsInRoot().contains(absolutePos)
+//                                    }?.key
+//
+//                                    try {
+//                                        val potentialItem = items.find { it!!.uuid == hitUUID }
+//
+//                                        if(potentialItem != null) {
+//                                            hitItem.value = potentialItem
+//                                            if (hitItem != null && item != hitItem) {
+//                                                overIndex.value = items.indexOf(hitItem.value)
+//                                            }
+//                                            else overIndex.value = null
+//                                        }
+//                                        else overIndex.value = null
+//                                    }
+//                                    catch (e: NullPointerException) {
+//                                        println("NPM with key " + hitUUID.toString())
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    )
+//                }
+        ) {
+            if(item !is EmptySlot) {
+                Column(
                     Modifier
-                        .fillMaxWidth()
-                        .weight(5f)
-                )
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+                        .fillMaxSize()
                 ) {
-                    //Filler
-                    Box(
-                        Modifier.weight(4f)
-                    ) {}
-                    //Amount
+                    //Name
                     Text(
-                        item.amount.toString(),
-                        Modifier.weight(1f)
+                        item.name,
+                        Modifier
+                            .fillMaxWidth()
+                            .weight(5f)
                     )
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        //Filler
+                        Box(
+                            Modifier.weight(4f)
+                        ) {}
+                        //Amount
+                        Text(
+                            item.amount.toString(),
+                            Modifier.weight(1f)
+                        )
+                    }
                 }
             }
         }
     }
+
+//    @Composable
+//    fun invItem(item: Item, draggedIndex: MutableState<Int?>, draggedItem: MutableState<Item?>, overIndex: MutableState<Int?>, index: Int, items: SnapshotStateList<Item?>, itemCoordinates: SnapshotStateMap<UUID, LayoutCoordinates>, inv: MutableState<Inventory>, refreshTrigger: MutableState<Int>) {
+//        val localCoordinates = remember { mutableStateOf<LayoutCoordinates?>(null) }
+//        val targetColor = if (overIndex.value == index) Color.Yellow else Color.Green
+//        val animatedColor by animateColorAsState(targetColor, label = "BackgroundColor")
+//        val int = refreshTrigger.value
+//        val inventory = inv.value
+//
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .aspectRatio(1f)
+//                .background(animatedColor)
+//                .onGloballyPositioned { coords ->
+//                    localCoordinates.value = coords
+//                    itemCoordinates[item.uuid] = coords
+//                }
+//                .pointerInput(Unit) {
+//                    detectDragGestures(
+//                        onDragStart = {
+//                            draggedItem.value = item
+//                            overIndex.value = items.indexOf(item)
+//                            println("Set draggedItem " + draggedItem.value!!.name)
+//                        },
+//                        onDragEnd = {
+//                            draggedIndex.value = null
+//                            overIndex.value = null
+//                            draggedItem.value = null
+//                        },
+//                        onDragCancel = {
+//                            draggedIndex.value = null
+//                            overIndex.value = null
+//                            draggedItem.value = null
+//                        },
+//                        onDrag = { change, _ ->
+//                            change.consume()
+//
+//                            val localPos = change.position // relative to Composable
+//                            val absolutePos = localCoordinates.value?.localToRoot(localPos) // absolute in Root
+//                            println("Absolute pos of item " + item.name + ": $absolutePos")
+//
+//                            if(absolutePos != null) {
+//                                val hitKey = itemCoordinates.entries.find { (_, coords) ->
+//                                    coords.isAttached && coords.boundsInRoot().contains(absolutePos)
+//                                }?.key
+//
+//                                val hitItem = items.find { it!!.uuid == hitKey }
+//
+//                                if (hitItem != null && item != hitItem) {
+//                                    overIndex.value = items.indexOf(hitItem)
+//                                    val previousIndex = items.indexOf(draggedItem.value)
+//                                    val aimedIndex = items.indexOf(hitItem)
+//                                    val dragged = draggedItem.value ?: return@detectDragGestures
+//                                    println("Dragged " + dragged.name + " to " + hitItem.name)
+//                                    println("Changed index of " + dragged.name + " from " + previousIndex + " to " + aimedIndex)
+//                                    println("ItemsList before:")
+//                                    items.forEach { item ->
+//                                        println("   ${items.indexOf(item)}. ${item.name} ")
+//                                    }
+//                                    items.remove(dragged)
+//                                    items.add(aimedIndex, dragged)
+//                                    println("ItemsList after:")
+//                                    items.forEach { item ->
+//                                        println("   ${items.indexOf(item)}. ${item.name} ")
+//                                    }
+//                                    inv.value.items.clear()
+//                                    inv.value.items.addAll(items)
+//                                    refreshTrigger.value++
+//                                }
+//                            }
+//                        }
+//                    )
+//                }
+//        )
+//        {
+//            Column(
+//                Modifier
+//                    .fillMaxSize()
+//            ) {
+//                //Name
+//                Text(
+//                    item.name,
+//                    Modifier
+//                        .fillMaxWidth()
+//                        .weight(5f)
+//                )
+//                Row(
+//                    Modifier
+//                        .fillMaxWidth()
+//                        .weight(1f)
+//                ) {
+//                    //Filler
+//                    Box(
+//                        Modifier.weight(4f)
+//                    ) {}
+//                    //Amount
+//                    Text(
+//                        item.amount.toString(),
+//                        Modifier.weight(1f)
+//                    )
+//                }
+//            }
+//        }
+//    }
 }

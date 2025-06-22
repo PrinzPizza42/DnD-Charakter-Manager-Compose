@@ -2,6 +2,7 @@ package main
 
 import Data.Read
 import Main.Inventory
+import Main.ItemClasses.EmptySlot
 import Main.ItemClasses.Item
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Box
@@ -37,8 +38,10 @@ fun App() {
             sidebar(selectedInventory = selectedInventory)
             val modifier = Modifier.weight(1f)
 
+            val triggerValue = refreshTrigger.value
+
             if(selectedInventory.value != null) {
-                displayInv(selectedInventory.value!!, modifier, showItemDisplay, itemDisplayItem, refreshTrigger)
+                displayInv(selectedInventory as MutableState<Inventory>, modifier, showItemDisplay, itemDisplayItem, refreshTrigger)
             }
             else {
                 displayEmptyDisplay(modifier)

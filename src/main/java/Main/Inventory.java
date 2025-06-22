@@ -8,13 +8,23 @@ import Main.ItemClasses.Miscellaneous;
 import Main.ItemClasses.Weapons.Weapon;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.UUID;
 
 public class Inventory {
     private ArrayList<Item> items = new ArrayList<>();
     private String name = "Inventory";
+    @JsonIgnore
+    public UUID uuid = UUID.randomUUID();
 
     public Inventory(String name) {
         this.name = name;
+    }
+
+    public Inventory(String name, UUID uuid, ArrayList<Item> items) {
+        this.name = name;
+        this.uuid = uuid;
+        this.items = items;
     }
 
     public Inventory() {}
@@ -38,7 +48,7 @@ public class Inventory {
 
     @JsonIgnore
     public void removeItem(Item item) {
-        if(items.contains(item)) items.remove(item);
+        items.remove(item);
     }
 
     @JsonIgnore
@@ -96,5 +106,13 @@ public class Inventory {
         if(!items.contains(item)) return;
         items.remove(item);
         items.add(place, item);
+    }
+
+    @JsonIgnore
+    public Inventory copy() {
+        return new Inventory(
+                this.name,
+                this.uuid,
+                this.items);
     }
 }

@@ -2,6 +2,7 @@ package main
 
 import Data.Write
 import Main.Inventory
+import Main.ItemClasses.Item
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -150,8 +151,9 @@ object Sidebar {
             ) {
                 Button(
                     onClick = {
-                        println("opening inv " + inv.getName()) //TODO implement
+                        println("opening inv " + inv.name)
                         selectedInventory.value = inv
+                        inv.items.forEach { item -> println(item.name + " : " + item.uuid) }
                     },
                     content = {
                         Text(inv.getName())
