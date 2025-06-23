@@ -2,7 +2,6 @@ package main
 
 import Data.Write
 import Main.Inventory
-import Main.ItemClasses.Item
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,6 +18,9 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.platform.LocalFocusManager
@@ -26,38 +28,31 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import main.InventoryDisplay.displayInv
+import main.InvSelector.inventoryMutableList
 
-object Sidebar {
-    var openBoolean = true
+object InvSelector {
     lateinit var inventoryMutableList: SnapshotStateList<Inventory>
 
     @Composable
-    fun sidebar(selectedInventory: MutableState<Inventory?>) {
+    fun inventorySelector(selectedInventory: MutableState<Inventory?>, open: MutableState<Boolean>) {
         val inventories = remember { inventoryMutableList }
 
-        var open by remember { mutableStateOf(true) }
-        openBoolean = open
-        Column(
-            if(open) {
+        Box(Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.Center)
+        ) {
+            Column(
                 Modifier
                     .width(300.dp)
                     .background(LightGray)
                     .fillMaxHeight()
-            } else {
-                Modifier.width(50.dp)
-                    .background(LightGray)
-                    .fillMaxHeight()
-            }
-        ) {
-            sidebarToggle(open = open, onToggle = { open = !open })
-            if(open) {
-                sidebarCreate(inventories)
+            ) {
+                createInv(inventories)
 
-                Column (
+                Column(
                     Modifier
                         .weight(1f)
-                ){
+                ) {
                     addSidebarItems(inventories, selectedInventory)
                 }
             }
@@ -65,30 +60,12 @@ object Sidebar {
     }
 
     @Composable
-    fun sidebarToggle(open: Boolean, onToggle: () -> Unit) {
-        Button(
-            onClick = {
-                onToggle()
-            },
-            content = {
-                if (open) {
-                    Text("<")
-                } else {
-                    Text(">")
-                }
-            },
-            modifier = Modifier
-                .width(50.dp),
-        )
-    }
-
-    @Composable
-    fun sidebarCreate(inventories: SnapshotStateList<Inventory>) {
+    fun createInv(inventories: SnapshotStateList<Inventory>) {
         val focusManager = LocalFocusManager.current
 
-        Column (modifier = Modifier
-            .width(300.dp)
-            .background(Transparent)
+        Column(
+            modifier = Modifier
+                .width(500.dp)
         ) {
             val input = remember { mutableStateOf(TextFieldValue()) }
             TextField(
@@ -127,9 +104,11 @@ object Sidebar {
                 .fillMaxHeight()
         ) {
             items(inventories) { inv ->
-                Divider(Modifier
-                    .fillMaxWidth()
-                    .height(8.dp))
+                Divider(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                )
 
                 sidebarItem(inv, inventories, selectedInventory)
             }
@@ -137,17 +116,23 @@ object Sidebar {
     }
 
     @Composable
-    fun sidebarItem(inv: Inventory, inventories: SnapshotStateList<Inventory>, selectedInventory: MutableState<Inventory?>) {
+    fun sidebarItem(
+        inv: Inventory,
+        inventories: SnapshotStateList<Inventory>,
+        selectedInventory: MutableState<Inventory?>
+    ) {
         var showDelete by remember { mutableStateOf(false) }
 
-        Box(Modifier
-            .fillMaxWidth()
-            .width(100.dp)
-        ) {
-            Row(Modifier
-                .height(100.dp)
+        Box(
+            Modifier
                 .fillMaxWidth()
-                .zIndex(0f)
+        ) {
+            //Inv display
+            Row(
+                Modifier
+                    .height(100.dp)
+                    .fillMaxWidth()
+                    .zIndex(0f)
             ) {
                 Button(
                     onClick = {
@@ -156,62 +141,63 @@ object Sidebar {
                         inv.items.forEach { item -> println(item.name + " : " + item.uuid) }
                     },
                     content = {
-                        Text(inv.getName())
+                        Text(inv.name)
                     },
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
+                        .fillMaxSize()
                 )
-                Column() {
-                    Button(
-                        onClick = {
-                            println("saving inv " + inv.getName())
-                            Write.safe(inv)
-                        },
-                        content = {
-                            Text("save")
-                        },
-                        modifier = Modifier
-                            .width(50.dp)
-                            .height(50.dp)
-                    )
-                    Button(
-                        onClick = {
-                            showDelete = true
-                        },
-                        content = {
-                            Text("del")
-                        },
-                        modifier = Modifier
-                            .width(50.dp)
-                            .height(50.dp)
-                    )
-                }
             }
-            if(showDelete) {
+
+            // Delete Button
+            Row(Modifier
+                .fillMaxSize()
+                .zIndex(1f)
+            ) {
                 Box(Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                )
+                Button(
+                    onClick = {
+                        showDelete = true
+                    },
+                    content = {
+                        Text("X")
+                    },
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .height(40.dp)
+                        .width(40.dp)
+                )
+            }
+            if (showDelete) {
+                Box(
+                    Modifier
                     .fillMaxSize()
-                    .zIndex(1f)
+                    .zIndex(2f)
                     .background(androidx.compose.ui.graphics.Color.White.copy(alpha = 0.5f))
                     .clickable(
-                        onClick = {showDelete = false},
+                        onClick = { showDelete = false },
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
                     )
                 ) {
-                    Column (Modifier
-                        .fillMaxSize()
+                    Column(
+                        Modifier
+                            .fillMaxSize()
                     ) {
-                        Box(Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
                         ) {
-                            Text("Willst du " + inv.getName() + " wirklich löschen?", Modifier.align(Alignment.Center))
+                            Text("Willst du " + inv.name + " wirklich löschen?", Modifier.align(Alignment.Center))
                         }
 
-                        Row (Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
                         ) {
                             Button(
                                 onClick = {

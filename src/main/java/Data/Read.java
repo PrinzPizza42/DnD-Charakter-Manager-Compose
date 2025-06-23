@@ -3,13 +3,11 @@ package Data;
 import Main.Inventory;
 import Main.Main;
 import androidx.compose.runtime.snapshots.SnapshotStateList;
-import main.Sidebar;
+import main.InvSelector;
 
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Read {
     private static final Read instance = new Read();
@@ -41,7 +39,7 @@ public class Read {
                     System.err.println("Fehler beim Laden von Datei " + path.getFileName() + ": " + e.getMessage());
                 }
             }
-            Sidebar.INSTANCE.setInventoryMutableList(preInvs);
+            InvSelector.INSTANCE.setInventoryMutableList(preInvs);
         } catch (Exception e) {
             System.err.println("Konnte Verzeichnis nicht lesen: " + e.getMessage());
         }

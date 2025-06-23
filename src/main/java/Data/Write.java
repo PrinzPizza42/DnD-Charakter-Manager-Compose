@@ -3,7 +3,7 @@ package Data;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import Main.Inventory;
 import Main.Main;
-import main.Sidebar;
+import main.InvSelector;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -33,7 +33,7 @@ public class Write {
     private static void saveInJSON() {
         System.out.println("in JSON");
         ObjectMapper mapper = JsonUtil.getMapper();
-        for(Inventory inv : Sidebar.INSTANCE.getInventoryMutableList()) {
+        for(Inventory inv : InvSelector.INSTANCE.getInventoryMutableList()) {
             safeInJSON(mapper, inv);
         }
     }
