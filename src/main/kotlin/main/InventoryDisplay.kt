@@ -451,8 +451,6 @@ object InventoryDisplay {
         itemDisplayItem: MutableState<Item?>,
         showSortedInv: MutableState<Boolean>
     ) {
-        var mousePosition by remember { mutableStateOf(Offset.Zero) }
-        val itemCoordinates = remember { mutableStateMapOf<UUID, LayoutCoordinates>() }
         val boxCoords  = remember { mutableStateOf<LayoutCoordinates?>(null) }
 
         val totalSlots = 30
@@ -486,12 +484,6 @@ object InventoryDisplay {
                 .onGloballyPositioned { coords ->
                     boxCoords.value = coords
                 }
-                .pointerMoveFilter(
-                    onMove = {
-                        mousePosition = it
-                        false
-                    }
-                )
         ) {
             val columns = (maxWidth / itemSize).toInt()
             val rows = totalSlots / columns
@@ -509,10 +501,7 @@ object InventoryDisplay {
                                 if (item != null) {
                                     invItem(
                                         item = item,
-                                        itemCoordinates = itemCoordinates,
                                         refreshTrigger = refreshTrigger,
-                                        mousePosition = mousePosition,
-                                        boxCoords = boxCoords,
                                         showItemDisplay = showItemDisplay,
                                         itemDisplayItem = itemDisplayItem
                                     )
@@ -529,19 +518,13 @@ object InventoryDisplay {
     @Composable
     fun invItem(
         item: Item,
-        itemCoordinates: MutableMap<UUID, LayoutCoordinates>,
         refreshTrigger: MutableState<Int>,
-        mousePosition: Offset,
-        boxCoords: MutableState<LayoutCoordinates?>,
         showItemDisplay: MutableState<Boolean>,
         itemDisplayItem: MutableState<Item?>
     ) {
         val backGroundColor = remember { mutableStateOf(Color.LightGray) }
         val boxShape = remember(item.equipped) { mutableStateOf(if(!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
         val borderColor = remember(item.equipped) { mutableStateOf(if(!item.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f))}
-        val positionRelativeToBox = remember { mutableStateOf<Offset?>(null) }
-        val localCoordinates = mutableStateOf<LayoutCoordinates?>(null)
-        val size = remember { mutableStateOf<Size?>(null) }
         var isHovered by remember { mutableStateOf(false) }
         val scale by animateFloatAsState(
             targetValue = if (isHovered) 1.08f else 1f,

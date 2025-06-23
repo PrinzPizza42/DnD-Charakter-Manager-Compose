@@ -18,45 +18,49 @@ import main.InventoryDisplay.displayEmptyDisplay
 import main.InventoryDisplay.displayInv
 import main.InventoryDisplay.showItemDisplayStructure
 import main.ScrollDisplay.scrollDisplay
-import main.Sidebar.sidebar
+import main.InvSelector.inventorySelector
+import main.TabSelector.displayTabSelector
 
 @Composable
 @Preview
 fun App() {
-    val selectedInventory = remember { mutableStateOf<Inventory?>(null) }
-
     val showItemDisplay = remember { mutableStateOf(false) }
     val itemDisplayItem = remember { mutableStateOf<Item?>(null) }
 
     val refreshTrigger = remember { mutableStateOf(0) }
+    val selectedInventory = remember { mutableStateOf<Inventory?>(null) }
+
+    val showInventory = remember { mutableStateOf(true) }
+    val showScrollPanel = remember { mutableStateOf(true) }
 
     val showSortedInv = remember { mutableStateOf(false) }
 
-    Box(Modifier.fillMaxSize()) {
-        Row(Modifier
-            .fillMaxSize()
-        ) {
-            sidebar(selectedInventory = selectedInventory)
-            val modifier = Modifier.weight(1f)
+    val showInvSelector = remember(refreshTrigger.value, selectedInventory.value) { mutableStateOf(selectedInventory.value == null) }
 
-            val triggerValue = refreshTrigger.value
+    if(showInvSelector.value) inventorySelector(selectedInventory, showInvSelector)
 
-            if(selectedInventory.value != null) {
-                displayInv(selectedInventory as MutableState<Inventory>, modifier, showItemDisplay, itemDisplayItem, refreshTrigger, showSortedInv)
-                scrollDisplay(modifier)
+    if(!showInvSelector.value) {
+        Box(Modifier.fillMaxSize()) {
+            Row(Modifier
+                .fillMaxSize()
+            ) {
+                val modifier = Modifier.weight(1f)
+
+                displayTabSelector(showInventory, showScrollPanel, selectedInventory)
+
+                if(selectedInventory.value != null && showInventory.value) {
+                    displayInv(selectedInventory as MutableState<Inventory>, modifier, showItemDisplay, itemDisplayItem, refreshTrigger, showSortedInv)
+                }
+
+                if(showScrollPanel.value) {
+                    scrollDisplay(modifier)
+                }
             }
-            else {
-                displayEmptyDisplay(modifier)
+            if (showItemDisplay.value) {
+                showItemDisplayStructure(itemDisplayItem, selectedInventory, showItemDisplay, refreshTrigger)
             }
-
-
-
-        }
-        if (showItemDisplay.value) {
-            showItemDisplayStructure(itemDisplayItem, selectedInventory, showItemDisplay, refreshTrigger)
         }
     }
-
 }
 
 fun main() = application {
