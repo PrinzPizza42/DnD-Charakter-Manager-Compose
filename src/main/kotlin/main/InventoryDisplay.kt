@@ -173,7 +173,7 @@ object InventoryDisplay {
                                 Text("+")
                             },
                             modifier = Modifier
-                                .weight(0.5f)
+                                .width(75.dp)
                                 .height(75.dp)
                         )
                     }

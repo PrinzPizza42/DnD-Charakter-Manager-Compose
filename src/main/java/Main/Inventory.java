@@ -13,6 +13,7 @@ import java.util.UUID;
 
 public class Inventory {
     private ArrayList<Item> items = new ArrayList<>();
+    private ArrayList<Spell> spells = new ArrayList<>();
     private String name = "Inventory";
     @JsonIgnore
     public UUID uuid = UUID.randomUUID();
@@ -37,9 +38,8 @@ public class Inventory {
         return items;
     }
 
-    @JsonIgnore
-    public int getLength() {
-        return items.size();
+    public ArrayList<Spell> getSpells() {
+        return spells;
     }
 
     public void addItem(Item item) {

@@ -3,6 +3,7 @@ package main
 import Data.Read
 import Main.Inventory
 import Main.ItemClasses.Item
+import Main.Spell
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -53,7 +54,14 @@ fun App() {
                 }
 
                 if(showScrollPanel.value) {
-                    scrollDisplay(modifier)
+                    //DEBUG TODO remove
+                    for (i: Int in 0..30) {
+                        val spell = Spell("name" + i, "beschreibung", 10)
+                        selectedInventory.value!!.spells.add(spell)
+                        println("added spell " + spell.name)
+                    }
+
+                    scrollDisplay(modifier, selectedInventory as MutableState<Inventory>, refreshTrigger)
                 }
             }
             if (showItemDisplay.value) {
