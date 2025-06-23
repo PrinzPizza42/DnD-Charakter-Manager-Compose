@@ -8,6 +8,7 @@ import Main.ItemClasses.Weapons.ShortRangeWeapon;
 import Main.ItemClasses.Weapons.Weapon;
 
 import javax.swing.*;
+import java.util.UUID;
 
 
 @JsonTypeInfo(
@@ -29,6 +30,17 @@ public class Item {
     private int valueInGold;
     private int amount;
     protected String iconName = "Log of Wood.png";
+    @JsonIgnore
+    private UUID uuid;
+    private Boolean isEquipped = false;
+
+    public Boolean getEquipped() {
+        return isEquipped;
+    }
+
+    public void setEquipped(Boolean equipped) {
+        isEquipped = equipped;
+    }
 
     public String getName() {
         return name;
@@ -70,6 +82,11 @@ public class Item {
         this.amount = amount;
     }
 
+    @JsonIgnore
+    public UUID getUuid() {
+        return uuid;
+    }
+
 //    public void setIcon(ImageIcon icon) {
 //        this.iconSrc = icon;
 //    }
@@ -89,7 +106,10 @@ public class Item {
         this.weight = weight;
         this.valueInGold = valueInGold;
         this.amount = amount;
+        this.uuid = UUID.randomUUID();
     }
 
-    public Item() {}
+    public Item() {
+        this.uuid = UUID.randomUUID();
+    }
 }
