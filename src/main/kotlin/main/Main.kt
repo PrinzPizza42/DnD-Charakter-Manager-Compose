@@ -54,15 +54,12 @@ fun App() {
                 }
 
                 if(showScrollPanel.value) {
-                    //DEBUG TODO remove
-                    for (i: Int in 0..30) {
-                        val spell = Spell("name" + i, "beschreibung", 10)
-                        selectedInventory.value!!.spells.add(spell)
-                        println("added spell " + spell.name)
-                    }
-
-                    scrollDisplay(modifier, selectedInventory as MutableState<Inventory>, refreshTrigger)
+                    scrollDisplay(modifier, selectedInventory.value!!, refreshTrigger, showScrollPanel)
                 }
+//                else if(reloadScrollPanel.value) {
+//                    showScrollPanel.value = true
+//                    reloadScrollPanel.value = false
+//                }
             }
             if (showItemDisplay.value) {
                 showItemDisplayStructure(itemDisplayItem, selectedInventory, showItemDisplay, refreshTrigger)

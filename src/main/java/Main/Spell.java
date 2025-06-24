@@ -1,9 +1,21 @@
 package Main;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.UUID;
+
 public class Spell {
     private String name;
     private String description;
     private int cost;
+    @JsonIgnore
+    private final UUID uuid = UUID.randomUUID();
+    private Boolean isTemplate = false;
+
+    @JsonIgnore
+    public UUID getUuid() {
+        return uuid;
+    }
 
     public Spell() {}
 
@@ -11,6 +23,12 @@ public class Spell {
         this.name = name;
         this.description = description;
         this.cost = cost;
+
+        isTemplate = name.equalsIgnoreCase("Neuer Zauber (Vorlage)");
+    }
+
+    public Boolean isTemplate() {
+        return isTemplate;
     }
 
     public String getName() {
@@ -27,6 +45,7 @@ public class Spell {
 
     public void setName(String name) {
         this.name = name;
+        isTemplate = name.equalsIgnoreCase("Neuer Zauber (Vorlage)");
     }
 
     public void setDescription(String description) {
