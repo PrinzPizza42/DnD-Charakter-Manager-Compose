@@ -2,6 +2,7 @@ package main
 
 import Main.Inventory
 import Main.Spell
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +25,8 @@ import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.delay
+import kotlin.math.nextDown
 import kotlin.math.roundToInt
 
 object ScrollDisplay {
@@ -42,6 +45,9 @@ object ScrollDisplay {
 
         val reloadScrollPanel = remember { mutableStateOf(false) }
 
+        //null when no spell was tried to cast but could not be cast
+        val couldNotCast = remember { mutableStateOf<Int?>(null) }
+
         Row(modifier
             .fillMaxHeight()
             .wrapContentSize(Alignment.Center)
@@ -54,7 +60,7 @@ object ScrollDisplay {
                     .background(Color.Green)
             ) {
                 if(!reloadScrollPanel.value) {
-                    spellDisplay(refreshTrigger, inv, showScrollPanel, reloadScrollPanel, spells, spellLevels, spellLevelsCount)
+                    spellDisplay(refreshTrigger, inv, showScrollPanel, reloadScrollPanel, spells, spellLevels, spellLevelsCount, couldNotCast)
                 }
                 else {
                     reloadScrollPanel.value = false
@@ -66,7 +72,7 @@ object ScrollDisplay {
                 .fillMaxHeight()
                 .width(50.dp)
             ) {
-                manaSideBar(inv, spellLevels, spellLevelsCount)
+                manaSideBar(inv, spellLevels, spellLevelsCount, couldNotCast)
             }
         }
     }
@@ -79,7 +85,8 @@ object ScrollDisplay {
                      reloadScrollPanel: MutableState<Boolean>,
                      spells: SnapshotStateList<Spell>,
                      spellLevels: MutableList<Pair<Int, Int>>,
-                     spellLevelsCount: MutableState<Int>
+                     spellLevelsCount: MutableState<Int>,
+                     couldNotCast: MutableState<Int?>
     ) {
         val selectedSpell = remember(spells) { mutableStateOf<Spell?>(null) }
 
@@ -131,6 +138,8 @@ object ScrollDisplay {
                         ),
                     )
 
+                    var sliderValue by remember { mutableStateOf(1f) }
+
                     Box(
                         Modifier
                             .fillMaxWidth()
@@ -181,7 +190,19 @@ object ScrollDisplay {
                                 Button(
                                     onClick = {
                                         if(!inEditMode) {
-                                            println("Cast spell " + spell.name)
+                                            //TODO add effect or visual representation
+                                            val sliderValueRounded = sliderValue.roundToInt()
+                                            val oldPair = spellLevels[sliderValueRounded - 1]
+                                            val newPair = Pair(oldPair.first - 1, oldPair.second)
+                                            if(oldPair.first <= 0) {
+                                                println("Could not cast spell because level " + sliderValueRounded + " does not contain enough unused spell slots: " + oldPair)
+                                                couldNotCast.value = sliderValueRounded
+                                            }
+                                            else {
+                                                spellLevels[sliderValueRounded - 1] = newPair
+                                                inv.spellLevels[sliderValueRounded - 1] = newPair
+                                                println("Cast spell " + spell.name)
+                                            }
                                         }
                                         else {
                                             spells.remove(spell)
@@ -243,20 +264,21 @@ object ScrollDisplay {
                                 )
                             }
 
-                            var sliderValue by remember { mutableStateOf(0f) }
                             Text("Level: " + sliderValue.roundToInt(),
                                 Modifier
                                     .padding(20.dp, 0.dp, 0.dp, 0.dp)
                             )
 
+                            val steps: Int = if(spellLevelsCount.value - 2 > 0) spellLevelsCount.value - 2 else 0
+
                             Slider(
                                 value = sliderValue,
                                 onValueChange = {
-                                    sliderValue = it
-                                    println("Slider value changed to " + sliderValue)
+                                    sliderValue = if( steps == 0) it.roundToInt().toFloat()
+                                    else it
                                 },
-                                valueRange = 1f..if(spellLevelsCount.value > 0) spellLevelsCount.value.toFloat() else 1f,
-                                steps = if(spellLevelsCount.value / 2 > 0) spellLevelsCount.value / 2 else 1,
+                                valueRange = 1f..if(spellLevelsCount.value > 0f) spellLevelsCount.value.toFloat() else 1f,
+                                steps = steps,
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .weight(1f)
@@ -269,9 +291,7 @@ object ScrollDisplay {
     }
 
     @Composable
-    fun manaSideBar(inv: Inventory, spellLevels: MutableList<Pair<Int, Int>>, levels: MutableState<Int>) {
-
-
+    fun manaSideBar(inv: Inventory, spellLevels: MutableList<Pair<Int, Int>>, levels: MutableState<Int>, couldNotCast: MutableState<Int?>) {
         val scrollState = rememberScrollState()
 
         LaunchedEffect(Unit) {
@@ -290,7 +310,7 @@ object ScrollDisplay {
                     .verticalScroll(scrollState)
             ) {
                 spellLevels.forEachIndexed { level, (used, max) ->
-                    levelElement(level = level + 1, used = used, max = max, spellLevels, inv)
+                    levelElement(level = level + 1, used = used, max = max, spellLevels, inv, couldNotCast)
                 }
             }
             Column(
@@ -317,7 +337,7 @@ object ScrollDisplay {
                 )
                 Button(
                     onClick = {
-                        if(spellLevels.size > 0) {
+                        if(spellLevels.size > 1) {
                             spellLevels.removeLast()
                             inv.removeSpellSlot(spellLevels.size)
                             println("removed level")
@@ -348,9 +368,8 @@ object ScrollDisplay {
 
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    fun levelElement(level: Int, used: Int, max: Int, spellLevels: MutableList<Pair<Int, Int>>, inv: Inventory) {
+    fun levelElement(level: Int, used: Int, max: Int, spellLevels: MutableList<Pair<Int, Int>>, inv: Inventory, couldNotCast: MutableState<Int?>) {
         Column(modifier = Modifier.padding(8.dp)) {
-
             Text(level.toString(),
                 Modifier
                     .wrapContentSize(Alignment.Center)
@@ -374,15 +393,19 @@ object ScrollDisplay {
             Column {
                 repeat(max) { index ->
                     var isHovered by remember { mutableStateOf(false) }
-
                     val filled = index < used
+
+                    val backgroundColor by animateColorAsState(
+                        targetValue = if(couldNotCast.value == level) Color.Red else if(isHovered) Color.Yellow.copy(alpha = 0.5f) else if (filled) Color.Blue else Color.LightGray,
+                        animationSpec = tween(durationMillis = 300)
+                    )
+
                     Box(
                         Modifier
                             .size(20.dp)
                             .padding(2.dp)
                             .background(
-                                if(isHovered) Color.Yellow.copy(alpha = 0.5f)
-                                else if (filled) Color.Blue else Color.LightGray,
+                                backgroundColor,
                                 shape = CircleShape
                             )
                             .clip(CircleShape)
@@ -397,7 +420,6 @@ object ScrollDisplay {
                                 }
                             )
                             .clickable {
-                                println("Clicked Slot $index in Level $level")
                                 if(level -1 >= 0) {
                                     spellLevels[level - 1] = Pair(index + 1, max)
                                     inv.spellLevels[level - 1] = Pair(index + 1, max)
