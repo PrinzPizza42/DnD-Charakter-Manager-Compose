@@ -1,18 +1,18 @@
 package main
 
 import Main.Inventory
+import Main.ItemClasses.EmptySlot
 import Main.Spell
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -20,11 +20,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import org.jetbrains.skiko.Cursor
 import kotlin.math.roundToInt
 
 object ScrollDisplay {
@@ -96,7 +105,7 @@ object ScrollDisplay {
                 Modifier
                     .fillMaxWidth()
                     .height(75.dp)
-                    .background(Color.Red),
+                    .background(Color.White), //TODO change
                 contentAlignment = Alignment.Center
             ) {
                 Button(
@@ -125,7 +134,7 @@ object ScrollDisplay {
                 items(spells, key = { it.uuid}) { spell ->
 
                     //Spell Item
-                    val foregroundColor = if(spell.isTemplate) Color.Magenta else Color.Red
+                    val foregroundColor = if(spell.isTemplate) Color.Red else Color.White
                     val isHovered = selectedSpell.value == spell
                     var inEditMode by remember { mutableStateOf(false) }
                     val scale by animateFloatAsState(
@@ -163,7 +172,7 @@ object ScrollDisplay {
                                 .zIndex(0f)
                                 .fillMaxWidth()
                                 .height(scale.dp)
-                                .background(Color.Blue)
+                                .background(foregroundColor)
                         ) {
                             Row(
                                 Modifier
@@ -171,7 +180,7 @@ object ScrollDisplay {
                                     .padding(0.dp, 50.dp, 0.dp, 0.dp)
                             ) {
                                 val descInput = remember { mutableStateOf(TextFieldValue(spell.description)) }
-                                TextField(
+                                BasicTextField(
                                     value = descInput.value,
                                     onValueChange = {
                                         descInput.value = it
@@ -179,7 +188,7 @@ object ScrollDisplay {
                                     },
                                     modifier = Modifier
                                         .fillMaxHeight()
-                                        .padding(20.dp, 0.dp, 0.dp, 0.dp)
+                                        .padding(20.dp, 15.dp, 0.dp, 0.dp)
                                         .weight(1f),
                                     singleLine = true,
                                     readOnly = !inEditMode
@@ -248,7 +257,7 @@ object ScrollDisplay {
                                     .weight(1f)
                             ) {
                                 val nameInput = remember { mutableStateOf(TextFieldValue(spell.name)) }
-                                TextField(
+                                BasicTextField(
                                     value = nameInput.value,
                                     onValueChange = {
                                         nameInput.value = it
@@ -256,7 +265,7 @@ object ScrollDisplay {
                                     },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(20.dp, 0.dp, 0.dp, 0.dp),
+                                        .padding(20.dp, 15.dp, 0.dp, 0.dp),
                                     singleLine = true,
                                     readOnly = !inEditMode
                                 )
@@ -301,6 +310,7 @@ object ScrollDisplay {
         Column(
             Modifier
                 .fillMaxSize()
+                .background(Color.DarkGray)
         ) {
             Column(
                 Modifier
@@ -316,49 +326,67 @@ object ScrollDisplay {
                     .height(150.dp)
                     .fillMaxWidth()
             ) {
-                Button(
-                    onClick = {
-                        val newLevel = Pair(5, 5)
-                        spellLevels.addLast(newLevel)
-                        inv.addLastSpellSlot(newLevel)
-                        println("added level")
-                    },
-                    content = {
-                        Text("+")
-                    },
+                Text(
+                    text ="+",
                     modifier = Modifier
-                        .weight(1f)
-                )
-                Text(levels.value.toString(), Modifier
-                    .weight(1f)
-                    .wrapContentSize(Alignment.Center)
-                )
-                Button(
-                    onClick = {
-                        if(spellLevels.size > 1) {
-                            spellLevels.removeLast()
-                            inv.removeSpellSlot(spellLevels.size)
-                            println("removed level")
+                        .clickable {
+                            val newLevel = Pair(5, 5)
+                            spellLevels.addLast(newLevel)
+                            inv.addLastSpellSlot(newLevel)
+                            println("added level")
                         }
-                    },
-                    content = {
-                        Text("-")
-                    },
-                    modifier = Modifier
                         .weight(1f)
+                        .fillMaxWidth()
+                        .background(lerp(Color.DarkGray, Color.White, 0.3f))
+                        .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
+                        .wrapContentSize(Alignment.Center),
+                    textAlign = TextAlign.Center,
+                    fontSize = 15.sp
                 )
 
-                Button(
-                    onClick = {
-                        resetUsedSpellSlots(spellLevels)
-                        inv.resetUsedSpellSlots()
-                        println("reset used slots")
-                    },
-                    content = {
-                        Text("Reset")
-                    },
+                Text(levels.value.toString(), Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .background(lerp(Color.DarkGray, Color.White, 0.2f))
+                    .wrapContentSize(Alignment.Center),
+                    textAlign = TextAlign.Center,
+                    fontSize = 15.sp
+                )
+
+                Text(
+                    text ="-",
                     modifier = Modifier
+                        .clickable {
+                            if(spellLevels.size > 1) {
+                                spellLevels.removeLast()
+                                inv.removeSpellSlot(spellLevels.size)
+                                println("removed level")
+                            }
+                        }
                         .weight(1f)
+                        .fillMaxWidth()
+                        .background(lerp(Color.DarkGray, Color.White, 0.3f))
+                        .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
+                        .wrapContentSize(Alignment.Center),
+                    textAlign = TextAlign.Center,
+                    fontSize = 15.sp
+                )
+
+                Text(
+                    "Reset",
+                     Modifier
+                         .clickable {
+                             resetUsedSpellSlots(spellLevels)
+                             inv.resetUsedSpellSlots()
+                             println("reset used slots")
+                         }
+                         .weight(1f)
+                         .fillMaxWidth()
+                         .background(lerp(Color.DarkGray, Color.White, 0.3f))
+                         .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
+                         .wrapContentSize(Alignment.Center),
+                    textAlign = TextAlign.Center,
+                    fontSize = 15.sp
                 )
             }
         }
@@ -367,94 +395,136 @@ object ScrollDisplay {
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     fun levelElement(level: Int, used: Int, max: Int, spellLevels: MutableList<Pair<Int, Int>>, inv: Inventory, couldNotCast: MutableState<Int?>) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            Text(level.toString(),
-                Modifier
-                    .wrapContentSize(Alignment.Center)
-            )
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(20.dp)
-                    .clickable {
-                        println("removed one slot from Level $level")
-                        if(max > 0) {
-                            val newUsed = if(used == max) used - 1 else used
+        val levelColor = lerp(getLevelColorFromGradient(level.toFloat() / spellLevels.size.toFloat()), Color.White, 0.15f)
 
-                            spellLevels[level - 1] = Pair(newUsed, max - 1)
-                            inv.spellLevels[level - 1] = Pair(newUsed, max - 1)
-                        }
-                    }
+        Box(Modifier
+            .padding(4.dp, 8.dp)
+            .shadow(elevation = 20.dp)
+            .background(levelColor, RoundedCornerShape(5.dp))
+        ) {
+            Column(modifier =
+                Modifier
+                    .fillMaxSize()
             ) {
-                Text("-")
-            }
-            Column {
-                repeat(max) { index ->
-                    var isHovered by remember { mutableStateOf(false) }
-                    val filled = index < used
+                Text(
+                    level.toString(),
+                    Modifier
+                        .fillMaxWidth(),
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center
+                )
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(20.dp)
+                        .clickable {
+                            println("removed one slot from Level $level")
+                            if (max > 0) {
+                                val newUsed = if (used == max) used - 1 else used
 
-                    val backGroundColor = if(couldNotCast.value == level) Color.Red else if(isHovered) Color.Yellow.copy(alpha = 0.5f) else if (filled) Color.Blue else Color.LightGray
-
-                    val couldNotCountResetCount = remember(backGroundColor) { mutableStateOf(0) }
-
-                    val backgroundColorAnimation by animateColorAsState(
-                        targetValue = backGroundColor,
-                        animationSpec = tween(durationMillis = 300)
-                    )
-
-                    Box(
-                        Modifier
-                            .size(20.dp)
-                            .padding(2.dp)
-                            .background(
-                                if(backGroundColor == Color.Red) {
-                                    if(couldNotCountResetCount.value > 20) {
-                                        couldNotCast.value = null
-                                    }
-                                    else {
-                                        couldNotCountResetCount.value++
-                                    }
-                                    backgroundColorAnimation
-                                }
-                                else backgroundColorAnimation,
-                                shape = CircleShape
-                            )
-                            .clip(CircleShape)
-                            .pointerMoveFilter(
-                                onEnter = {
-                                    isHovered = true
-                                    false
-                                },
-                                onExit = {
-                                    isHovered = false
-                                    false
-                                }
-                            )
-                            .clickable {
-                                if(level -1 >= 0) {
-                                    spellLevels[level - 1] = Pair(index + 1, max)
-                                    inv.spellLevels[level - 1] = Pair(index + 1, max)
-                                }
+                                spellLevels[level - 1] = Pair(newUsed, max - 1)
+                                inv.spellLevels[level - 1] = Pair(newUsed, max - 1)
                             }
-                    )
+                        }
+                        .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
+                ) {
+                    Text("-", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(), fontSize = 15.sp)
                 }
-            }
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(20.dp)
-                    .clickable {
-                        println("Added one slot to Level $level")
-                        spellLevels[level - 1] = Pair(used, max + 1)
-                        inv.spellLevels[level - 1] = Pair(used, max + 1)
+                Column {
+                    repeat(max) { index ->
+                        var isHovered by remember { mutableStateOf(false) }
+                        val filled = index < used
+
+                        val scale by animateFloatAsState(
+                            targetValue = if (isHovered) 1.15f else 1f,
+                            animationSpec = tween(durationMillis = 50)
+                        )
+
+                        val slotColor = getSlotColorFromGradient(
+                            index.toFloat() / max.toFloat())
+
+                        val backGroundColor =
+                            if (couldNotCast.value == level) Color.Red else if (isHovered && filled) lerp(slotColor, Color.White, 0.3f) else if (filled) slotColor else lerp(levelColor, Color.Black, 0.3f)
+
+                        val couldNotCountResetCount = remember(backGroundColor) { mutableStateOf(0) }
+
+                        val backgroundColorAnimation by animateColorAsState(
+                            targetValue = backGroundColor,
+                            animationSpec = tween(durationMillis = 500)
+                        )
+
+                        Box(
+                            Modifier
+                                .height(20.dp)
+                                .fillMaxWidth()
+                                .graphicsLayer {
+                                    this.scaleX = scale
+                                    this.scaleY = scale
+                                }
+                                .padding(0.dp, 1.dp)
+                                .background(
+                                    if (backGroundColor == Color.Red) {
+                                        if (couldNotCountResetCount.value > 20) {
+                                            couldNotCast.value = null
+                                        } else {
+                                            couldNotCountResetCount.value++
+                                        }
+                                        backgroundColorAnimation
+                                    } else backgroundColorAnimation,
+                                    shape = CircleShape
+                                )
+                                .clip(CircleShape)
+                                .pointerMoveFilter(
+                                    onEnter = {
+                                        isHovered = true
+                                        false
+                                    },
+                                    onExit = {
+                                        isHovered = false
+                                        false
+                                    }
+                                )
+                                .clickable {
+                                    if (level - 1 >= 0) {
+                                        spellLevels[level - 1] = Pair(index + 1, max)
+                                        inv.spellLevels[level - 1] = Pair(index + 1, max)
+                                    }
+                                }
+                                .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
+                        )
                     }
-            ) {
-                Text("+")
+                }
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(20.dp)
+                        .clickable {
+                            println("Added one slot to Level $level")
+                            spellLevels[level - 1] = Pair(used, max + 1)
+                            inv.spellLevels[level - 1] = Pair(used, max + 1)
+                        }
+                        .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
+                ) {
+                    Text("+", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(), fontSize = 15.sp)
+                }
             }
         }
     }
 
-    fun resetUsedSpellSlots(spellSlots: MutableList<Pair<Int, Int>>) {
+    private fun getLevelColorFromGradient(index: Float): Color {
+        val startColor = Color(66, 48, 255)
+        val endColor = Color(252, 3, 144)
+        return lerp(startColor, endColor, index).copy(alpha = 0.5f)
+    }
+
+    private fun getSlotColorFromGradient(index: Float): Color {
+        val startColor = Color.Blue
+        val endColor = Color.Cyan
+        return lerp(startColor, endColor, index)
+    }
+
+    private fun resetUsedSpellSlots(spellSlots: MutableList<Pair<Int, Int>>) {
         for(slot in spellSlots) {
             spellSlots[spellSlots.indexOf(slot)] = Pair(slot.second, slot.second)
         }
