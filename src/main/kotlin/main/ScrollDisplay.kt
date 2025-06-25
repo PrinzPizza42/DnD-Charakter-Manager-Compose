@@ -25,8 +25,6 @@ import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import kotlinx.coroutines.delay
-import kotlin.math.nextDown
 import kotlin.math.roundToInt
 
 object ScrollDisplay {
@@ -395,8 +393,12 @@ object ScrollDisplay {
                     var isHovered by remember { mutableStateOf(false) }
                     val filled = index < used
 
-                    val backgroundColor by animateColorAsState(
-                        targetValue = if(couldNotCast.value == level) Color.Red else if(isHovered) Color.Yellow.copy(alpha = 0.5f) else if (filled) Color.Blue else Color.LightGray,
+                    val backGroundColor = if(couldNotCast.value == level) Color.Red else if(isHovered) Color.Yellow.copy(alpha = 0.5f) else if (filled) Color.Blue else Color.LightGray
+
+                    val couldNotCountResetCount = remember(backGroundColor) { mutableStateOf(0) }
+
+                    val backgroundColorAnimation by animateColorAsState(
+                        targetValue = backGroundColor,
                         animationSpec = tween(durationMillis = 300)
                     )
 
@@ -405,7 +407,16 @@ object ScrollDisplay {
                             .size(20.dp)
                             .padding(2.dp)
                             .background(
-                                backgroundColor,
+                                if(backGroundColor == Color.Red) {
+                                    if(couldNotCountResetCount.value > 20) {
+                                        couldNotCast.value = null
+                                    }
+                                    else {
+                                        couldNotCountResetCount.value++
+                                    }
+                                    backgroundColorAnimation
+                                }
+                                else backgroundColorAnimation,
                                 shape = CircleShape
                             )
                             .clip(CircleShape)
