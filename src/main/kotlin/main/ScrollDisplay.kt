@@ -11,8 +11,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.GenericShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -21,16 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.graphics.shapes.RoundedPolygon
+import kotlin.math.roundToInt
 
 object ScrollDisplay {
     @Composable
@@ -42,6 +36,9 @@ object ScrollDisplay {
                 addAll(inv.spells)
                 println(inv.spells.toString())
             } }
+
+        val spellLevels = remember { mutableStateListOf<Pair<Int, Int>>() }
+        val spellLevelsCount = remember(spellLevels.size) { mutableStateOf(spellLevels.size) }
 
         val reloadScrollPanel = remember { mutableStateOf(false) }
 
@@ -57,7 +54,7 @@ object ScrollDisplay {
                     .background(Color.Green)
             ) {
                 if(!reloadScrollPanel.value) {
-                    spellDisplay(refreshTrigger, inv, showScrollPanel, reloadScrollPanel, spells)
+                    spellDisplay(refreshTrigger, inv, showScrollPanel, reloadScrollPanel, spells, spellLevels, spellLevelsCount)
                 }
                 else {
                     reloadScrollPanel.value = false
@@ -69,7 +66,7 @@ object ScrollDisplay {
                 .fillMaxHeight()
                 .width(50.dp)
             ) {
-                manaSideBar(inv)
+                manaSideBar(inv, spellLevels, spellLevelsCount)
             }
         }
     }
@@ -80,7 +77,9 @@ object ScrollDisplay {
                      inv: Inventory,
                      showScrollPanel: MutableState<Boolean>,
                      reloadScrollPanel: MutableState<Boolean>,
-                     spells: SnapshotStateList<Spell>
+                     spells: SnapshotStateList<Spell>,
+                     spellLevels: MutableList<Pair<Int, Int>>,
+                     spellLevelsCount: MutableState<Int>
     ) {
         val selectedSpell = remember(spells) { mutableStateOf<Spell?>(null) }
 
@@ -243,14 +242,25 @@ object ScrollDisplay {
                                     readOnly = !inEditMode
                                 )
                             }
-                            Box(
+
+                            var sliderValue by remember { mutableStateOf(0f) }
+                            Text("Level: " + sliderValue.roundToInt(),
                                 Modifier
+                                    .padding(20.dp, 0.dp, 0.dp, 0.dp)
+                            )
+
+                            Slider(
+                                value = sliderValue,
+                                onValueChange = {
+                                    sliderValue = it
+                                    println("Slider value changed to " + sliderValue)
+                                },
+                                valueRange = 1f..if(spellLevelsCount.value > 0) spellLevelsCount.value.toFloat() else 1f,
+                                steps = if(spellLevelsCount.value / 2 > 0) spellLevelsCount.value / 2 else 1,
+                                modifier = Modifier
                                     .fillMaxHeight()
                                     .weight(1f)
-                                    .wrapContentSize(Alignment.Center)
-                            ) {
-                                Text("" + spell.cost)
-                            }
+                            )
                         }
                     }
                 }
@@ -259,9 +269,8 @@ object ScrollDisplay {
     }
 
     @Composable
-    fun manaSideBar(inv: Inventory) {
-        val spellLevels = remember { mutableStateListOf<Pair<Int, Int>>() }
-        val levels = remember(spellLevels.size) { mutableStateOf(spellLevels.size) }
+    fun manaSideBar(inv: Inventory, spellLevels: MutableList<Pair<Int, Int>>, levels: MutableState<Int>) {
+
 
         val scrollState = rememberScrollState()
 
