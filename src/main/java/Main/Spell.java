@@ -10,7 +10,7 @@ public class Spell {
     private int cost;
     @JsonIgnore
     private final UUID uuid = UUID.randomUUID();
-    private Boolean isTemplate = false;
+    private boolean template = false;
 
     @JsonIgnore
     public UUID getUuid() {
@@ -24,11 +24,15 @@ public class Spell {
         this.description = description;
         this.cost = cost;
 
-        isTemplate = name.equalsIgnoreCase("Neuer Zauber (Vorlage)");
+        template = name.equalsIgnoreCase("Neuer Zauber (Vorlage)");
     }
 
     public Boolean isTemplate() {
-        return isTemplate;
+        return template;
+    }
+
+    public void setIsTemplate(boolean isTemplate) {
+        this.template = isTemplate;
     }
 
     public String getName() {
@@ -45,7 +49,7 @@ public class Spell {
 
     public void setName(String name) {
         this.name = name;
-        isTemplate = name.equalsIgnoreCase("Neuer Zauber (Vorlage)");
+        template = name.equalsIgnoreCase("Neuer Zauber (Vorlage)");
     }
 
     public void setDescription(String description) {

@@ -21,6 +21,7 @@ dependencies {
     // (in a separate module for demo project and in testMain).
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
+    implementation ("androidx.graphics:graphics-shapes:1.0.1")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
     implementation("com.fasterxml.jackson.core:jackson-core:2.17.0")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.0")
