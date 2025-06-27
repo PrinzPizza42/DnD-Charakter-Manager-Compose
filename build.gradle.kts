@@ -25,6 +25,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
     implementation("com.fasterxml.jackson.core:jackson-core:2.17.0")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.0")
+    implementation(compose.components.resources)
 }
 
 compose.desktop {
@@ -37,4 +38,11 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
+}
+
+compose.resources {
+    customDirectory(
+        sourceSetName = "main",
+        directoryProvider = provider { layout.projectDirectory.dir("composeResources") }
+    )
 }
