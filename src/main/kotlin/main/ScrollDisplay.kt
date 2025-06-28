@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.skiko.Cursor
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 object ScrollDisplay {
@@ -52,8 +53,6 @@ object ScrollDisplay {
         val spellLevels = remember { mutableStateListOf<Pair<Int, Int>>() }
         val spellLevelsCount = remember(spellLevels.size) { mutableStateOf(spellLevels.size) }
 
-        val reloadScrollPanel = remember { mutableStateOf(false) }
-
         //null when no spell was tried to cast but could not be cast
         val couldNotCast = remember { mutableStateOf<Int?>(null) }
 
@@ -68,12 +67,7 @@ object ScrollDisplay {
                     .weight(1f)
                     .background(Color.Green)
             ) {
-                if(!reloadScrollPanel.value) {
-                    spellDisplay(refreshTrigger, inv, showScrollPanel, reloadScrollPanel, spells, spellLevels, spellLevelsCount, couldNotCast)
-                }
-                else {
-                    reloadScrollPanel.value = false
-                }
+                spellDisplay(refreshTrigger, inv, showScrollPanel, spells, spellLevels, spellLevelsCount, couldNotCast)
             }
 
             // ManaSideBar
@@ -86,12 +80,11 @@ object ScrollDisplay {
         }
     }
 
-    @OptIn(ExperimentalComposeUiApi::class, ExperimentalResourceApi::class)
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalResourceApi::class, ExperimentalFoundationApi::class)
     @Composable
     fun spellDisplay(refreshTrigger: MutableState<Int>,
                      inv: Inventory,
                      showScrollPanel: MutableState<Boolean>,
-                     reloadScrollPanel: MutableState<Boolean>,
                      spells: SnapshotStateList<Spell>,
                      spellLevels: MutableList<Pair<Int, Int>>,
                      spellLevelsCount: MutableState<Int>,
@@ -100,6 +93,7 @@ object ScrollDisplay {
         val selectedSpell = remember(spells) { mutableStateOf<Spell?>(null) }
 
         val listState = rememberLazyListState()
+        val coroutineScope = rememberCoroutineScope()
 
         val selectedSpellSliderValue = remember { mutableStateOf(0f) }
 
@@ -157,7 +151,9 @@ object ScrollDisplay {
                                 val newSpell = Spell("Neuer Zauber (Vorlage)", "(Vorlage)", 1)
                                 spells.add(0, newSpell)
                                 inv.spells.add(0, newSpell)
-                                reloadScrollPanel.value = true
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(index = 0)
+                                }
                             }
                             .pointerMoveFilter (
                                 onEnter = {
@@ -235,6 +231,7 @@ object ScrollDisplay {
                             Modifier
                                 .fillMaxWidth()
                                 .padding(20.dp)
+                                .animateItemPlacement()
                                 .pointerMoveFilter(
                                     onEnter = {
                                         selectedSpell.value = spell
@@ -245,10 +242,7 @@ object ScrollDisplay {
                                         false
                                     }
                                 )
-                                .animateItem(
-                                    fadeInSpec = spring(Spring.StiffnessMediumLow, Spring.DampingRatioNoBouncy),
-                                    fadeOutSpec = tween(250, 10, FastOutSlowInEasing)
-                                )
+                                
                         ) {
                             val density = LocalDensity.current
                             val scrollEndsWith = with(density) { 43.toDp() }

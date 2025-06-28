@@ -56,10 +56,7 @@ fun App() {
                 if(showScrollPanel.value) {
                     scrollDisplay(modifier, selectedInventory.value!!, refreshTrigger, showScrollPanel)
                 }
-//                else if(reloadScrollPanel.value) {
-//                    showScrollPanel.value = true
-//                    reloadScrollPanel.value = false
-//                }
+
             }
             if (showItemDisplay.value) {
                 showItemDisplayStructure(itemDisplayItem, selectedInventory, showItemDisplay, refreshTrigger)
