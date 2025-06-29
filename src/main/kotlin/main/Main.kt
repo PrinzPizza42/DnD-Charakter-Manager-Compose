@@ -3,6 +3,7 @@ package main
 import Data.Read
 import Main.Inventory
 import Main.ItemClasses.Item
+import Main.Spell
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -53,8 +54,9 @@ fun App() {
                 }
 
                 if(showScrollPanel.value) {
-                    scrollDisplay(modifier)
+                    scrollDisplay(modifier, selectedInventory.value!!, refreshTrigger, showScrollPanel)
                 }
+
             }
             if (showItemDisplay.value) {
                 showItemDisplayStructure(itemDisplayItem, selectedInventory, showItemDisplay, refreshTrigger)

@@ -175,7 +175,7 @@ object InvSelector {
                     Modifier
                     .fillMaxSize()
                     .zIndex(2f)
-                    .background(androidx.compose.ui.graphics.Color.White.copy(alpha = 0.5f))
+                    .background(Color.White.copy(alpha = 0.5f))
                     .clickable(
                         onClick = { showDelete = false },
                         indication = null,

@@ -1,21 +1,28 @@
 package Main;
 
-import androidx.compose.runtime.MutableState;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import Main.ItemClasses.Consumable;
 import Main.ItemClasses.Item;
 import Main.ItemClasses.Miscellaneous;
 import Main.ItemClasses.Weapons.Weapon;
+import kotlin.Pair;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.UUID;
 
 public class Inventory {
     private ArrayList<Item> items = new ArrayList<>();
+    private final ArrayList<Spell> spells = new ArrayList<>();
     private String name = "Inventory";
+    private ArrayList<Integer> spellSlotsUsed = new ArrayList<>();
+    private ArrayList<Integer> spellSlotsMax = new ArrayList<>();
+    private boolean loadedLevels = false;
+
     @JsonIgnore
     public UUID uuid = UUID.randomUUID();
+    @JsonIgnore
+    private final ArrayList<Pair<Integer, Integer>> spellLevels = new ArrayList<>();
+
 
     public Inventory(String name) {
         this.name = name;
@@ -25,6 +32,60 @@ public class Inventory {
         this.name = name;
         this.uuid = uuid;
         this.items = items;
+    }
+
+    public void addLastSpellSlot(Pair<Integer, Integer> slot) {
+        spellLevels.addLast(slot);
+    }
+
+    public void removeSpellSlot(int index) {
+        spellLevels.remove(index);
+    }
+
+    public ArrayList<Pair<Integer, Integer>> getSpellLevels() {
+        if(!loadedLevels) {
+            loadedLevels = true;
+            spellSlotsUsed.forEach(used ->
+                    spellLevels.add(new Pair<>(used, spellSlotsMax.get(spellSlotsUsed.indexOf(used))))
+            );
+        }
+
+        System.out.println("spellSlots: " + spellLevels);
+        System.out.println("spellSlotsUsed: " + spellSlotsUsed);
+        System.out.println("spellSlotsMax: " + spellSlotsMax);
+        return spellLevels;
+    }
+
+    public void resetUsedSpellSlots() {
+        spellSlotsUsed.forEach(used -> spellSlotsUsed.set(spellSlotsUsed.indexOf(used), spellSlotsMax.get(spellSlotsUsed.indexOf(used))));
+    }
+
+    public void setSpellSlotsUsed(ArrayList<Integer> spellSlotsUsed) {
+        this.spellSlotsUsed = spellSlotsUsed;
+    }
+
+    public ArrayList<Integer> getSpellSlotsUsed() {
+        spellSlotsUsed.clear();
+        System.out.println("getting spellSlotsUsed:");
+        for (Pair<Integer, Integer> spellLevel : spellLevels) {
+            spellSlotsUsed.addLast(spellLevel.getFirst());
+        }
+        System.out.println(spellSlotsUsed);
+        return this.spellSlotsUsed;
+    }
+
+    public void setSpellSlotsMax(ArrayList<Integer> spellSlotsMax) {
+        this.spellSlotsMax = spellSlotsMax;
+    }
+
+    public ArrayList<Integer> getSpellSlotsMax() {
+        spellSlotsMax.clear();
+        System.out.println("getting spellSlotsMax:");
+        for (Pair<Integer, Integer> spellLevel : spellLevels) {
+            spellSlotsMax.addLast(spellLevel.getSecond());
+        }
+        System.out.println(spellSlotsMax);
+        return this.spellSlotsMax;
     }
 
     public Inventory() {}
@@ -37,9 +98,8 @@ public class Inventory {
         return items;
     }
 
-    @JsonIgnore
-    public int getLength() {
-        return items.size();
+    public ArrayList<Spell> getSpells() {
+        return spells;
     }
 
     public void addItem(Item item) {
