@@ -169,10 +169,14 @@ public class Inventory {
     }
 
     @JsonIgnore
-    public Inventory copy() {
-        return new Inventory(
-                this.name,
-                this.uuid,
-                this.items);
+    public Inventory(Inventory other) {
+        this.name = other.name;
+        this.uuid = UUID.randomUUID();
+        this.items = new ArrayList<>(other.items);
+        this.spells.addAll(other.spells);
+        this.spellSlotsUsed.addAll(other.spellSlotsUsed);
+        this.spellSlotsMax.addAll(other.spellSlotsMax);
+        this.loadedLevels = other.loadedLevels;
+        this.spellLevels.addAll(other.spellLevels);
     }
 }

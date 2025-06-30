@@ -16,69 +16,59 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
-import net.bytebuddy.pool.TypePool
 import org.jetbrains.skiko.Cursor
-import java.util.UUID
+import java.util.*
 
 object InventoryDisplay {
-
     @Composable
-    fun displayEmptyDisplay(modifier: Modifier) {
-        Box (modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
-        ) {
-            Text("Wähle ein Inventar aus")
-        }
-        //TODO set closed backpack image here and no content (maybe with "Wähle einen Charakter aus" text with blurred background?)
-    }
-
-    @Composable
-    fun displayInv(inv: MutableState<Inventory>, modifier: Modifier, showItemDisplay: MutableState<Boolean>, itemDisplayItem: MutableState<Item?>, refreshTrigger: MutableState<Int>, showSortedInv: MutableState<Boolean>) {
-        //TODO set opened backpack image as background here (maybe split in three pieces so it does not stretch when the width changes?)
+    fun displayInv(
+        inv: MutableState<Inventory?>,
+        modifier: Modifier,
+        showItemDisplay: MutableState<Boolean>,
+        itemDisplayItem: MutableState<Item?>,
+        showSortedInv: MutableState<Boolean>,
+        items: List<Item?>,
+        totalSlots: Int,
+        itemSize: Dp,
+        onItemChanged: (Item) -> Unit,
+        refreshInv: MutableState<Boolean>
+    ) {
         //TODO set randomly selected scenery behind backpack
-        val int = refreshTrigger.value
 
         Box(modifier.fillMaxHeight()) {
             Column (modifier
                 .fillMaxHeight()
             ) {
-                sceneryAndBackPackTop(showItemDisplay, showSortedInv)
-                backPack(inv, refreshTrigger, showItemDisplay, itemDisplayItem, showSortedInv)
+                sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv)
+                backPack(inv, showItemDisplay, itemDisplayItem, showSortedInv, items, onItemChanged, refreshInv)
             }
         }
     }
 
     @Composable
-    fun sceneryAndBackPackTop(showItemDisplay: MutableState<Boolean>, showSortedInv: MutableState<Boolean>) {
+    fun sceneryAndBackPackTop(showItemDisplay: MutableState<Boolean>, showSortedInv: MutableState<Boolean>, refreshInv: MutableState<Boolean>) {
         Box(
             Modifier
                 .fillMaxWidth()
@@ -183,13 +173,16 @@ object InventoryDisplay {
     }
 
     @Composable
-    fun showItemDisplayStructure(itemDisplayItem: MutableState<Item?>, selectedInventory: MutableState<Inventory?>, showItemDisplay: MutableState<Boolean>, refreshTrigger: MutableState<Int>) {
+    fun showItemDisplayStructure(
+        itemDisplayItem: MutableState<Item?>,
+        showItemDisplay: MutableState<Boolean>,
+        onItemChanged: (Item) -> Unit,
+        refreshInv: MutableState<Boolean>
+    ) {
         val classes = listOf("Nahkampf-Waffe", "Fernkampf-Waffe", "Verbrauchbares", "Trank", "Verschiedenes")
         var selectedClass by remember { mutableStateOf(classes[0]) }
         val hasSelected = remember { mutableStateOf(false) }
-
-        val int = refreshTrigger.value
-
+        
         //InvDisplay overlay
         Box(
             Modifier
@@ -198,10 +191,15 @@ object InventoryDisplay {
                 .background(Color.Black.copy(alpha = 0.3f))
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = {
-                        showItemDisplay.value = false
-                        itemDisplayItem.value = null
-                        refreshTrigger.value++
-                        itemDisplayItem.value = itemDisplayItem.value
+                        if(showItemDisplay.value) {
+                            showItemDisplay.value = false
+                            itemDisplayItem.value?.let {
+                                onItemChanged(it)
+                                refreshInv.value = true
+                            }
+                            itemDisplayItem.value = null
+                            println("Detected tap outside")
+                        }
                     })
                 }
         ) {
@@ -265,14 +263,12 @@ object InventoryDisplay {
                                                     //create an empty item
                                                     when (selectedClass) {
                                                         "Nahkampf-Waffe" -> itemDisplayItem.value = ShortRangeWeapon("", "", 1, 1, 1, "")
-                                                        "Fernkampf-Waffe" -> itemDisplayItem.value = ShortRangeWeapon("", "", 1, 1, 1, "")
+                                                        "Fernkampf-Waffe" -> itemDisplayItem.value = LongRangeWeapon("", "", 1, 1, 1, "")
                                                         "Verbrauchbares" -> itemDisplayItem.value = Consumable("", "", 1, 1, 1)
                                                         "Trank" -> itemDisplayItem.value = Potion("", "", 1, 1, 1)
                                                         "Verschiedenes" -> itemDisplayItem.value = Miscellaneous("", "", 1, 1, 1)
                                                     }
-                                                    selectedInventory.value?.items?.add(0, itemDisplayItem.value!!)
-
-                                                    refreshTrigger.value++
+                                                    println("Created ${itemDisplayItem.value}")
                                                 }
                                             )
                                             Text(option)
@@ -445,17 +441,14 @@ object InventoryDisplay {
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     fun backPack(
-        inv: MutableState<Inventory>,
-        refreshTrigger: MutableState<Int>,
+        inv: MutableState<Inventory?>,
         showItemDisplay: MutableState<Boolean>,
         itemDisplayItem: MutableState<Item?>,
-        showSortedInv: MutableState<Boolean>
+        showSortedInv: MutableState<Boolean>,
+        items: List<Item?>,
+        onItemChanged: (Item) -> Unit,
+        refreshInv: MutableState<Boolean>
     ) {
-        val boxCoords  = remember { mutableStateOf<LayoutCoordinates?>(null) }
-
-        val totalSlots = 30
-        val itemSize = 100.dp
-
         val typePriority = mapOf(
             ShortRangeWeapon::class to 0,
             LongRangeWeapon::class to 1,
@@ -463,52 +456,34 @@ object InventoryDisplay {
             Consumable::class to 3,
             Miscellaneous::class to 4
         )
-
-        val items = remember(inv.value, refreshTrigger.value, showSortedInv.value) {
-            mutableStateListOf<Item?>().apply {
-                if(!showSortedInv.value) {
-                    addAll(inv.value.items.take(totalSlots))
-                }
-                else {
-                    addAll(inv.value.items.sortedBy { item -> typePriority[item::class] ?: Int.MAX_VALUE})
-                }
-                repeat(totalSlots - size) {
-                    add(EmptySlot())
-                }
-            }
-        }
-
         BoxWithConstraints(
             Modifier
                 .fillMaxSize()
-                .onGloballyPositioned { coords ->
-                    boxCoords.value = coords
-                }
         ) {
-            val columns = (maxWidth / itemSize).toInt()
-            val rows = totalSlots / columns
-            Column(modifier = Modifier.fillMaxWidth()) {
-                for (row in 0 until rows) {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        for (col in 0 until columns) {
-                            val index = row * columns + col
-                            val item: Item? = items[index]
-
-                            Box(
-                                modifier = Modifier
-                                    .size(itemSize)
-                            ) {
-                                if (item != null) {
-                                    invItem(
-                                        item = item,
-                                        refreshTrigger = refreshTrigger,
-                                        showItemDisplay = showItemDisplay,
-                                        itemDisplayItem = itemDisplayItem
-                                    )
-                                }
-                            }
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 100.dp),
+                contentPadding = PaddingValues(4.dp),
+            ) {
+                items(
+                    items = if(showSortedInv.value) {
+                        if(refreshInv.value) {
+                            println("refreshed inv because of manual refresh")
+                            refreshInv.value = false
                         }
+
+                        println("loading items")
+                        items.sortedBy { item -> typePriority[item!!::class] ?: Int.MAX_VALUE}
                     }
+                    else {
+                        if(refreshInv.value) {
+                            println("refreshed inv because of manual refresh")
+                            refreshInv.value = false
+                        }
+                        items
+                    },
+                    key = { item -> item?.uuid ?: UUID.randomUUID() }
+                ) { item: Item? ->
+                    invSlot(item, showItemDisplay, itemDisplayItem, onItemChanged)
                 }
             }
         }
@@ -516,66 +491,64 @@ object InventoryDisplay {
 
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    fun invItem(
-        item: Item,
-        refreshTrigger: MutableState<Int>,
+    fun invSlot(
+        item: Item?,
         showItemDisplay: MutableState<Boolean>,
-        itemDisplayItem: MutableState<Item?>
+        itemDisplayItem: MutableState<Item?>,
+        onItemChanged: (Item) -> Unit
     ) {
         val backGroundColor = remember { mutableStateOf(Color.LightGray) }
-        val boxShape = remember(item.equipped) { mutableStateOf(if(!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
-        val borderColor = remember(item.equipped) { mutableStateOf(if(!item.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f))}
-        var isHovered by remember { mutableStateOf(false) }
-        val scale by animateFloatAsState(
-            targetValue = if (isHovered) 1.08f else 1f,
-            animationSpec = tween(durationMillis = 150)
-        )
-        val elevation by animateDpAsState(
-            targetValue = if (isHovered) 10.dp else 2.dp,
-            animationSpec = tween(durationMillis = 150)
-        )
 
+        if(item != null && item !is EmptySlot) {
+            val boxShape = remember(item.equipped) { mutableStateOf(if(!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
+            val borderColor = remember(item.equipped) { mutableStateOf(if(!item.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f))}
+            var isHovered by remember { mutableStateOf(false) }
+            val scale by animateFloatAsState(
+                targetValue = if (isHovered) 1.08f else 1f,
+                animationSpec = tween(durationMillis = 150)
+            )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(2.dp)
-                .pointerMoveFilter(
-                    onEnter = {
-                        if(item !is EmptySlot) isHovered = true
-                        false
-                    },
-                    onExit = {
-                        if(item !is EmptySlot) isHovered = false
-                        false
-                    }
-                )
-                .graphicsLayer {
-                    this.scaleX = scale
-                    this.scaleY = scale
-                }
-                .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
-                .background(backGroundColor.value, shape = boxShape.value)
-                .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            if(item !is EmptySlot) {
-                                refreshTrigger.value++
-                                itemDisplayItem.value = item
-                                showItemDisplay.value = true
-                            }
+            val elevation by animateDpAsState(
+                targetValue = if (isHovered) 10.dp else 2.dp,
+                animationSpec = tween(durationMillis = 150)
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .pointerMoveFilter(
+                        onEnter = {
+                            isHovered = true
+                            false
                         },
-                        onDoubleTap = {
-                            println("press " + item.name)
-                            item.equipped = !item.equipped
-                            refreshTrigger.value++
+                        onExit = {
+                            isHovered = false
+                            false
                         }
                     )
-                }
-                .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(if(item !is EmptySlot) Cursor.HAND_CURSOR else Cursor.DEFAULT_CURSOR)))
-        ) {
-            if(item !is EmptySlot) {
+                    .graphicsLayer {
+                        this.scaleX = scale
+                        this.scaleY = scale
+                    }
+                    .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
+                    .background(backGroundColor.value, shape = boxShape.value)
+                    .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = {
+                                println("clicked item " + item.name)
+                                itemDisplayItem.value = item
+                                showItemDisplay.value = true
+                            },
+                            onDoubleTap = {
+                                println("press " + item.name)
+                                item.equipped = !item.equipped
+                                onItemChanged(item)
+                            }
+                        )
+                    }
+                    .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor( Cursor.HAND_CURSOR)))
+            ) {
                 Column(
                     Modifier
                         .fillMaxSize()
@@ -585,7 +558,7 @@ object InventoryDisplay {
                         item.name,
                         Modifier
                             .fillMaxWidth()
-                            .weight(3f) //TODO reset to 5f
+                            .weight(3f)
                     )
                     Text(when(item) {
                         is LongRangeWeapon -> "longRangeWeapon"
@@ -593,7 +566,7 @@ object InventoryDisplay {
                         is Miscellaneous -> "miscellaneous"
                         is Potion -> "potion"
                         is Consumable -> "consumable"
-                        else -> {"no class"}
+                        else -> "no class"
                     },
                         Modifier
                             .fillMaxWidth()
@@ -615,6 +588,12 @@ object InventoryDisplay {
                     }
                 }
             }
+        }
+        else {
+            Box(Modifier
+                .size(100.dp)
+                .background(backGroundColor.value.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+            )
         }
     }
 }

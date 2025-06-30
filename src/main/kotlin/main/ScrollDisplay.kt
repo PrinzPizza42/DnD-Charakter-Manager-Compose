@@ -41,8 +41,8 @@ import kotlin.math.roundToInt
 
 object ScrollDisplay {
     @Composable
-    fun scrollDisplay(modifier: Modifier, inv: Inventory, refreshTrigger: MutableState<Int>, showScrollPanel: MutableState<Boolean>) {
-        val spells = remember(refreshTrigger.value) {
+    fun scrollDisplay(modifier: Modifier, inv: Inventory, showScrollPanel: MutableState<Boolean>) {
+        val spells = remember {
             mutableStateListOf<Spell>().apply {
                 println("loading spells from source")
                 clear()
@@ -67,7 +67,7 @@ object ScrollDisplay {
                     .weight(1f)
                     .background(Color.Green)
             ) {
-                spellDisplay(refreshTrigger, inv, showScrollPanel, spells, spellLevels, spellLevelsCount, couldNotCast)
+                spellDisplay(inv, showScrollPanel, spells, spellLevels, spellLevelsCount, couldNotCast)
             }
 
             // ManaSideBar
@@ -80,10 +80,9 @@ object ScrollDisplay {
         }
     }
 
-    @OptIn(ExperimentalComposeUiApi::class, ExperimentalResourceApi::class, ExperimentalFoundationApi::class)
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
-    fun spellDisplay(refreshTrigger: MutableState<Int>,
-                     inv: Inventory,
+    fun spellDisplay(inv: Inventory,
                      showScrollPanel: MutableState<Boolean>,
                      spells: SnapshotStateList<Spell>,
                      spellLevels: MutableList<Pair<Int, Int>>,

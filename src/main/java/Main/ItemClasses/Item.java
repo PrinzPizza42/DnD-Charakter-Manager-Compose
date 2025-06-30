@@ -112,4 +112,9 @@ public class Item {
     public Item() {
         this.uuid = UUID.randomUUID();
     }
+
+    public UUID newUUID() {
+        this.uuid = UUID.randomUUID();
+        return this.uuid;
+    }
 }
