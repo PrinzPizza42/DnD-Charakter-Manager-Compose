@@ -53,7 +53,9 @@ object InventoryDisplay {
         totalSlots: Int,
         itemSize: Dp,
         onItemChanged: (Item) -> Unit,
-        refreshInv: MutableState<Boolean>
+        refreshInv: MutableState<Boolean>,
+        removeItem: (Item) -> Unit,
+        addItemAtIndex: (Item, Item) -> Unit,
     ) {
         //TODO set randomly selected scenery behind backpack
 
@@ -62,7 +64,7 @@ object InventoryDisplay {
                 .fillMaxHeight()
             ) {
                 sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv)
-                backPack(inv, showItemDisplay, itemDisplayItem, showSortedInv, items, onItemChanged, refreshInv)
+                backPack(inv, showItemDisplay, itemDisplayItem, showSortedInv, items, onItemChanged, refreshInv, removeItem, addItemAtIndex)
             }
         }
     }
@@ -447,8 +449,14 @@ object InventoryDisplay {
         showSortedInv: MutableState<Boolean>,
         items: List<Item?>,
         onItemChanged: (Item) -> Unit,
-        refreshInv: MutableState<Boolean>
+        refreshInv: MutableState<Boolean>,
+        removeItem: (Item) -> Unit,
+        addItemAtIndex: (Item, Item) -> Unit,
     ) {
+        val draggedItem = remember { mutableStateOf<Item?>(null) }
+        val draggedItemCoords = remember { mutableStateOf(0) }
+        val dragHoveredOver = remember { mutableStateOf<Item?>(null) }
+
         val typePriority = mapOf(
             ShortRangeWeapon::class to 0,
             LongRangeWeapon::class to 1,
@@ -456,34 +464,61 @@ object InventoryDisplay {
             Consumable::class to 3,
             Miscellaneous::class to 4
         )
-        BoxWithConstraints(
-            Modifier
-                .fillMaxSize()
+        Box(Modifier
+            .fillMaxSize()
         ) {
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 100.dp),
-                contentPadding = PaddingValues(4.dp),
+            BoxWithConstraints(
+                Modifier
+                    .fillMaxSize()
+                    .zIndex(0f)
             ) {
-                items(
-                    items = if(showSortedInv.value) {
-                        if(refreshInv.value) {
-                            println("refreshed inv because of manual refresh")
-                            refreshInv.value = false
-                        }
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 100.dp),
+                    contentPadding = PaddingValues(4.dp),
+                ) {
+                    items(
+                        items = if(showSortedInv.value) {
+                            if(refreshInv.value) {
+                                println("refreshed inv because of manual refresh")
+                                refreshInv.value = false
+                            }
 
-                        println("loading items")
-                        items.sortedBy { item -> typePriority[item!!::class] ?: Int.MAX_VALUE}
-                    }
-                    else {
-                        if(refreshInv.value) {
-                            println("refreshed inv because of manual refresh")
-                            refreshInv.value = false
+                            println("loading items")
+                            items.sortedBy { item -> typePriority[item!!::class] ?: Int.MAX_VALUE}
                         }
-                        items
-                    },
-                    key = { item -> item?.uuid ?: UUID.randomUUID() }
-                ) { item: Item? ->
-                    invSlot(item, showItemDisplay, itemDisplayItem, onItemChanged)
+                        else {
+                            if(refreshInv.value) {
+                                println("refreshed inv because of manual refresh")
+                                refreshInv.value = false
+                            }
+                            items
+                        },
+                        key = { item -> item?.uuid ?: UUID.randomUUID() }
+                    ) { item: Item? ->
+                        invSlot(item, showItemDisplay, itemDisplayItem, onItemChanged, items, draggedItem, dragHoveredOver, removeItem, addItemAtIndex)
+                    }
+                }
+            }
+
+            if(draggedItem.value != null) {
+                println("showing dragged item " + draggedItem.value!!.name)
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .zIndex(1f)
+                        .background(Color.Black.copy(alpha = 0.5f))
+                ) {
+                    Column(
+                        Modifier
+                            .background(Color.Red)
+                    ) {
+                        Text("Coordinates: " + draggedItemCoords.value.toString())
+                        Text("Hovered over item: " + dragHoveredOver.value?.name)
+
+                        Text("Klicke um das item einzuordnen")
+
+                        //TODO add delete item button at the bottom which only closes the overlay
+                    }
                 }
             }
         }
@@ -495,21 +530,34 @@ object InventoryDisplay {
         item: Item?,
         showItemDisplay: MutableState<Boolean>,
         itemDisplayItem: MutableState<Item?>,
-        onItemChanged: (Item) -> Unit
+        onItemChanged: (Item) -> Unit,
+        items: List<Item?>,
+        draggedItem: MutableState<Item?>,
+        dragHoveredOver: MutableState<Item?>,
+        removeItem: (Item) -> Unit,
+        addItemAtIndex: (Item, Item) -> Unit
     ) {
-        val backGroundColor = remember { mutableStateOf(Color.LightGray) }
+        val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) Color.LightGray else Color.LightGray.copy(alpha = 0.3f)) }
 
-        if(item != null && item !is EmptySlot) {
+        if(item != null) {
             val boxShape = remember(item.equipped) { mutableStateOf(if(!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
-            val borderColor = remember(item.equipped) { mutableStateOf(if(!item.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f))}
             var isHovered by remember { mutableStateOf(false) }
+            val borderColor = remember(item.equipped) { mutableStateOf(Color.Transparent)  }
+
+            if(dragHoveredOver.value != null && dragHoveredOver.value!! == item) remember(item.equipped) {
+                borderColor.value = Color.Red
+            }
+            else {
+                 borderColor.value = if(item is EmptySlot) Color.Black.copy(alpha = 0.1f) else if(!item.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f)
+            }
+
             val scale by animateFloatAsState(
                 targetValue = if (isHovered) 1.08f else 1f,
                 animationSpec = tween(durationMillis = 150)
             )
 
             val elevation by animateDpAsState(
-                targetValue = if (isHovered) 10.dp else 2.dp,
+                targetValue = if (isHovered) 6.dp else if(item !is EmptySlot) 2.dp else 0.dp,
                 animationSpec = tween(durationMillis = 150)
             )
 
@@ -518,11 +566,17 @@ object InventoryDisplay {
                     .size(100.dp)
                     .pointerMoveFilter(
                         onEnter = {
-                            isHovered = true
+                            if(item !is EmptySlot) {
+                                isHovered = true
+                                if(draggedItem.value != null) dragHoveredOver.value = item
+                            }
                             false
                         },
                         onExit = {
-                            isHovered = false
+                            if(item !is EmptySlot) {
+                                isHovered = false
+                                if (draggedItem.value != null) dragHoveredOver.value = null
+                            }
                             false
                         }
                     )
@@ -537,54 +591,75 @@ object InventoryDisplay {
                         detectTapGestures(
                             onTap = {
                                 println("clicked item " + item.name)
-                                itemDisplayItem.value = item
-                                showItemDisplay.value = true
+                                if(draggedItem.value != null) {
+                                    println("drop item before " + item.name)
+                                    addItemAtIndex(draggedItem.value!!, item)
+                                    draggedItem.value = null
+                                    dragHoveredOver.value = null
+                                }
+                                else if(item !is EmptySlot) {
+                                    itemDisplayItem.value = item
+                                    showItemDisplay.value = true
+                                }
                             },
                             onDoubleTap = {
-                                println("press " + item.name)
-                                item.equipped = !item.equipped
-                                onItemChanged(item)
+                                if(item !is EmptySlot) {
+                                    println("press " + item.name)
+                                    item.equipped = !item.equipped
+                                    onItemChanged(item)
+                                }
+                            },
+                            onLongPress = {
+                                if(item !is EmptySlot) {
+                                    println("longpress " + item.name)
+                                    draggedItem.value = item
+                                    removeItem(item)
+                                }
                             }
                         )
                     }
-                    .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor( Cursor.HAND_CURSOR)))
+                    .pointerHoverIcon(if(item !is EmptySlot) PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor( Cursor.HAND_CURSOR)) else PointerIcon(
+                        Cursor(Cursor.DEFAULT_CURSOR)
+                    ))
             ) {
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                ) {
-                    //Name
-                    Text(
-                        item.name,
+                if(item !is EmptySlot) {
+                    Column(
                         Modifier
-                            .fillMaxWidth()
-                            .weight(3f)
-                    )
-                    Text(when(item) {
-                        is LongRangeWeapon -> "longRangeWeapon"
-                        is ShortRangeWeapon -> "shortRangeWeapon"
-                        is Miscellaneous -> "miscellaneous"
-                        is Potion -> "potion"
-                        is Consumable -> "consumable"
-                        else -> "no class"
-                    },
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f))
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
+                            .fillMaxSize()
                     ) {
-                        //Filler
-                        Box(
-                            Modifier.weight(4f)
-                        ) {}
-                        //Amount
+                        //Name
                         Text(
-                            item.amount.toString(),
-                            Modifier.weight(1f)
+                            item.name,
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(3f)
                         )
+                        Text(when(item) {
+                            is LongRangeWeapon -> "longRangeWeapon"
+                            is ShortRangeWeapon -> "shortRangeWeapon"
+                            is Miscellaneous -> "miscellaneous"
+                            is Potion -> "potion"
+                            is Consumable -> "consumable"
+                            else -> "no class"
+                        },
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(1f))
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        ) {
+                            //Filler
+                            Box(
+                                Modifier.weight(4f)
+                            ) {}
+                            //Amount
+                            Text(
+                                item.amount.toString(),
+                                Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }

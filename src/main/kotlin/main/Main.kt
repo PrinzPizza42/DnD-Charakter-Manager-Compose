@@ -53,7 +53,7 @@ fun App() {
 
     val items by remember(selectedInventory.value?.uuid, selectedInventory.value, showSortedInv.value) {
         derivedStateOf {
-            val currentItems = selectedInventory.value?.items ?: emptyList()
+            val currentItems = selectedInventory.value?.items ?: ArrayList<Item?>()
             val processedItems = if (showSortedInv.value) {
                 currentItems.sortedWith(compareBy { item -> typePriority[item::class] ?: Int.MAX_VALUE })
             } else {
@@ -63,6 +63,7 @@ fun App() {
         }
     }
 
+    //if index -1 add first
     val updateInventory: (Item) -> Unit = { updatedItem ->
         selectedInventory.value?.let { inv ->
             val newItems = ArrayList(inv.items)
@@ -72,6 +73,40 @@ fun App() {
                 newItems[index] = updatedItem
             } else {
                 newItems.add(0, updatedItem)
+            }
+            newInv.items.clear()
+            newInv.items.addAll(newItems)
+            selectedInventory.value = newInv
+        }
+    }
+
+    val removeItem: (Item) -> Unit = { item ->
+        selectedInventory.value?.let { inv ->
+            val newItems = ArrayList(inv.items)
+            val newInv = Inventory(inv)
+            newItems.remove(item)
+            newInv.items.clear()
+            newInv.items.addAll(newItems)
+            selectedInventory.value = newInv
+            println("removed item " + item.name)
+        }
+    }
+
+    //if index is -1 add last
+    val addItemAtIndex: (Item, Item) -> Unit = { item, hoveredItem ->
+        selectedInventory.value?.let { inv ->
+            val newItems = ArrayList(inv.items)
+            val newInv = Inventory(inv)
+            if(hoveredItem is EmptySlot) {
+                newItems.addLast(item)
+            }
+            else {
+                val dropIndex = newItems.indexOf(hoveredItem)
+                if (dropIndex != -1) {
+                    newItems.add(dropIndex, item)
+                } else {
+                    newItems.addLast(item)
+                }
             }
             newInv.items.clear()
             newInv.items.addAll(newItems)
@@ -91,7 +126,7 @@ fun App() {
                 displayTabSelector(showInventory, showScrollPanel, selectedInventory)
 
                 if(selectedInventory.value != null && showInventory.value) {
-                    displayInv(selectedInventory, modifier, showItemDisplay, itemDisplayItem, showSortedInv, items, totalSlots, 100.dp, updateInventory, refreshInv)
+                    displayInv(selectedInventory, modifier, showItemDisplay, itemDisplayItem, showSortedInv, items, totalSlots, 100.dp, updateInventory, refreshInv, removeItem, addItemAtIndex)
                 }
 
                 if(showScrollPanel.value) {
