@@ -9,14 +9,18 @@ import Main.ItemClasses.Potion
 import Main.ItemClasses.Weapons.LongRangeWeapon
 import Main.ItemClasses.Weapons.ShortRangeWeapon
 import Main.ItemClasses.Weapons.Weapon
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.snapping.snapFlingBehavior
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -38,6 +42,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -447,7 +452,7 @@ object InventoryDisplay {
         }
     }
 
-    @OptIn(ExperimentalComposeUiApi::class)
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
     fun backPack(
         inv: MutableState<Inventory?>,
@@ -474,6 +479,15 @@ object InventoryDisplay {
         Box(Modifier
             .fillMaxSize()
         ) {
+            //Background
+            Image(
+                painterResource("backPackBackgroundOpen.jpg"),
+                "Backpack background",
+                Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+
             //Inv display
             BoxWithConstraints(
                 Modifier
@@ -490,8 +504,8 @@ object InventoryDisplay {
                     }
             ) {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 100.dp),
-                    contentPadding = PaddingValues(4.dp),
+                    columns = GridCells.Adaptive(minSize = 104.dp),
+                    contentPadding = PaddingValues(10.dp)
                 ) {
                     items(
                         items = if(showSortedInv.value) {
@@ -512,26 +526,33 @@ object InventoryDisplay {
                         },
                         key = { item -> item?.uuid ?: UUID.randomUUID() }
                     ) { item: Item? ->
-                        invSlot(item, showItemDisplay, itemDisplayItem, onItemChanged, items, draggedItem, dragHoveredOver, removeItem, addItemAtIndex)
+                        Box(
+                            Modifier
+                                .animateItem()
+                        ) {
+                            invSlot(item, showItemDisplay, itemDisplayItem, onItemChanged, items, draggedItem, dragHoveredOver, removeItem, addItemAtIndex)
+                        }
                     }
                 }
             }
+
 
             //Overlay
             if(draggedItem.value != null) {
                 val density = LocalDensity.current
                 val scaleFactor = density.density
+                val overlayBackGroundColor by animateColorAsState(
+                    targetValue = if (draggedItem.value != null) Color.Black.copy(alpha = 0.3f) else Color.Black.copy(alpha = 0f),
+                    animationSpec = tween(durationMillis = 500)
+                )
 
                 Box(
                     Modifier
                         .fillMaxSize()
                         .zIndex(1f)
-                        .background(Color.Black.copy(alpha = 0.3f))
+                        .background(overlayBackGroundColor)
                 ) {
                     Column{
-                        Text("Coordinates: " + draggedItemOffset.value.toString())
-                        Text("Hovered over item: " + dragHoveredOver.value?.name)
-
                         //Placeholder
                         Box(Modifier.weight(1f))
 
@@ -542,6 +563,7 @@ object InventoryDisplay {
                         ) {
                             Image(painterResource("deleteIcon.svg"), "Delete",
                                 Modifier
+                                    .padding(10.dp)
                                     .align(Alignment.Center)
                                     .height(50.dp)
                                     .clickable {
@@ -552,10 +574,13 @@ object InventoryDisplay {
                                     .clipToBounds()
                             )
                         }
-                        Text("Klicke um das item einzuordnen")
                         //TODO add delete item button at the bottom which only closes the overlay
                     }
                 }
+                val borderColor = remember(draggedItem.value?.equipped) {mutableStateOf(if(draggedItem.value!! is EmptySlot) Color.Black.copy(alpha = 0.1f) else if(!draggedItem.value!!.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f))}
+
+                val boxShape = remember(draggedItem.value?.equipped) { mutableStateOf(if(!draggedItem.value!!.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
+
                 //ItemDisplay Overlay
                 Box(
                     Modifier
@@ -563,12 +588,54 @@ object InventoryDisplay {
                         .fillMaxSize()
                         .offset((draggedItemOffset.value.x / scaleFactor).dp, (draggedItemOffset.value.y / scaleFactor).dp)
                 ) {
-                    Box(
-                        Modifier
-                            .size(100.dp)
-                            .background(Color.LightGray.copy(alpha = 1f), shape = RoundedCornerShape(10.dp))
-                    ) {
-
+                    Column {
+                        Box(
+                            Modifier
+                                .size(100.dp)
+                                .shadow(10.dp, shape = RoundedCornerShape(8.dp), clip = false)
+                                .background(Color.LightGray.copy(alpha = 1f), shape = RoundedCornerShape(10.dp))
+                                .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
+                        ) {
+                            Column(
+                                Modifier
+                                    .fillMaxSize()
+                            ) {
+                                //Name
+                                Text(
+                                    draggedItem.value!!.name,
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .weight(3f)
+                                )
+                                Text(when(draggedItem.value!!) {
+                                    is LongRangeWeapon -> "longRangeWeapon"
+                                    is ShortRangeWeapon -> "shortRangeWeapon"
+                                    is Miscellaneous -> "miscellaneous"
+                                    is Potion -> "potion"
+                                    is Consumable -> "consumable"
+                                    else -> "no class"
+                                },
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f))
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                ) {
+                                    //Filler
+                                    Box(
+                                        Modifier.weight(4f)
+                                    ) {}
+                                    //Amount
+                                    Text(
+                                        draggedItem.value!!.amount.toString(),
+                                        Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+                        Text("Klicke um das item einzuordnen", Modifier.padding(8.dp))
                     }
                 }
             }
@@ -614,6 +681,7 @@ object InventoryDisplay {
 
             Box(
                 modifier = Modifier
+                    .padding(4.dp)
                     .size(100.dp)
                     .pointerMoveFilter(
                         onEnter = {
