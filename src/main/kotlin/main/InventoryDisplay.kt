@@ -12,8 +12,10 @@ import Main.ItemClasses.Weapons.Weapon
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -27,17 +29,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.skiko.Cursor
 import java.util.*
 
@@ -454,7 +461,7 @@ object InventoryDisplay {
         addItemAtIndex: (Item, Item) -> Unit,
     ) {
         val draggedItem = remember { mutableStateOf<Item?>(null) }
-        val draggedItemCoords = remember { mutableStateOf(0) }
+        val draggedItemOffset = remember { mutableStateOf(Offset.Zero) }
         val dragHoveredOver = remember { mutableStateOf<Item?>(null) }
 
         val typePriority = mapOf(
@@ -467,10 +474,20 @@ object InventoryDisplay {
         Box(Modifier
             .fillMaxSize()
         ) {
+            //Inv display
             BoxWithConstraints(
                 Modifier
                     .fillMaxSize()
                     .zIndex(0f)
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                val position = event.changes.first().position
+                                draggedItemOffset.value = position
+                            }
+                        }
+                    }
             ) {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 100.dp),
@@ -500,33 +517,55 @@ object InventoryDisplay {
                 }
             }
 
+            //Overlay
             if(draggedItem.value != null) {
+                val density = LocalDensity.current
+                val scaleFactor = density.density
+
                 Box(
                     Modifier
                         .fillMaxSize()
                         .zIndex(1f)
-                        .background(Color.Black.copy(alpha = 0.5f))
+                        .background(Color.Black.copy(alpha = 0.3f))
                 ) {
-                    Column(
-                        Modifier
-                            .background(Color.Red)
-                    ) {
-                        Text("Coordinates: " + draggedItemCoords.value.toString())
+                    Column{
+                        Text("Coordinates: " + draggedItemOffset.value.toString())
                         Text("Hovered over item: " + dragHoveredOver.value?.name)
 
-                        Text("Klicke um das item einzuordnen")
+                        //Placeholder
+                        Box(Modifier.weight(1f))
 
+                        //Delete Button
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                        ) {
+                            Image(painterResource("deleteIcon.svg"), "Delete",
+                                Modifier
+                                    .align(Alignment.Center)
+                                    .height(50.dp)
+                                    .clickable {
+                                        println("deleted item " + draggedItem.value!!.name)
+                                        draggedItem.value = null
+                                        dragHoveredOver.value = null
+                                    }
+                                    .clipToBounds()
+                            )
+                        }
+                        Text("Klicke um das item einzuordnen")
                         //TODO add delete item button at the bottom which only closes the overlay
                     }
                 }
+                //ItemDisplay Overlay
                 Box(
                     Modifier
                         .zIndex(2f)
-                        .size(100.dp)
-                        .offset(10.dp)
+                        .fillMaxSize()
+                        .offset((draggedItemOffset.value.x / scaleFactor).dp, (draggedItemOffset.value.y / scaleFactor).dp)
                 ) {
                     Box(
                         Modifier
+                            .size(100.dp)
                             .background(Color.LightGray.copy(alpha = 1f), shape = RoundedCornerShape(10.dp))
                     ) {
 
