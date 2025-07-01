@@ -501,7 +501,6 @@ object InventoryDisplay {
             }
 
             if(draggedItem.value != null) {
-                println("showing dragged item " + draggedItem.value!!.name)
                 Box(
                     Modifier
                         .fillMaxSize()
@@ -518,6 +517,19 @@ object InventoryDisplay {
                         Text("Klicke um das item einzuordnen")
 
                         //TODO add delete item button at the bottom which only closes the overlay
+                    }
+                }
+                Box(
+                    Modifier
+                        .zIndex(2f)
+                        .size(100.dp)
+                        .offset(10.dp)
+                ) {
+                    Box(
+                        Modifier
+                            .background(Color.LightGray.copy(alpha = 1f), shape = RoundedCornerShape(10.dp))
+                    ) {
+
                     }
                 }
             }
@@ -537,7 +549,7 @@ object InventoryDisplay {
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit
     ) {
-        val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) Color.LightGray else Color.LightGray.copy(alpha = 0.3f)) }
+        val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) Color.LightGray else Color.LightGray.copy(alpha = 0.2f)) }
 
         if(item != null) {
             val boxShape = remember(item.equipped) { mutableStateOf(if(!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
