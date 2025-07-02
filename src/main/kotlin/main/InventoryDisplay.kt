@@ -9,76 +9,77 @@ import Main.ItemClasses.Potion
 import Main.ItemClasses.Weapons.LongRangeWeapon
 import Main.ItemClasses.Weapons.ShortRangeWeapon
 import Main.ItemClasses.Weapons.Weapon
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
-import net.bytebuddy.pool.TypePool
 import org.jetbrains.skiko.Cursor
-import java.util.UUID
+import java.util.*
 
 object InventoryDisplay {
-
     @Composable
-    fun displayEmptyDisplay(modifier: Modifier) {
-        Box (modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
-        ) {
-            Text("Wähle ein Inventar aus")
-        }
-        //TODO set closed backpack image here and no content (maybe with "Wähle einen Charakter aus" text with blurred background?)
-    }
-
-    @Composable
-    fun displayInv(inv: MutableState<Inventory>, modifier: Modifier, showItemDisplay: MutableState<Boolean>, itemDisplayItem: MutableState<Item?>, refreshTrigger: MutableState<Int>, showSortedInv: MutableState<Boolean>) {
-        //TODO set opened backpack image as background here (maybe split in three pieces so it does not stretch when the width changes?)
+    fun displayInv(
+        inv: MutableState<Inventory?>,
+        modifier: Modifier,
+        showItemDisplay: MutableState<Boolean>,
+        itemDisplayItem: MutableState<Item?>,
+        showSortedInv: MutableState<Boolean>,
+        items: List<Item?>,
+        totalSlots: Int,
+        itemSize: Dp,
+        onItemChanged: (Item) -> Unit,
+        refreshInv: MutableState<Boolean>,
+        removeItem: (Item) -> Unit,
+        addItemAtIndex: (Item, Item) -> Unit,
+    ) {
         //TODO set randomly selected scenery behind backpack
-        val int = refreshTrigger.value
 
         Box(modifier.fillMaxHeight()) {
             Column (modifier
                 .fillMaxHeight()
             ) {
-                sceneryAndBackPackTop(showItemDisplay, showSortedInv)
-                backPack(inv, refreshTrigger, showItemDisplay, itemDisplayItem, showSortedInv)
+                sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv)
+                backPack(inv, showItemDisplay, itemDisplayItem, showSortedInv, items, onItemChanged, refreshInv, removeItem, addItemAtIndex)
             }
         }
     }
 
     @Composable
-    fun sceneryAndBackPackTop(showItemDisplay: MutableState<Boolean>, showSortedInv: MutableState<Boolean>) {
+    fun sceneryAndBackPackTop(showItemDisplay: MutableState<Boolean>, showSortedInv: MutableState<Boolean>, refreshInv: MutableState<Boolean>) {
         Box(
             Modifier
                 .fillMaxWidth()
@@ -183,13 +184,16 @@ object InventoryDisplay {
     }
 
     @Composable
-    fun showItemDisplayStructure(itemDisplayItem: MutableState<Item?>, selectedInventory: MutableState<Inventory?>, showItemDisplay: MutableState<Boolean>, refreshTrigger: MutableState<Int>) {
+    fun showItemDisplayStructure(
+        itemDisplayItem: MutableState<Item?>,
+        showItemDisplay: MutableState<Boolean>,
+        onItemChanged: (Item) -> Unit,
+        refreshInv: MutableState<Boolean>
+    ) {
         val classes = listOf("Nahkampf-Waffe", "Fernkampf-Waffe", "Verbrauchbares", "Trank", "Verschiedenes")
         var selectedClass by remember { mutableStateOf(classes[0]) }
         val hasSelected = remember { mutableStateOf(false) }
-
-        val int = refreshTrigger.value
-
+        
         //InvDisplay overlay
         Box(
             Modifier
@@ -198,10 +202,15 @@ object InventoryDisplay {
                 .background(Color.Black.copy(alpha = 0.3f))
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = {
-                        showItemDisplay.value = false
-                        itemDisplayItem.value = null
-                        refreshTrigger.value++
-                        itemDisplayItem.value = itemDisplayItem.value
+                        if(showItemDisplay.value) {
+                            showItemDisplay.value = false
+                            itemDisplayItem.value?.let {
+                                onItemChanged(it)
+                                refreshInv.value = true
+                            }
+                            itemDisplayItem.value = null
+                            println("Detected tap outside")
+                        }
                     })
                 }
         ) {
@@ -265,14 +274,12 @@ object InventoryDisplay {
                                                     //create an empty item
                                                     when (selectedClass) {
                                                         "Nahkampf-Waffe" -> itemDisplayItem.value = ShortRangeWeapon("", "", 1, 1, 1, "")
-                                                        "Fernkampf-Waffe" -> itemDisplayItem.value = ShortRangeWeapon("", "", 1, 1, 1, "")
+                                                        "Fernkampf-Waffe" -> itemDisplayItem.value = LongRangeWeapon("", "", 1, 1, 1, "")
                                                         "Verbrauchbares" -> itemDisplayItem.value = Consumable("", "", 1, 1, 1)
                                                         "Trank" -> itemDisplayItem.value = Potion("", "", 1, 1, 1)
                                                         "Verschiedenes" -> itemDisplayItem.value = Miscellaneous("", "", 1, 1, 1)
                                                     }
-                                                    selectedInventory.value?.items?.add(0, itemDisplayItem.value!!)
-
-                                                    refreshTrigger.value++
+                                                    println("Created ${itemDisplayItem.value}")
                                                 }
                                             )
                                             Text(option)
@@ -425,6 +432,22 @@ object InventoryDisplay {
                                         },
                                         singleLine = true,
                                     )
+
+                                    //Equipped
+                                    val equipped = remember(itemDisplayItem.value, itemDisplayItem.value!!.equipped) { mutableStateOf(itemDisplayItem.value!!.equipped) }
+                                    Row {
+                                        Checkbox(
+                                            checked = equipped.value,
+                                            onCheckedChange = {
+                                                itemDisplayItem.value!!.equipped = it
+                                                equipped.value = it
+                                            },
+                                            modifier = Modifier
+                                                .width(30.dp)
+                                                .padding(horizontal = 10.dp),
+                                        )
+                                        Text("Ausgerüstet")
+                                    }
                                 }
                             }
                         } else println("Something went wrong")
@@ -442,19 +465,29 @@ object InventoryDisplay {
         }
     }
 
-    @OptIn(ExperimentalComposeUiApi::class)
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
     fun backPack(
-        inv: MutableState<Inventory>,
-        refreshTrigger: MutableState<Int>,
+        inv: MutableState<Inventory?>,
         showItemDisplay: MutableState<Boolean>,
         itemDisplayItem: MutableState<Item?>,
-        showSortedInv: MutableState<Boolean>
+        showSortedInv: MutableState<Boolean>,
+        items: List<Item?>,
+        onItemChanged: (Item) -> Unit,
+        refreshInv: MutableState<Boolean>,
+        removeItem: (Item) -> Unit,
+        addItemAtIndex: (Item, Item) -> Unit,
     ) {
-        val boxCoords  = remember { mutableStateOf<LayoutCoordinates?>(null) }
+        val draggedItem = remember { mutableStateOf<Item?>(null) }
+        val draggedItemOffset = remember { mutableStateOf(Offset.Zero) }
+        val dragHoveredOver = remember { mutableStateOf<Item?>(null) }
 
-        val totalSlots = 30
-        val itemSize = 100.dp
+        val firstEmptySlot = remember(items) {
+            derivedStateOf {
+                items.firstOrNull { it is EmptySlot }
+            }
+        }
+        val highlightFirstEmptySlot = remember { mutableStateOf(false) }
 
         val typePriority = mapOf(
             ShortRangeWeapon::class to 0,
@@ -463,51 +496,161 @@ object InventoryDisplay {
             Consumable::class to 3,
             Miscellaneous::class to 4
         )
+        Box(Modifier
+            .fillMaxSize()
+        ) {
+            //Background
+            Image(
+                painterResource("backPackBackgroundOpen.jpg"),
+                "Backpack background",
+                Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
 
-        val items = remember(inv.value, refreshTrigger.value, showSortedInv.value) {
-            mutableStateListOf<Item?>().apply {
-                if(!showSortedInv.value) {
-                    addAll(inv.value.items.take(totalSlots))
-                }
-                else {
-                    addAll(inv.value.items.sortedBy { item -> typePriority[item::class] ?: Int.MAX_VALUE})
-                }
-                repeat(totalSlots - size) {
-                    add(EmptySlot())
+            //Inv display
+            BoxWithConstraints(
+                Modifier
+                    .fillMaxSize()
+                    .zIndex(0f)
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                val position = event.changes.first().position
+                                draggedItemOffset.value = position
+                            }
+                        }
+                    }
+            ) {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 104.dp),
+                    contentPadding = PaddingValues(10.dp)
+                ) {
+                    items(
+                        items = if(showSortedInv.value) {
+                            if(refreshInv.value) {
+                                refreshInv.value = false
+                            }
+                            println("loading items")
+                            items.sortedBy { item -> typePriority[item!!::class] ?: Int.MAX_VALUE}
+                        }
+                        else {
+                            if(refreshInv.value) {
+                                refreshInv.value = false
+                            }
+                            items
+                        },
+                        key = { item -> item?.uuid ?: UUID.randomUUID() }
+                    ) { item: Item? ->
+                        Box(
+                            Modifier
+                                .animateItem()
+                        ) {
+                            invSlot(item, showItemDisplay, itemDisplayItem, onItemChanged, items, draggedItem, dragHoveredOver, removeItem, addItemAtIndex, firstEmptySlot, highlightFirstEmptySlot)
+                        }
+                    }
                 }
             }
-        }
 
-        BoxWithConstraints(
-            Modifier
-                .fillMaxSize()
-                .onGloballyPositioned { coords ->
-                    boxCoords.value = coords
+            //Overlay
+            if(draggedItem.value != null) {
+                val density = LocalDensity.current
+                val scaleFactor = density.density
+                val overlayBackGroundColor by animateColorAsState(
+                    targetValue = if (draggedItem.value != null) Color.Black.copy(alpha = 0.3f) else Color.Black.copy(alpha = 0f),
+                    animationSpec = tween(durationMillis = 500)
+                )
+
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .zIndex(1f)
+                        .background(overlayBackGroundColor)
+                ) {
+                    Column{
+                        //Placeholder
+                        Box(Modifier.weight(1f))
+
+                        //Delete Button
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                        ) {
+                            Image(painterResource("deleteIcon.svg"), "Delete",
+                                Modifier
+                                    .padding(10.dp)
+                                    .align(Alignment.Center)
+                                    .height(50.dp)
+                                    .clickable {
+                                        println("deleted item " + draggedItem.value!!.name)
+                                        draggedItem.value = null
+                                        dragHoveredOver.value = null
+                                    }
+                                    .clipToBounds()
+                            )
+                        }
+                    }
                 }
-        ) {
-            val columns = (maxWidth / itemSize).toInt()
-            val rows = totalSlots / columns
-            Column(modifier = Modifier.fillMaxWidth()) {
-                for (row in 0 until rows) {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        for (col in 0 until columns) {
-                            val index = row * columns + col
-                            val item: Item? = items[index]
+                val borderColor = remember(draggedItem.value?.equipped) {mutableStateOf(if(draggedItem.value!! is EmptySlot) Color.Black.copy(alpha = 0.1f) else if(!draggedItem.value!!.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f))}
 
-                            Box(
-                                modifier = Modifier
-                                    .size(itemSize)
+                val boxShape = remember(draggedItem.value?.equipped) { mutableStateOf(if(!draggedItem.value!!.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
+
+                //ItemDisplay Overlay
+                Box(
+                    Modifier
+                        .zIndex(2f)
+                        .fillMaxSize()
+                        .offset((draggedItemOffset.value.x / scaleFactor).dp, (draggedItemOffset.value.y / scaleFactor).dp)
+                ) {
+                    Column {
+                        Box(
+                            Modifier
+                                .size(100.dp)
+                                .shadow(10.dp, shape = RoundedCornerShape(8.dp), clip = false)
+                                .background(Color.LightGray.copy(alpha = 1f), shape = RoundedCornerShape(10.dp))
+                                .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
+                        ) {
+                            Column(
+                                Modifier
+                                    .fillMaxSize()
                             ) {
-                                if (item != null) {
-                                    invItem(
-                                        item = item,
-                                        refreshTrigger = refreshTrigger,
-                                        showItemDisplay = showItemDisplay,
-                                        itemDisplayItem = itemDisplayItem
+                                //Name
+                                Text(
+                                    draggedItem.value!!.name,
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .weight(3f)
+                                )
+                                Text(when(draggedItem.value!!) {
+                                    is LongRangeWeapon -> "longRangeWeapon"
+                                    is ShortRangeWeapon -> "shortRangeWeapon"
+                                    is Miscellaneous -> "miscellaneous"
+                                    is Potion -> "potion"
+                                    is Consumable -> "consumable"
+                                    else -> "no class"
+                                },
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f))
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                ) {
+                                    //Filler
+                                    Box(
+                                        Modifier.weight(4f)
+                                    ) {}
+                                    //Amount
+                                    Text(
+                                        draggedItem.value!!.amount.toString(),
+                                        Modifier.weight(1f)
                                     )
                                 }
                             }
                         }
+                        Text("Klicke um das item einzuordnen", Modifier.padding(8.dp), color = Color.White)
                     }
                 }
             }
@@ -516,105 +659,164 @@ object InventoryDisplay {
 
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    fun invItem(
-        item: Item,
-        refreshTrigger: MutableState<Int>,
+    fun invSlot(
+        item: Item?,
         showItemDisplay: MutableState<Boolean>,
-        itemDisplayItem: MutableState<Item?>
+        itemDisplayItem: MutableState<Item?>,
+        onItemChanged: (Item) -> Unit,
+        items: List<Item?>,
+        draggedItem: MutableState<Item?>,
+        dragHoveredOver: MutableState<Item?>,
+        removeItem: (Item) -> Unit,
+        addItemAtIndex: (Item, Item) -> Unit,
+        firstEmptySlot: State<Item?>,
+        highlightFirstEmptySlot: MutableState<Boolean>
     ) {
-        val backGroundColor = remember { mutableStateOf(Color.LightGray) }
-        val boxShape = remember(item.equipped) { mutableStateOf(if(!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
-        val borderColor = remember(item.equipped) { mutableStateOf(if(!item.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f))}
-        var isHovered by remember { mutableStateOf(false) }
-        val scale by animateFloatAsState(
-            targetValue = if (isHovered) 1.08f else 1f,
-            animationSpec = tween(durationMillis = 150)
-        )
-        val elevation by animateDpAsState(
-            targetValue = if (isHovered) 10.dp else 2.dp,
-            animationSpec = tween(durationMillis = 150)
-        )
+        val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) Color.LightGray else Color.LightGray.copy(alpha = 0.2f)) }
 
+        if(item != null) {
+            val boxShape = remember(item.equipped) { mutableStateOf(if(!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
+            var isHovered by remember { mutableStateOf(false) }
+            val borderColor = remember(item.equipped) { mutableStateOf(Color.Transparent)  }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(2.dp)
-                .pointerMoveFilter(
-                    onEnter = {
-                        if(item !is EmptySlot) isHovered = true
-                        false
-                    },
-                    onExit = {
-                        if(item !is EmptySlot) isHovered = false
-                        false
+            if(dragHoveredOver.value != null) {
+                if(dragHoveredOver.value!! is EmptySlot && highlightFirstEmptySlot.value && firstEmptySlot.value == item) {
+                    remember(item.equipped) {
+                        borderColor.value = Color.Red
                     }
-                )
-                .graphicsLayer {
-                    this.scaleX = scale
-                    this.scaleY = scale
                 }
-                .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
-                .background(backGroundColor.value, shape = boxShape.value)
-                .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            if(item !is EmptySlot) {
-                                refreshTrigger.value++
-                                itemDisplayItem.value = item
-                                showItemDisplay.value = true
-                            }
-                        },
-                        onDoubleTap = {
-                            println("press " + item.name)
-                            item.equipped = !item.equipped
-                            refreshTrigger.value++
+                else if(dragHoveredOver.value!! == item) {
+                    if(item !is EmptySlot || firstEmptySlot.value == item) {
+                        remember(item.equipped) {
+                            borderColor.value = Color.Red
                         }
-                    )
-                }
-                .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(if(item !is EmptySlot) Cursor.HAND_CURSOR else Cursor.DEFAULT_CURSOR)))
-        ) {
-            if(item !is EmptySlot) {
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                ) {
-                    //Name
-                    Text(
-                        item.name,
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(3f) //TODO reset to 5f
-                    )
-                    Text(when(item) {
-                        is LongRangeWeapon -> "longRangeWeapon"
-                        is ShortRangeWeapon -> "shortRangeWeapon"
-                        is Miscellaneous -> "miscellaneous"
-                        is Potion -> "potion"
-                        is Consumable -> "consumable"
-                        else -> {"no class"}
-                    },
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f))
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        //Filler
-                        Box(
-                            Modifier.weight(4f)
-                        ) {}
-                        //Amount
-                        Text(
-                            item.amount.toString(),
-                            Modifier.weight(1f)
-                        )
+                    }
+                    else {
+                        remember(item.equipped) {
+                            borderColor.value = Color.Black.copy(alpha = 0.1f)
+                        }
                     }
                 }
             }
+            else {
+                borderColor.value = if(item is EmptySlot) Color.Black.copy(alpha = 0.1f) else if(!item.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f)
+                highlightFirstEmptySlot.value = false
+            }
+
+            val scale by animateFloatAsState(
+                targetValue = if (isHovered && item !is EmptySlot) 1.08f else 1f,
+                animationSpec = tween(durationMillis = 150)
+            )
+
+            val elevation by animateDpAsState(
+                targetValue = if (isHovered && item !is EmptySlot) 6.dp else if(item !is EmptySlot) 2.dp else 0.dp,
+                animationSpec = tween(durationMillis = 150)
+            )
+
+            Box(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(100.dp)
+                    .pointerMoveFilter(
+                        onEnter = {
+                            isHovered = true
+                            if(draggedItem.value != null && item is EmptySlot) {
+                                highlightFirstEmptySlot.value = true
+                            }
+                            if(draggedItem.value != null) dragHoveredOver.value = item
+                            false
+                        },
+                        onExit = {
+                            isHovered = false
+                            if(draggedItem.value != null && item is EmptySlot) {
+                                highlightFirstEmptySlot.value = false
+                            }
+                            if (draggedItem.value != null) dragHoveredOver.value = null
+                            false
+                        }
+                    )
+                    .graphicsLayer {
+                        this.scaleX = scale
+                        this.scaleY = scale
+                    }
+                    .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
+                    .background(backGroundColor.value, shape = boxShape.value)
+                    .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = {
+                                println("clicked item " + item.name)
+                                if(draggedItem.value != null) {
+                                    println("drop item before " + item.name)
+                                    addItemAtIndex(draggedItem.value!!, item)
+                                    draggedItem.value = null
+                                    dragHoveredOver.value = null
+                                }
+                                else if(item !is EmptySlot) {
+                                    itemDisplayItem.value = item
+                                    showItemDisplay.value = true
+                                }
+                            },
+                            onLongPress = {
+                                if(item !is EmptySlot && draggedItem.value == null) {
+                                    println("longpress " + item.name)
+                                    draggedItem.value = item
+                                    removeItem(item)
+                                }
+                            }
+                        )
+                    }
+                    .pointerHoverIcon(if(item !is EmptySlot) PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor( Cursor.HAND_CURSOR)) else PointerIcon(
+                        Cursor(Cursor.DEFAULT_CURSOR)
+                    ))
+            ) {
+                if(item !is EmptySlot) {
+                    Column(
+                        Modifier
+                            .fillMaxSize()
+                    ) {
+                        //Name
+                        Text(
+                            item.name,
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(3f)
+                        )
+                        Text(when(item) {
+                            is LongRangeWeapon -> "longRangeWeapon"
+                            is ShortRangeWeapon -> "shortRangeWeapon"
+                            is Miscellaneous -> "miscellaneous"
+                            is Potion -> "potion"
+                            is Consumable -> "consumable"
+                            else -> "no class"
+                        },
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(1f))
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        ) {
+                            //Filler
+                            Box(
+                                Modifier.weight(4f)
+                            ) {}
+                            //Amount
+                            Text(
+                                item.amount.toString(),
+                                Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            Box(Modifier
+                .size(100.dp)
+                .background(backGroundColor.value.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+            )
         }
     }
 }

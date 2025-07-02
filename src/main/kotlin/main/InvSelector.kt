@@ -39,13 +39,13 @@ object InvSelector {
 
         Box(Modifier
             .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
+            .background(Color.Black)
         ) {
             Column(
                 Modifier
                     .width(300.dp)
-                    .background(LightGray)
                     .fillMaxHeight()
+                    .align(Alignment.Center)
             ) {
                 createInv(inventories)
 
@@ -66,6 +66,7 @@ object InvSelector {
         Column(
             modifier = Modifier
                 .width(500.dp)
+                .background(Color.White.copy(alpha = 0.5f))
         ) {
             val input = remember { mutableStateOf(TextFieldValue()) }
             TextField(
@@ -74,7 +75,7 @@ object InvSelector {
                     input.value = it
                 },
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .width(500.dp),
                 label = {
                     Text("Charakter erstellen")
                 },
@@ -100,7 +101,7 @@ object InvSelector {
     fun addSidebarItems(inventories: SnapshotStateList<Inventory>, selectedInventory: MutableState<Inventory?>) {
         LazyColumn(
             Modifier
-                .fillMaxWidth()
+                .width(300.dp)
                 .fillMaxHeight()
         ) {
             items(inventories) { inv ->

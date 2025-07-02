@@ -27,6 +27,7 @@ object TabSelector {
         Column(Modifier
             .fillMaxHeight()
             .width(width)
+            .background(Color.DarkGray)
         ) {
             // Return to invSelector Button
             Button(

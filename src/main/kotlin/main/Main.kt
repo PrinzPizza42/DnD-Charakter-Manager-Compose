@@ -2,8 +2,9 @@ package main
 
 import Data.Read
 import Main.Inventory
-import Main.ItemClasses.Item
-import Main.Spell
+import Main.ItemClasses.*
+import Main.ItemClasses.Weapons.LongRangeWeapon
+import Main.ItemClasses.Weapons.ShortRangeWeapon
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -15,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import main.InventoryDisplay.displayEmptyDisplay
 import main.InventoryDisplay.displayInv
 import main.InventoryDisplay.showItemDisplayStructure
 import main.ScrollDisplay.scrollDisplay
@@ -38,6 +38,82 @@ fun App() {
 
     val showInvSelector = remember(refreshTrigger.value, selectedInventory.value) { mutableStateOf(selectedInventory.value == null) }
 
+    val totalSlots = 50
+
+    val refreshInv = remember { mutableStateOf(false) }
+
+
+    val typePriority = mapOf(
+        ShortRangeWeapon::class to 0,
+        LongRangeWeapon::class to 1,
+        Potion::class to 2,
+        Consumable::class to 3,
+        Miscellaneous::class to 4
+    )
+
+    val items by remember(selectedInventory.value?.uuid, selectedInventory.value, showSortedInv.value) {
+        derivedStateOf {
+            val currentItems = selectedInventory.value?.items ?: ArrayList<Item?>()
+            val processedItems = if (showSortedInv.value) {
+                currentItems.sortedWith(compareBy { item -> typePriority[item::class] ?: Int.MAX_VALUE })
+            } else {
+                currentItems
+            }
+            processedItems.take(totalSlots) + List(totalSlots - processedItems.size) { EmptySlot() }
+        }
+    }
+
+    //if index -1 add first
+    val updateInventory: (Item) -> Unit = { updatedItem ->
+        selectedInventory.value?.let { inv ->
+            val newItems = ArrayList(inv.items)
+            val index = newItems.indexOfFirst { it.uuid == updatedItem.uuid }
+            val newInv = Inventory(inv)
+            if (index != -1) {
+                newItems[index] = updatedItem
+            } else {
+                newItems.add(0, updatedItem)
+            }
+            newInv.items.clear()
+            newInv.items.addAll(newItems)
+            selectedInventory.value = newInv
+        }
+    }
+
+    val removeItem: (Item) -> Unit = { item ->
+        selectedInventory.value?.let { inv ->
+            val newItems = ArrayList(inv.items)
+            val newInv = Inventory(inv)
+            newItems.remove(item)
+            newInv.items.clear()
+            newInv.items.addAll(newItems)
+            selectedInventory.value = newInv
+            println("removed item " + item.name)
+        }
+    }
+
+    //if index is -1 add last
+    val addItemAtIndex: (Item, Item) -> Unit = { item, hoveredItem ->
+        selectedInventory.value?.let { inv ->
+            val newItems = ArrayList(inv.items)
+            val newInv = Inventory(inv)
+            if(hoveredItem is EmptySlot) {
+                newItems.addLast(item)
+            }
+            else {
+                val dropIndex = newItems.indexOf(hoveredItem)
+                if (dropIndex != -1) {
+                    newItems.add(dropIndex, item)
+                } else {
+                    newItems.addLast(item)
+                }
+            }
+            newInv.items.clear()
+            newInv.items.addAll(newItems)
+            selectedInventory.value = newInv
+        }
+    }
+
     if(showInvSelector.value) inventorySelector(selectedInventory, showInvSelector)
 
     if(!showInvSelector.value) {
@@ -50,16 +126,15 @@ fun App() {
                 displayTabSelector(showInventory, showScrollPanel, selectedInventory)
 
                 if(selectedInventory.value != null && showInventory.value) {
-                    displayInv(selectedInventory as MutableState<Inventory>, modifier, showItemDisplay, itemDisplayItem, refreshTrigger, showSortedInv)
+                    displayInv(selectedInventory, modifier, showItemDisplay, itemDisplayItem, showSortedInv, items, totalSlots, 100.dp, updateInventory, refreshInv, removeItem, addItemAtIndex)
                 }
 
                 if(showScrollPanel.value) {
-                    scrollDisplay(modifier, selectedInventory.value!!, refreshTrigger, showScrollPanel)
+                    scrollDisplay(modifier, selectedInventory.value!!, showScrollPanel)
                 }
-
             }
             if (showItemDisplay.value) {
-                showItemDisplayStructure(itemDisplayItem, selectedInventory, showItemDisplay, refreshTrigger)
+                showItemDisplayStructure(itemDisplayItem, showItemDisplay, updateInventory, refreshInv)
             }
         }
     }
