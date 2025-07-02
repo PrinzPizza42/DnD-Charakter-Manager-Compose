@@ -577,7 +577,7 @@ object InventoryDisplay {
                             Modifier
                                 .fillMaxWidth()
                         ) {
-                            Image(painterResource("deleteIcon.svg"), "Delete",
+                            Image(painterResource("deleteIconRed.svg"), "Delete",
                                 Modifier
                                     .padding(10.dp)
                                     .align(Alignment.Center)

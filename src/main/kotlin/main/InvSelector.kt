@@ -2,6 +2,7 @@ package main
 
 import Data.Write
 import Main.Inventory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -23,7 +24,9 @@ import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -34,7 +37,7 @@ object InvSelector {
     lateinit var inventoryMutableList: SnapshotStateList<Inventory>
 
     @Composable
-    fun inventorySelector(selectedInventory: MutableState<Inventory?>, open: MutableState<Boolean>) {
+    fun inventorySelector(selectedInventory: MutableState<Inventory?>) {
         val inventories = remember { inventoryMutableList }
 
         Box(Modifier
@@ -158,18 +161,30 @@ object InvSelector {
                     .fillMaxHeight()
                     .weight(1f)
                 )
-                Button(
-                    onClick = {
-                        showDelete = true
-                    },
-                    content = {
-                        Text("X")
-                    },
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .height(40.dp)
-                        .width(40.dp)
-                )
+                Box(
+                    Modifier
+                        .padding(30.dp)
+                        .height(30.dp)
+                        .width(30.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            showDelete = true
+                        },
+                        content = {},
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zIndex(0f)
+                    )
+                    Image(
+                        painter = painterResource("deleteIconWhite.svg"),
+                        contentDescription = "delete",
+                        contentScale = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zIndex(1f)
+                    )
+                }
             }
             if (showDelete) {
                 Box(

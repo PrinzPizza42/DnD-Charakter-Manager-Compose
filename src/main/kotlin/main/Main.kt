@@ -114,7 +114,7 @@ fun App() {
         }
     }
 
-    if(showInvSelector.value) inventorySelector(selectedInventory, showInvSelector)
+    if(showInvSelector.value) inventorySelector(selectedInventory)
 
     if(!showInvSelector.value) {
         Box(Modifier.fillMaxSize()) {
