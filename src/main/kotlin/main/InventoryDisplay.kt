@@ -432,6 +432,22 @@ object InventoryDisplay {
                                         },
                                         singleLine = true,
                                     )
+
+                                    //Equipped
+                                    val equipped = remember(itemDisplayItem.value, itemDisplayItem.value!!.equipped) { mutableStateOf(itemDisplayItem.value!!.equipped) }
+                                    Row {
+                                        Checkbox(
+                                            checked = equipped.value,
+                                            onCheckedChange = {
+                                                itemDisplayItem.value!!.equipped = it
+                                                equipped.value = it
+                                            },
+                                            modifier = Modifier
+                                                .width(30.dp)
+                                                .padding(horizontal = 10.dp),
+                                        )
+                                        Text("Ausgerüstet")
+                                    }
                                 }
                             }
                         } else println("Something went wrong")
@@ -514,7 +530,6 @@ object InventoryDisplay {
                     items(
                         items = if(showSortedInv.value) {
                             if(refreshInv.value) {
-                                println("refreshed inv because of manual refresh")
                                 refreshInv.value = false
                             }
                             println("loading items")
@@ -522,7 +537,6 @@ object InventoryDisplay {
                         }
                         else {
                             if(refreshInv.value) {
-                                println("refreshed inv because of manual refresh")
                                 refreshInv.value = false
                             }
                             items
@@ -576,7 +590,6 @@ object InventoryDisplay {
                                     .clipToBounds()
                             )
                         }
-                        //TODO add delete item button at the bottom which only closes the overlay
                     }
                 }
                 val borderColor = remember(draggedItem.value?.equipped) {mutableStateOf(if(draggedItem.value!! is EmptySlot) Color.Black.copy(alpha = 0.1f) else if(!draggedItem.value!!.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f))}
@@ -638,10 +651,6 @@ object InventoryDisplay {
                             }
                         }
                         Text("Klicke um das item einzuordnen", Modifier.padding(8.dp), color = Color.White)
-                        Text("highlightFirstEmptyItem: " + highlightFirstEmptySlot.value, Modifier.padding(8.dp), color = Color.White)
-                        Text("  - is hovered item: " + (firstEmptySlot.value?.uuid == dragHoveredOver.value?.uuid), Modifier.padding(8.dp), color = Color.White)
-                        Text("firstEmptySlotItem: " + firstEmptySlot.value?.uuid, Modifier.padding(8.dp), color = Color.White)
-                        Text("hovered item: " + dragHoveredOver.value?.uuid, Modifier.padding(8.dp), color = Color.White)
                     }
                 }
             }
@@ -748,15 +757,8 @@ object InventoryDisplay {
                                     showItemDisplay.value = true
                                 }
                             },
-                            onDoubleTap = {
-                                if(item !is EmptySlot) {
-                                    println("press " + item.name)
-                                    item.equipped = !item.equipped
-                                    onItemChanged(item)
-                                }
-                            },
                             onLongPress = {
-                                if(item !is EmptySlot) {
+                                if(item !is EmptySlot && draggedItem.value == null) {
                                     println("longpress " + item.name)
                                     draggedItem.value = item
                                     removeItem(item)
