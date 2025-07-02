@@ -9,7 +9,6 @@ import Main.ItemClasses.Potion
 import Main.ItemClasses.Weapons.LongRangeWeapon
 import Main.ItemClasses.Weapons.ShortRangeWeapon
 import Main.ItemClasses.Weapons.Weapon
-import androidx.compose.animation.Animatable
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -20,7 +19,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.snapping.snapFlingBehavior
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -49,7 +47,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.skiko.Cursor
 import java.util.*
 
@@ -469,6 +466,13 @@ object InventoryDisplay {
         val draggedItemOffset = remember { mutableStateOf(Offset.Zero) }
         val dragHoveredOver = remember { mutableStateOf<Item?>(null) }
 
+        val firstEmptySlot = remember(items) {
+            derivedStateOf {
+                items.firstOrNull { it is EmptySlot }
+            }
+        }
+        val highlightFirstEmptySlot = remember { mutableStateOf(false) }
+
         val typePriority = mapOf(
             ShortRangeWeapon::class to 0,
             LongRangeWeapon::class to 1,
@@ -513,7 +517,6 @@ object InventoryDisplay {
                                 println("refreshed inv because of manual refresh")
                                 refreshInv.value = false
                             }
-
                             println("loading items")
                             items.sortedBy { item -> typePriority[item!!::class] ?: Int.MAX_VALUE}
                         }
@@ -530,12 +533,11 @@ object InventoryDisplay {
                             Modifier
                                 .animateItem()
                         ) {
-                            invSlot(item, showItemDisplay, itemDisplayItem, onItemChanged, items, draggedItem, dragHoveredOver, removeItem, addItemAtIndex)
+                            invSlot(item, showItemDisplay, itemDisplayItem, onItemChanged, items, draggedItem, dragHoveredOver, removeItem, addItemAtIndex, firstEmptySlot, highlightFirstEmptySlot)
                         }
                     }
                 }
             }
-
 
             //Overlay
             if(draggedItem.value != null) {
@@ -635,7 +637,11 @@ object InventoryDisplay {
                                 }
                             }
                         }
-                        Text("Klicke um das item einzuordnen", Modifier.padding(8.dp))
+                        Text("Klicke um das item einzuordnen", Modifier.padding(8.dp), color = Color.White)
+                        Text("highlightFirstEmptyItem: " + highlightFirstEmptySlot.value, Modifier.padding(8.dp), color = Color.White)
+                        Text("  - is hovered item: " + (firstEmptySlot.value?.uuid == dragHoveredOver.value?.uuid), Modifier.padding(8.dp), color = Color.White)
+                        Text("firstEmptySlotItem: " + firstEmptySlot.value?.uuid, Modifier.padding(8.dp), color = Color.White)
+                        Text("hovered item: " + dragHoveredOver.value?.uuid, Modifier.padding(8.dp), color = Color.White)
                     }
                 }
             }
@@ -653,7 +659,9 @@ object InventoryDisplay {
         draggedItem: MutableState<Item?>,
         dragHoveredOver: MutableState<Item?>,
         removeItem: (Item) -> Unit,
-        addItemAtIndex: (Item, Item) -> Unit
+        addItemAtIndex: (Item, Item) -> Unit,
+        firstEmptySlot: State<Item?>,
+        highlightFirstEmptySlot: MutableState<Boolean>
     ) {
         val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) Color.LightGray else Color.LightGray.copy(alpha = 0.2f)) }
 
@@ -662,20 +670,37 @@ object InventoryDisplay {
             var isHovered by remember { mutableStateOf(false) }
             val borderColor = remember(item.equipped) { mutableStateOf(Color.Transparent)  }
 
-            if(dragHoveredOver.value != null && dragHoveredOver.value!! == item) remember(item.equipped) {
-                borderColor.value = Color.Red
+            if(dragHoveredOver.value != null) {
+                if(dragHoveredOver.value!! is EmptySlot && highlightFirstEmptySlot.value && firstEmptySlot.value == item) {
+                    remember(item.equipped) {
+                        borderColor.value = Color.Red
+                    }
+                }
+                else if(dragHoveredOver.value!! == item) {
+                    if(item !is EmptySlot || firstEmptySlot.value == item) {
+                        remember(item.equipped) {
+                            borderColor.value = Color.Red
+                        }
+                    }
+                    else {
+                        remember(item.equipped) {
+                            borderColor.value = Color.Black.copy(alpha = 0.1f)
+                        }
+                    }
+                }
             }
             else {
-                 borderColor.value = if(item is EmptySlot) Color.Black.copy(alpha = 0.1f) else if(!item.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f)
+                borderColor.value = if(item is EmptySlot) Color.Black.copy(alpha = 0.1f) else if(!item.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f)
+                highlightFirstEmptySlot.value = false
             }
 
             val scale by animateFloatAsState(
-                targetValue = if (isHovered) 1.08f else 1f,
+                targetValue = if (isHovered && item !is EmptySlot) 1.08f else 1f,
                 animationSpec = tween(durationMillis = 150)
             )
 
             val elevation by animateDpAsState(
-                targetValue = if (isHovered) 6.dp else if(item !is EmptySlot) 2.dp else 0.dp,
+                targetValue = if (isHovered && item !is EmptySlot) 6.dp else if(item !is EmptySlot) 2.dp else 0.dp,
                 animationSpec = tween(durationMillis = 150)
             )
 
@@ -685,17 +710,19 @@ object InventoryDisplay {
                     .size(100.dp)
                     .pointerMoveFilter(
                         onEnter = {
-                            if(item !is EmptySlot) {
-                                isHovered = true
-                                if(draggedItem.value != null) dragHoveredOver.value = item
+                            isHovered = true
+                            if(draggedItem.value != null && item is EmptySlot) {
+                                highlightFirstEmptySlot.value = true
                             }
+                            if(draggedItem.value != null) dragHoveredOver.value = item
                             false
                         },
                         onExit = {
-                            if(item !is EmptySlot) {
-                                isHovered = false
-                                if (draggedItem.value != null) dragHoveredOver.value = null
+                            isHovered = false
+                            if(draggedItem.value != null && item is EmptySlot) {
+                                highlightFirstEmptySlot.value = false
                             }
+                            if (draggedItem.value != null) dragHoveredOver.value = null
                             false
                         }
                     )
