@@ -83,46 +83,48 @@ object InventoryDisplay {
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(250.dp)
         ) {
             //Background
             Box(
                 Modifier
                     .zIndex(0f)
-                    .background(Color.Green)
                     .fillMaxSize()
-                    .wrapContentSize(Alignment.Center)
             ) {
+                //Scenery
+                getRandomSceneryImage()
             }
 
             //Foreground
-            Column(
+            Row(
                 Modifier
-                    .fillMaxWidth()
+                    .zIndex(1f)
+                    .fillMaxSize()
             ) {
-                Box(
-                    Modifier
-                        .zIndex(1f)
-                        .weight(1f)
-                        .fillMaxWidth()
+                Image(
+                    painterResource("backPackTopOpenLeft.png"),
+                    contentDescription = "Backpack top left",
+                    modifier = Modifier.weight(1f),
+                    contentScale = ContentScale.FillBounds
                 )
-                {
-                }
-                Box(
-                    Modifier
-                        .zIndex(1f)
-                        .background(Color.LightGray)
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .wrapContentSize(Alignment.Center)
+                Image(
+                    painterResource("backPackTopOpenMiddle.png"),
+                    contentDescription = "Backpack top middle",
+                    modifier = Modifier.width(180.dp),
+                    contentScale = ContentScale.FillBounds
                 )
-                {
-                }
+                Image(
+                    painterResource("backPackTopOpenRight.png"),
+                    contentDescription = "Backpack top right",
+                    modifier = Modifier.weight(1f),
+                    contentScale = ContentScale.FillBounds
+                )
             }
 
             //Sorting
             Column(
                 Modifier
+                    .zIndex(2f)
                     .fillMaxWidth()
             ) {
                 Box(
@@ -157,11 +159,13 @@ object InventoryDisplay {
                                     onClick = {
                                         selectedOption = option
                                         showSortedInv.value = (option == "Nach Klasse")
-                                        println("selected option: $selectedOption") //TODO remove
-                                        println("showSortedInv: ${showSortedInv.value}") //TODO remove
-                                    }
+                                    },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = Color.LightGray,
+                                        unselectedColor = Color.White
+                                    )
                                 )
-                                Text(option)
+                                Text(option, color = Color.White)
                             }
                         }
 
@@ -234,7 +238,6 @@ object InventoryDisplay {
                     ) {
 
                     }
-
                     Box(
                         Modifier
                             .weight(1f)
@@ -818,5 +821,16 @@ object InventoryDisplay {
                 .background(backGroundColor.value.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
             )
         }
+    }
+
+    @Composable
+    fun getRandomSceneryImage() {
+        return Image(
+            painterResource("sceneryImages/" + (1..7).random() + ".jpeg"),
+            "Scenery Image",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+        )
     }
 }
