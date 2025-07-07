@@ -5,16 +5,34 @@ import Main.Inventory
 import Main.ItemClasses.*
 import Main.ItemClasses.Weapons.LongRangeWeapon
 import Main.ItemClasses.Weapons.ShortRangeWeapon
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.content.MediaType.Companion.Text
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
@@ -23,6 +41,7 @@ import main.InventoryDisplay.showItemDisplayStructure
 import main.ScrollDisplay.scrollDisplay
 import main.InvSelector.inventorySelector
 import main.TabSelector.displayTabSelector
+import org.jetbrains.skiko.Cursor
 
 @Composable
 @Preview
@@ -149,6 +168,28 @@ fun App() {
                 displayInv(selectedInventory, modifierInv, showItemDisplay, itemDisplayItem, showSortedInv, items, totalSlots, 100.dp, updateInventory, refreshInv, removeItem, addItemAtIndex)
 
                 scrollDisplay(modifierSpells, selectedInventory.value!!, showScrollPanel)
+
+                val backGroundColor = animateColorAsState(
+                    if(!showInvAnimationEndSpells.value && !showInvAnimationEndInv.value) Color.Gray else Color.Black,
+                    label = "background color",
+                    animationSpec = tween(300)
+                )
+
+                if(!showInvAnimationEndSpells.value && !showInvAnimationEndInv.value) {
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .background(backGroundColor.value)
+                    ) {
+                        Text(
+                            text = "Keine Panels ausgewählt",
+                            modifier =  Modifier.align(Alignment.Center),
+                            textAlign = TextAlign.Center,
+                            fontSize = 40.sp
+                        )
+                    }
+                }
             }
             if (showItemDisplay.value) {
                 showItemDisplayStructure(itemDisplayItem, showItemDisplay, updateInventory, refreshInv)

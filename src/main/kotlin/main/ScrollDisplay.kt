@@ -109,7 +109,7 @@ object ScrollDisplay {
                 Modifier
                     .fillMaxWidth()
                     .height(75.dp)
-                    .background(Color.DarkGray), //TODO use correlating level color of the selected spell
+                    .background(Color.DarkGray),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
