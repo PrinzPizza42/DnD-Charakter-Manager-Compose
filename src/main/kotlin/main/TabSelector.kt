@@ -3,15 +3,12 @@ package main
 import Data.Write
 import Main.Inventory
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
-import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -23,7 +20,13 @@ object TabSelector {
     val width = 50.dp
 
     @Composable
-    fun displayTabSelector(showInventory: MutableState<Boolean>, showScrollPanel: MutableState<Boolean>, selectedInventory: MutableState<Inventory?>) {
+    fun displayTabSelector(
+        showInventory: MutableState<Boolean>,
+        showScrollPanel: MutableState<Boolean>,
+        selectedInventory: MutableState<Inventory?>,
+        showInvAnimationEndInv: MutableState<Boolean>,
+        showInvAnimationEndSpells: MutableState<Boolean>
+    ) {
         Column(Modifier
             .fillMaxHeight()
             .width(width)
@@ -48,24 +51,26 @@ object TabSelector {
                 }
             )
 
-            //Show inv button
+            //Show inv button //TODO highlight when selected and not selected
             Button(
                 onClick = {
                     showInventory.value = !showInventory.value
+                    if(showInventory.value) showInvAnimationEndInv.value = showInventory.value
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .paddingFromBaseline(20.dp, 20.dp)
                 ,
                 content = {
-                    Text("Inv") //TODO replace with scroll
+                    Text("Inv") //TODO replace with backpack icon
                 }
             )
 
-            //Show scrollPanel button
+            //Show scrollPanel button //TODO highlight when selected and not selected
             Button(
                 onClick = {
                     showScrollPanel.value = !showScrollPanel.value
+                    if(showScrollPanel.value) showInvAnimationEndSpells.value = showScrollPanel.value
                 },
                 modifier = Modifier
                     .fillMaxWidth()

@@ -5,10 +5,12 @@ import Main.Inventory
 import Main.ItemClasses.*
 import Main.ItemClasses.Weapons.LongRangeWeapon
 import Main.ItemClasses.Weapons.ShortRangeWeapon
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
@@ -121,17 +123,32 @@ fun App() {
             Row(Modifier
                 .fillMaxSize()
             ) {
-                val modifier = Modifier.weight(1f)
+                val showInvAnimationEndInv = remember { mutableStateOf(true) }
+                val weightInv = animateFloatAsState(
+                    if(showInventory.value) 1f else 0.01f,
+                    label = "weight",
+                    finishedListener = {
+                        showInvAnimationEndInv.value = showInventory.value
+                    }
+                )
 
-                displayTabSelector(showInventory, showScrollPanel, selectedInventory)
+                val showInvAnimationEndSpells = remember { mutableStateOf(true) }
+                val weightSpells = animateFloatAsState(
+                    if(showScrollPanel.value) 1f else 0.01f,
+                    label = "weight",
+                    finishedListener = {
+                        showInvAnimationEndSpells.value = showScrollPanel.value
+                    }
+                )
 
-                if(selectedInventory.value != null && showInventory.value) {
-                    displayInv(selectedInventory, modifier, showItemDisplay, itemDisplayItem, showSortedInv, items, totalSlots, 100.dp, updateInventory, refreshInv, removeItem, addItemAtIndex)
-                }
+                val modifierInv = if(showInvAnimationEndInv.value) Modifier.weight(weightInv.value) else Modifier.width(0.dp)
+                val modifierSpells = if(showInvAnimationEndSpells.value) Modifier.weight(weightSpells.value) else Modifier.width(0.dp)
 
-                if(showScrollPanel.value) {
-                    scrollDisplay(modifier, selectedInventory.value!!, showScrollPanel)
-                }
+                displayTabSelector(showInventory, showScrollPanel, selectedInventory, showInvAnimationEndInv, showInvAnimationEndSpells)
+
+                displayInv(selectedInventory, modifierInv, showItemDisplay, itemDisplayItem, showSortedInv, items, totalSlots, 100.dp, updateInventory, refreshInv, removeItem, addItemAtIndex)
+
+                scrollDisplay(modifierSpells, selectedInventory.value!!, showScrollPanel)
             }
             if (showItemDisplay.value) {
                 showItemDisplayStructure(itemDisplayItem, showItemDisplay, updateInventory, refreshInv)

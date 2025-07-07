@@ -9,6 +9,7 @@ import Main.ItemClasses.Potion
 import Main.ItemClasses.Weapons.LongRangeWeapon
 import Main.ItemClasses.Weapons.ShortRangeWeapon
 import Main.ItemClasses.Weapons.Weapon
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -66,12 +67,10 @@ object InventoryDisplay {
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
     ) {
-        //TODO set randomly selected scenery behind backpack
-
-        Box(modifier.fillMaxHeight()) {
-            Column (modifier
-                .fillMaxHeight()
-            ) {
+        Box(
+            modifier = modifier
+        ) {
+            Column{
                 sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv)
                 backPack(inv, showItemDisplay, itemDisplayItem, showSortedInv, items, onItemChanged, refreshInv, removeItem, addItemAtIndex)
             }
