@@ -103,7 +103,7 @@ object ScrollDisplay {
             animationSpec = tween(durationMillis = 500)
         )
 
-        Column() {
+        Column {
             //Function bar
             Box(
                 Modifier
@@ -172,10 +172,6 @@ object ScrollDisplay {
                     )
                 }
             }
-            val backgroundScale by animateFloatAsState(
-                targetValue = (selectedSpellSliderValue.value + 1) * 300f / spellLevelsCount.value,
-                animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessVeryLow)
-            )
 
             //Spell-List
             Box(
