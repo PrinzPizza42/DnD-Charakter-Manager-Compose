@@ -140,7 +140,7 @@ object TabSelector {
                     Modifier
                         .graphicsLayer(scaleX = scaleInv, scaleY = scaleInv)
                         .fillMaxWidth()
-                        .paddingFromBaseline(20.dp, 20.dp)
+                        .padding(0.dp, 10.dp, 0.dp, 0.dp)
                         .clickable(enabled = true, onClick = {
                             showInventory.value = !showInventory.value
                             if(showInventory.value) showInvAnimationEndInv.value = showInventory.value
@@ -192,7 +192,7 @@ object TabSelector {
                     Modifier
                         .graphicsLayer(scaleX = scaleSpells, scaleY = scaleSpells)
                         .fillMaxWidth()
-                        .paddingFromBaseline(20.dp, 20.dp)
+                        .padding(0.dp, 10.dp, 0.dp, 10.dp)
                         .clickable(enabled = true, onClick = {
                             showScrollPanel.value = !showScrollPanel.value
                             if(showScrollPanel.value) showInvAnimationEndSpells.value = showScrollPanel.value
