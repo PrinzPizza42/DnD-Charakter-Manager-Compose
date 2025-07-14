@@ -20,11 +20,15 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -34,7 +38,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.skiko.Cursor
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -90,6 +93,8 @@ object ScrollDisplay {
                      couldNotCast: MutableState<Int?>
     ) {
         val selectedSpell = remember(spells) { mutableStateOf<Spell?>(null) }
+
+        val focusManager = LocalFocusManager.current
 
         val listState = rememberLazyListState()
         val coroutineScope = rememberCoroutineScope()
@@ -173,6 +178,13 @@ object ScrollDisplay {
                 }
             }
 
+            val coloredBackGround by animateColorAsState(lerp(
+                getLevelColorFromGradient(selectedSpellSliderValue.value / spellLevelsCount.value.toFloat()).copy(alpha = 1f),
+                Color.Black,
+                1f / spellLevelsCount.value.toFloat() / selectedSpellSliderValue.value),
+                animationSpec = tween(durationMillis = 600, easing = EaseOutSine)
+            )
+
             //Spell-List
             Box(
                 Modifier
@@ -183,7 +195,7 @@ object ScrollDisplay {
                         .zIndex(0f)
                         .fillMaxSize()
                         .background(
-                            lerp(getLevelColorFromGradient(selectedSpellSliderValue.value / spellLevelsCount.value.toFloat()).copy(alpha = 1f), Color.Black,  1f / spellLevelsCount.value.toFloat() / selectedSpellSliderValue.value),
+                            color = coloredBackGround,
                         )
                 )
                 Image(
@@ -294,7 +306,16 @@ object ScrollDisplay {
                                         modifier = Modifier
                                             .fillMaxHeight()
                                             .padding(20.dp, 15.dp, 0.dp, 0.dp)
-                                            .weight(1f),
+                                            .weight(1f)
+                                            .onKeyEvent { keyEvent ->
+                                                if(keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
+                                                    println("Enter")
+                                                    focusManager.clearFocus()
+                                                    inEditMode = false
+                                                    true
+                                                }
+                                                else false
+                                            },
                                         singleLine = true,
                                         readOnly = !inEditMode,
                                         textStyle = textStyle
@@ -421,10 +442,19 @@ object ScrollDisplay {
                                             },
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .padding(20.dp, 15.dp, 0.dp, 0.dp),
+                                                .padding(20.dp, 15.dp, 0.dp, 0.dp)
+                                                .onKeyEvent { keyEvent ->
+                                                    if(keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
+                                                        println("Enter")
+                                                        focusManager.clearFocus()
+                                                        inEditMode = false
+                                                        true
+                                                    }
+                                                    else false
+                                                },
                                             singleLine = true,
                                             readOnly = !inEditMode,
-                                            textStyle = textStyle
+                                            textStyle = textStyle,
                                         )
                                     }
 
