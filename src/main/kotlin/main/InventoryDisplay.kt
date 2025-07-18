@@ -9,7 +9,6 @@ import Main.ItemClasses.Potion
 import Main.ItemClasses.Weapons.LongRangeWeapon
 import Main.ItemClasses.Weapons.ShortRangeWeapon
 import Main.ItemClasses.Weapons.Weapon
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -19,11 +18,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.layout.getDefaultLazyLayoutKey
+import androidx.compose.foundation.onClick
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -34,15 +36,27 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
@@ -191,14 +205,15 @@ object InventoryDisplay {
         itemDisplayItem: MutableState<Item?>,
         showItemDisplay: MutableState<Boolean>,
         onItemChanged: (Item) -> Unit,
-        refreshInv: MutableState<Boolean>
+        refreshInv: MutableState<Boolean>,
+        focusManager: FocusManager
     ) {
         val classes = listOf("Nahkampf-Waffe", "Fernkampf-Waffe", "Verbrauchbares", "Trank", "Verschiedenes")
         var selectedClass by remember { mutableStateOf(classes[0]) }
         val hasSelected = remember { mutableStateOf(false) }
-        
+
         //InvDisplay overlay
-        Box(
+        BoxWithConstraints (
             Modifier
                 .zIndex(10f)
                 .fillMaxSize()
@@ -212,17 +227,32 @@ object InventoryDisplay {
                                 refreshInv.value = true
                             }
                             itemDisplayItem.value = null
-                            println("Detected tap outside")
+                            println("Detected tap outside, closing item display")
                         }
                     })
                 }
         ) {
+            val itemDisplayWith: Dp by remember(this.maxWidth) { mutableStateOf(if(this.maxWidth > 1000.dp) 1000.dp else this.maxWidth) }
             //ItemDisplay
             Box(
                 Modifier
                     .align(Alignment.Center)
                     .zIndex(11f)
-                    .size(1200.dp, 700.dp)
+                    .size(itemDisplayWith, 700.dp)
+                    .onKeyEvent { keyEvent ->
+                        if(keyEvent.key == Key.Escape || keyEvent.key == Key.Enter && showItemDisplay.value) {
+                            focusManager.clearFocus()
+                            println("cleared focus")
+                            true
+                        }
+                        else false
+                    }
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = {
+                            println("detected tap inside, clearing focus")
+                            focusManager.clearFocus()
+                        })
+                    }
             ) {
                 //Background
                 Row(
@@ -265,7 +295,7 @@ object InventoryDisplay {
                                     }
                             ) {
                                 Text("Wähle eine Klasse für dein neues Item aus")
-                                Column() {
+                                Column {
                                     classes.forEach { option ->
                                         Row {
                                             RadioButton(
@@ -298,7 +328,21 @@ object InventoryDisplay {
                                         .fillMaxSize()
                                         .align(Alignment.Center)
                                 ) {
-
+                                    val backGroundColorEscapeButton = remember { lerp(Color.Transparent, Color.White, 0.2f) }
+                                    Button(
+                                        onClick = {
+                                            showItemDisplay.value = false
+                                        },
+                                        modifier = Modifier
+                                            .size(40.dp),
+                                        content = {
+                                            Text("X")
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            backgroundColor = backGroundColorEscapeButton,
+                                            contentColor = Color.Black,
+                                        )
+                                    )
                                     //Name
                                     val nameInput =
                                         remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.name)) }

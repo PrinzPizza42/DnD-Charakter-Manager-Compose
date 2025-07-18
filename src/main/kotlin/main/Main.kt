@@ -24,10 +24,12 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
@@ -63,6 +65,7 @@ fun App() {
 
     val refreshInv = remember { mutableStateOf(false) }
 
+    val focusManager = LocalFocusManager.current
 
     val typePriority = mapOf(
         ShortRangeWeapon::class to 0,
@@ -192,7 +195,7 @@ fun App() {
                 }
             }
             if (showItemDisplay.value) {
-                showItemDisplayStructure(itemDisplayItem, showItemDisplay, updateInventory, refreshInv)
+                showItemDisplayStructure(itemDisplayItem, showItemDisplay, updateInventory, refreshInv, focusManager)
             }
         }
     }
