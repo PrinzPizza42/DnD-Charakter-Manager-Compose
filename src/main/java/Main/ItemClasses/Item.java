@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import Main.ItemClasses.Weapons.LongRangeWeapon;
 import Main.ItemClasses.Weapons.ShortRangeWeapon;
-import Main.ItemClasses.Weapons.Weapon;
 
-import javax.swing.*;
 import java.util.UUID;
 
 
@@ -29,7 +27,7 @@ public class Item {
     private int weight;
     private int valueInGold;
     private int amount;
-    protected String iconName = "Log of Wood.png";
+    protected String iconName = "standardClassIcons/Log of Wood.png";
     @JsonIgnore
     private UUID uuid;
     private Boolean isEquipped = false;

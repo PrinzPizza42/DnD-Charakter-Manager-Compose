@@ -18,14 +18,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.layout.getDefaultLazyLayoutKey
-import androidx.compose.foundation.onClick
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -37,10 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -48,15 +41,12 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
@@ -209,7 +199,7 @@ object InventoryDisplay {
         focusManager: FocusManager
     ) {
         val classes = listOf("Nahkampf-Waffe", "Fernkampf-Waffe", "Verbrauchbares", "Trank", "Verschiedenes")
-        var selectedClass by remember { mutableStateOf(classes[0]) }
+        val selectedClass = remember { mutableStateOf(classes[0]) }
         val hasSelected = remember { mutableStateOf(false) }
 
         //InvDisplay overlay
@@ -281,233 +271,273 @@ object InventoryDisplay {
                         .fillMaxSize()
                 ) {
                     //Item stats
-                    Box(
-                        Modifier
-                            .weight(1f)
-                    ) {
-                        //Item Create
-                        if (itemDisplayItem.value == null && !hasSelected.value) {
-                            Column(
-                                Modifier
-                                    .align(Alignment.Center)
-                                    .pointerInput(Unit) {
-                                        detectTapGestures {}
-                                    }
-                            ) {
-                                Text("Wähle eine Klasse für dein neues Item aus")
-                                Column {
-                                    classes.forEach { option ->
-                                        Row {
-                                            RadioButton(
-                                                selected = (option == selectedClass),
-                                                onClick = {
-                                                    selectedClass = option
-                                                    hasSelected.value = true
-                                                    //create an empty item
-                                                    when (selectedClass) {
-                                                        "Nahkampf-Waffe" -> itemDisplayItem.value = ShortRangeWeapon("", "", 1, 1, 1, "")
-                                                        "Fernkampf-Waffe" -> itemDisplayItem.value = LongRangeWeapon("", "", 1, 1, 1, "")
-                                                        "Verbrauchbares" -> itemDisplayItem.value = Consumable("", "", 1, 1, 1)
-                                                        "Trank" -> itemDisplayItem.value = Potion("", "", 1, 1, 1)
-                                                        "Verschiedenes" -> itemDisplayItem.value = Miscellaneous("", "", 1, 1, 1)
-                                                    }
-                                                    println("Created ${itemDisplayItem.value}")
-                                                }
-                                            )
-                                            Text(option)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        //Normal Display
-                        else if (itemDisplayItem.value != null) {
-                            key(itemDisplayItem.value) {
-                                Column(
-                                    Modifier
-                                        .fillMaxSize()
-                                        .align(Alignment.Center)
-                                ) {
-                                    val backGroundColorEscapeButton = remember { lerp(Color.Transparent, Color.White, 0.2f) }
-                                    Button(
-                                        onClick = {
-                                            showItemDisplay.value = false
-                                        },
-                                        modifier = Modifier
-                                            .size(40.dp),
-                                        content = {
-                                            Text("X")
-                                        },
-                                        colors = ButtonDefaults.buttonColors(
-                                            backgroundColor = backGroundColorEscapeButton,
-                                            contentColor = Color.Black,
-                                        )
-                                    )
-                                    //Name
-                                    val nameInput =
-                                        remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.name)) }
-                                    TextField(
-                                        value = nameInput.value,
-                                        onValueChange = {
-                                            nameInput.value = it
-                                            itemDisplayItem.value!!.name = it.text
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth(),
-                                        label = {
-                                            Text("Name")
-                                        },
-                                        singleLine = true,
-                                    )
-
-                                    //Description
-                                    val descInput =
-                                        remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.description)) }
-                                    TextField(
-                                        value = descInput.value,
-                                        onValueChange = {
-                                            descInput.value = it
-                                            itemDisplayItem.value!!.description = it.text
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth(),
-                                        label = {
-                                            Text("Beschreibung")
-                                        },
-                                        singleLine = true,
-                                    )
-
-                                    //Damage
-                                    if (itemDisplayItem.value is Weapon) {
-                                        val weapon: Weapon = itemDisplayItem.value as Weapon
-                                        val dmgInput = remember { mutableStateOf(TextFieldValue(weapon.damage)) }
-                                        TextField(
-                                            value = dmgInput.value,
-                                            onValueChange = {
-                                                dmgInput.value = it
-                                                weapon.damage = it.text
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxWidth(),
-                                            label = {
-                                                Text("Schaden")
-                                            },
-                                            singleLine = true,
-                                        )
-                                        itemDisplayItem.value = weapon
-                                    }
-
-                                    //Weight
-                                    val weightInput =
-                                        remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.weight.toString())) }
-                                    val validWeight = remember { mutableStateOf(true) }
-                                    var weightModifier: Modifier = Modifier
-                                    if (!validWeight.value) weightModifier = Modifier.background(Color.Red)
-                                    TextField(
-                                        value = weightInput.value,
-                                        onValueChange = {
-                                            weightInput.value = it
-                                            try {
-                                                val weight = it.text.toInt()
-                                                itemDisplayItem.value!!.weight = weight
-                                                validWeight.value = true
-                                            } catch (e: NumberFormatException) {
-                                                println("Could not get int from " + it.text)
-                                                validWeight.value = false
-                                            }
-                                        },
-                                        modifier = weightModifier
-                                            .fillMaxWidth(),
-                                        label = {
-                                            Text("Gewicht")
-                                        },
-                                        singleLine = true,
-                                    )
-
-                                    //Value
-                                    val valueInput =
-                                        remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.valueInGold.toString())) }
-                                    val validValue = remember { mutableStateOf(true) }
-                                    var valueModifier: Modifier = Modifier
-                                    if (!validValue.value) valueModifier = Modifier.background(Color.Red)
-                                    TextField(
-                                        value = valueInput.value,
-                                        onValueChange = {
-                                            valueInput.value = it
-                                            try {
-                                                val value = it.text.toInt()
-                                                itemDisplayItem.value!!.valueInGold = value
-                                                validValue.value = true
-                                            } catch (e: NumberFormatException) {
-                                                println("Could not get int from " + it.text)
-                                                validValue.value = false
-                                            }
-                                        },
-                                        modifier = valueModifier
-                                            .fillMaxWidth(),
-                                        label = {
-                                            Text("Wert in Gold")
-                                        },
-                                        singleLine = true,
-                                    )
-
-                                    //Amount
-                                    val amountInput =
-                                        remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.amount.toString())) }
-                                    val validAmount = remember { mutableStateOf(true) }
-                                    var amountModifier: Modifier = Modifier
-                                    if (!validAmount.value) amountModifier = Modifier.background(Color.Red)
-                                    TextField(
-                                        value = amountInput.value,
-
-                                        onValueChange = {
-                                            amountInput.value = it
-                                            try {
-                                                val amount = it.text.toInt()
-                                                itemDisplayItem.value!!.amount = amount
-                                                validAmount.value = true
-                                            } catch (e: NumberFormatException) {
-                                                println("Could not get int from " + it.text)
-                                                validAmount.value = false
-                                            }
-                                        },
-                                        modifier = amountModifier
-                                            .fillMaxWidth(),
-                                        label = {
-                                            Text("Menge")
-                                        },
-                                        singleLine = true,
-                                    )
-
-                                    //Equipped
-                                    val equipped = remember(itemDisplayItem.value, itemDisplayItem.value!!.equipped) { mutableStateOf(itemDisplayItem.value!!.equipped) }
-                                    Row {
-                                        Checkbox(
-                                            checked = equipped.value,
-                                            onCheckedChange = {
-                                                itemDisplayItem.value!!.equipped = it
-                                                equipped.value = it
-                                            },
-                                            modifier = Modifier
-                                                .width(30.dp)
-                                                .padding(horizontal = 10.dp),
-                                        )
-                                        Text("Ausgerüstet")
-                                    }
-                                }
-                            }
-                        } else println("Something went wrong")
+                    Box(Modifier.weight(1f)) {
+                        itemDisplayStats(showItemDisplay, itemDisplayItem, hasSelected, classes, selectedClass, refreshInv, onItemChanged)
                     }
 
                     //Item image
-                    Box(
-                        Modifier
-                            .weight(1f)
-                    ) {
-
+                    Box(Modifier.weight(1f)) {
+                        itemDisplayImage(showItemDisplay)
                     }
                 }
             }
+        }
+    }
+
+    @Composable
+    fun itemDisplayStats(
+        showItemDisplay: MutableState<Boolean>,
+        itemDisplayItem: MutableState<Item?>,
+        hasSelected: MutableState<Boolean>,
+        classes: List<String>,
+        selectedClass: MutableState<String>,
+        refreshInv: MutableState<Boolean>,
+        onItemChanged: (Item) -> Unit
+    ) {
+        Row(
+            Modifier
+                .fillMaxSize()
+        ) {
+            val backGroundColorEscapeButton = remember { lerp(Color.Transparent, Color.White, 0.2f) }
+            Button(
+                onClick = {
+                    itemDisplayItem.value?.let {
+                        onItemChanged(it)
+                        refreshInv.value = true
+                    }
+                    showItemDisplay.value = false
+                    itemDisplayItem.value = null
+                },
+                modifier = Modifier
+                    .size(40.dp),
+                content = {
+                    Text("X")
+                },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = backGroundColorEscapeButton,
+                    contentColor = Color.Black,
+                )
+            )
+            //Item Create
+            if (itemDisplayItem.value == null && !hasSelected.value) {
+                itemDisplayStatsCreateDisplay(classes, selectedClass, hasSelected, itemDisplayItem)
+            }
+            //Normal Display
+            else if (itemDisplayItem.value != null) {
+                itemDisplayStatsNormalDisplay(itemDisplayItem)
+            } else println("Something went wrong")
+        }
+    }
+
+    @Composable
+    fun itemDisplayStatsCreateDisplay(
+        classes: List<String>,
+        selectedClass: MutableState<String>,
+        hasSelected: MutableState<Boolean>,
+        itemDisplayItem: MutableState<Item?>
+    ) {
+        Column(
+            Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures {}
+                }
+        ) {
+            Text("Wähle eine Klasse für dein neues Item aus")
+            Column {
+                classes.forEach { option ->
+                    Row {
+                        RadioButton(
+                            selected = (option == selectedClass.value),
+                            onClick = {
+                                selectedClass.value = option
+                                hasSelected.value = true
+                                //create an empty item
+                                when (selectedClass.value) {
+                                    "Nahkampf-Waffe" -> itemDisplayItem.value = ShortRangeWeapon("", "", 1, 1, 1, "")
+                                    "Fernkampf-Waffe" -> itemDisplayItem.value = LongRangeWeapon("", "", 1, 1, 1, "")
+                                    "Verbrauchbares" -> itemDisplayItem.value = Consumable("", "", 1, 1, 1)
+                                    "Trank" -> itemDisplayItem.value = Potion("", "", 1, 1, 1)
+                                    "Verschiedenes" -> itemDisplayItem.value = Miscellaneous("", "", 1, 1, 1)
+                                }
+                                println("Created ${itemDisplayItem.value}")
+                            }
+                        )
+                        Text(option)
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun itemDisplayStatsNormalDisplay(itemDisplayItem: MutableState<Item?>) {
+        key(itemDisplayItem.value) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+            ) {
+                //Name
+                val nameInput =
+                    remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.name)) }
+                TextField(
+                    value = nameInput.value,
+                    onValueChange = {
+                        nameInput.value = it
+                        itemDisplayItem.value!!.name = it.text
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    label = {
+                        Text("Name")
+                    },
+                    singleLine = true,
+                )
+
+                //Description
+                val descInput =
+                    remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.description)) }
+                TextField(
+                    value = descInput.value,
+                    onValueChange = {
+                        descInput.value = it
+                        itemDisplayItem.value!!.description = it.text
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    label = {
+                        Text("Beschreibung")
+                    },
+                    singleLine = true,
+                )
+
+                //Damage
+                if (itemDisplayItem.value is Weapon) {
+                    val weapon: Weapon = itemDisplayItem.value as Weapon
+                    val dmgInput = remember { mutableStateOf(TextFieldValue(weapon.damage)) }
+                    TextField(
+                        value = dmgInput.value,
+                        onValueChange = {
+                            dmgInput.value = it
+                            weapon.damage = it.text
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        label = {
+                            Text("Schaden")
+                        },
+                        singleLine = true,
+                    )
+                    itemDisplayItem.value = weapon
+                }
+
+                //Weight
+                val weightInput =
+                    remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.weight.toString())) }
+                val validWeight = remember { mutableStateOf(true) }
+                var weightModifier: Modifier = Modifier
+                if (!validWeight.value) weightModifier = Modifier.background(Color.Red)
+                TextField(
+                    value = weightInput.value,
+                    onValueChange = {
+                        weightInput.value = it
+                        try {
+                            val weight = it.text.toInt()
+                            itemDisplayItem.value!!.weight = weight
+                            validWeight.value = true
+                        } catch (e: NumberFormatException) {
+                            println("Could not get int from " + it.text)
+                            validWeight.value = false
+                        }
+                    },
+                    modifier = weightModifier
+                        .fillMaxWidth(),
+                    label = {
+                        Text("Gewicht")
+                    },
+                    singleLine = true,
+                )
+
+                //Value
+                val valueInput =
+                    remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.valueInGold.toString())) }
+                val validValue = remember { mutableStateOf(true) }
+                var valueModifier: Modifier = Modifier
+                if (!validValue.value) valueModifier = Modifier.background(Color.Red)
+                TextField(
+                    value = valueInput.value,
+                    onValueChange = {
+                        valueInput.value = it
+                        try {
+                            val value = it.text.toInt()
+                            itemDisplayItem.value!!.valueInGold = value
+                            validValue.value = true
+                        } catch (e: NumberFormatException) {
+                            println("Could not get int from " + it.text)
+                            validValue.value = false
+                        }
+                    },
+                    modifier = valueModifier
+                        .fillMaxWidth(),
+                    label = {
+                        Text("Wert in Gold")
+                    },
+                    singleLine = true,
+                )
+
+                //Amount
+                val amountInput =
+                    remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.amount.toString())) }
+                val validAmount = remember { mutableStateOf(true) }
+                var amountModifier: Modifier = Modifier
+                if (!validAmount.value) amountModifier = Modifier.background(Color.Red)
+                TextField(
+                    value = amountInput.value,
+
+                    onValueChange = {
+                        amountInput.value = it
+                        try {
+                            val amount = it.text.toInt()
+                            itemDisplayItem.value!!.amount = amount
+                            validAmount.value = true
+                        } catch (e: NumberFormatException) {
+                            println("Could not get int from " + it.text)
+                            validAmount.value = false
+                        }
+                    },
+                    modifier = amountModifier
+                        .fillMaxWidth(),
+                    label = {
+                        Text("Menge")
+                    },
+                    singleLine = true,
+                )
+
+                //Equipped
+                val equipped = remember(itemDisplayItem.value, itemDisplayItem.value!!.equipped) { mutableStateOf(itemDisplayItem.value!!.equipped) }
+                Row {
+                    Checkbox(
+                        checked = equipped.value,
+                        onCheckedChange = {
+                            itemDisplayItem.value!!.equipped = it
+                            equipped.value = it
+                        },
+                        modifier = Modifier
+                            .width(30.dp)
+                            .padding(horizontal = 10.dp),
+                    )
+                    Text("Ausgerüstet")
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun itemDisplayImage(showItemDisplay: MutableState<Boolean>) {
+        Box(
+            Modifier
+                .fillMaxSize()
+        ) {
+            Text("Item Picture Placeholder")
         }
     }
 
