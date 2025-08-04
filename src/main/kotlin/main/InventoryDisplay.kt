@@ -245,31 +245,21 @@ object InventoryDisplay {
                         })
                     }
             ) {
-                //Background
-                Row(
+                Image(
+                    painterResource("itemDisplayBackGround.png"),
+                    "itemDisplayBackGround",
                     Modifier
                         .zIndex(11f)
-                        .background(Color.White)
-                        .fillMaxSize()
-                ) {
-                    Box(
-                        Modifier
-                            .weight(1f)
-                    ) {
-
-                    }
-                    Box(
-                        Modifier
-                            .weight(1f)
-                    ) {
-                    }
-                }
+                        .fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
 
                 //Foreground
                 Row(
                     Modifier
                         .zIndex(12f)
                         .fillMaxSize()
+                        .padding(62.dp, 15.dp)
                 ) {
                     //Item stats
                     Box(Modifier.weight(1f)) {
@@ -299,26 +289,6 @@ object InventoryDisplay {
             Modifier
                 .fillMaxSize()
         ) {
-            val backGroundColorEscapeButton = remember { lerp(Color.Transparent, Color.White, 0.2f) }
-            Button(
-                onClick = {
-                    itemDisplayItem.value?.let {
-                        onItemChanged(it)
-                        refreshInv.value = true
-                    }
-                    showItemDisplay.value = false
-                    itemDisplayItem.value = null
-                },
-                modifier = Modifier
-                    .size(40.dp),
-                content = {
-                    Text("X")
-                },
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = backGroundColorEscapeButton,
-                    contentColor = Color.Black,
-                )
-            )
             //Item Create
             if (itemDisplayItem.value == null && !hasSelected.value) {
                 itemDisplayStatsCreateDisplay(classes, selectedClass, hasSelected, itemDisplayItem)
