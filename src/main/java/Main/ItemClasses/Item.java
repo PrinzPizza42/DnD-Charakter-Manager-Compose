@@ -27,7 +27,7 @@ public class Item {
     private int weight;
     private int valueInGold;
     private int amount;
-    protected String iconName = "standardClassIcons/Log of Wood.png";
+    protected String iconName = "Log of Wood.png";
     @JsonIgnore
     private UUID uuid;
     private Boolean isEquipped = false;

@@ -38,6 +38,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -277,7 +278,7 @@ object InventoryDisplay {
 
                     //Item image
                     Box(Modifier.weight(1f)) {
-                        itemDisplayImage(showItemDisplay)
+                        itemDisplayImage(showItemDisplay, itemDisplayItem)
                     }
                 }
             }
@@ -532,12 +533,24 @@ object InventoryDisplay {
     }
 
     @Composable
-    fun itemDisplayImage(showItemDisplay: MutableState<Boolean>) {
+    fun itemDisplayImage(showItemDisplay: MutableState<Boolean>, item: MutableState<Item?>) {
         Box(
             Modifier
                 .fillMaxSize()
         ) {
-            Text("Item Picture Placeholder")
+            if(item.value == null) {
+                Text("No image for this item found")
+            }
+            else {
+                val painter: Painter = painterResource(item.value!!.iconName)
+
+                Image(
+                    painter = painter,
+                    contentDescription = "item icon",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
         }
     }
 
