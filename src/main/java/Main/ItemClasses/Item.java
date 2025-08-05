@@ -19,7 +19,8 @@ import java.util.UUID;
         @JsonSubTypes.Type(value = LongRangeWeapon.class, name = "longRangeWeapon"),
         @JsonSubTypes.Type(value = Consumable.class, name = "consumable"),
         @JsonSubTypes.Type(value = Potion.class, name = "potion"),
-        @JsonSubTypes.Type(value = Miscellaneous.class, name = "misc")
+        @JsonSubTypes.Type(value = Miscellaneous.class, name = "misc"),
+        @JsonSubTypes.Type(value = Armor.class, name = "Armor")
 })
 public class Item {
     private String name;

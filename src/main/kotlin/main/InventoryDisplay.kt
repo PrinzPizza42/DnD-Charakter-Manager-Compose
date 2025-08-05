@@ -1,11 +1,7 @@
 package main
 
 import Main.Inventory
-import Main.ItemClasses.Consumable
-import Main.ItemClasses.EmptySlot
-import Main.ItemClasses.Item
-import Main.ItemClasses.Miscellaneous
-import Main.ItemClasses.Potion
+import Main.ItemClasses.*
 import Main.ItemClasses.Weapons.LongRangeWeapon
 import Main.ItemClasses.Weapons.ShortRangeWeapon
 import Main.ItemClasses.Weapons.Weapon
@@ -50,6 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -90,7 +87,7 @@ object InventoryDisplay {
         refreshInv: MutableState<Boolean>,
         focusManager: FocusManager
     ) {
-        val classes = listOf("Nahkampf-Waffe", "Fernkampf-Waffe", "Verbrauchbares", "Trank", "Verschiedenes")
+        val classes = listOf("Nahkampf-Waffe", "Fernkampf-Waffe", "Verbrauchsgegenstände", "Rüstung", "Trank", "Verschiedenes")
         val selectedClass = remember { mutableStateOf(classes[0]) }
         val hasSelected = remember { mutableStateOf(false) }
 
@@ -217,7 +214,8 @@ object InventoryDisplay {
                                 when (selectedClass.value) {
                                     "Nahkampf-Waffe" -> itemDisplayItem.value = ShortRangeWeapon("", "", 1, 1, 1, "")
                                     "Fernkampf-Waffe" -> itemDisplayItem.value = LongRangeWeapon("", "", 1, 1, 1, "")
-                                    "Verbrauchbares" -> itemDisplayItem.value = Consumable("", "", 1, 1, 1)
+                                    "Verbrauchsgegenstände" -> itemDisplayItem.value = Consumable("", "", 1, 1, 1)
+                                    "Rüstung" -> itemDisplayItem.value = Armor("", "", 1, 1, 1, 10, ArmorClasses.MEDIUM)
                                     "Trank" -> itemDisplayItem.value = Potion("", "", 1, 1, 1)
                                     "Verschiedenes" -> itemDisplayItem.value = Miscellaneous("", "", 1, 1, 1)
                                 }
@@ -272,8 +270,8 @@ object InventoryDisplay {
                     singleLine = true,
                 )
 
-                //Damage
                 if (itemDisplayItem.value is Weapon) {
+                    //Damage
                     val weapon: Weapon = itemDisplayItem.value as Weapon
                     val dmgInput = remember { mutableStateOf(TextFieldValue(weapon.damage)) }
                     TextField(
@@ -290,6 +288,64 @@ object InventoryDisplay {
                         singleLine = true,
                     )
                     itemDisplayItem.value = weapon
+                }
+
+                if(itemDisplayItem.value is Armor) {
+                    //Armor Value
+                    val armor: Armor = itemDisplayItem.value as Armor
+                    val armorValueInput = remember { mutableStateOf(TextFieldValue(armor.armorValue.toString())) }
+                    var errorValue by remember { mutableStateOf(false) }
+
+                    TextField(
+                        value = armorValueInput.value,
+                        onValueChange = {
+                            armorValueInput.value = it
+                            val inputInt = it.text.toIntOrNull()
+
+                            if(inputInt == null) errorValue = true
+                            else {
+                                errorValue = false
+                                armor.armorValue = inputInt
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        label = {
+                            Text("Rüstungswert")
+                        },
+                        singleLine = true,
+                        isError = errorValue
+                    )
+
+                    //Armor Class
+                    val armorClassInput = remember { mutableStateOf(TextFieldValue(armor.armorClass.toString())) }
+                    var errorClass by remember { mutableStateOf(false) }
+
+                    TextField(
+                        value = armorClassInput.value,
+                        onValueChange = {
+                            armorClassInput.value = it
+
+                            try {
+                                val inputClass: ArmorClasses = ArmorClasses.valueOf(it.text.uppercase())
+
+                                armor.armorClass = inputClass
+
+                                errorClass = false
+                            }
+                            catch (e: Exception) {
+                                println("Could not get enum value armor class from: $it")
+                                errorClass = true
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        label = {
+                            Text("Rüstungsklasse (Light, Medium, Heavy)")
+                        },
+                        singleLine = true,
+                        isError = errorClass
+                    )
                 }
 
                 //Weight
@@ -513,8 +569,6 @@ object InventoryDisplay {
                                     Text(option, color = Color.White)
                                 }
                             }
-
-
 
                             Button(
                                 onClick = {

@@ -73,9 +73,10 @@ fun App() {
     val typePriority = mapOf(
         ShortRangeWeapon::class to 0,
         LongRangeWeapon::class to 1,
-        Potion::class to 2,
-        Consumable::class to 3,
-        Miscellaneous::class to 4
+        Armor::class to 2,
+        Potion::class to 3,
+        Consumable::class to 4,
+        Miscellaneous::class to 5
     )
 
     val items by remember(selectedInventory.value?.uuid, selectedInventory.value, showSortedInv.value) {
