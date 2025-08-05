@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -46,7 +47,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -740,45 +740,44 @@ object InventoryDisplay {
                         Box(
                             Modifier
                                 .size(100.dp)
-                                .shadow(10.dp, shape = RoundedCornerShape(8.dp), clip = false)
-                                .background(Color.LightGray.copy(alpha = 1f), shape = RoundedCornerShape(10.dp))
+                                .shadow(10.dp, shape = boxShape.value, clip = false)
+                                .background(color = lerp(Color.Transparent, Color.Black, 0.1f), shape = boxShape.value)
                                 .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
                         ) {
-                            Column(
-                                Modifier
-                                    .fillMaxSize()
-                            ) {
+                            Box(Modifier.padding(3.dp))
+                            {
+                                //BackgroundIcon
+                                Image(
+                                    painterResource(draggedItem.value!!.iconName),
+                                    draggedItem.value!!.iconName,
+                                    Modifier
+                                        .fillMaxSize()
+                                )
                                 //Name
                                 Text(
                                     draggedItem.value!!.name,
                                     Modifier
-                                        .fillMaxWidth()
-                                        .weight(3f)
+                                        .padding(5.dp, 0.dp)
+                                        .background(color = lerp(Color.Transparent, Color.White, 0.8f), shape = RoundedCornerShape(15.dp))
+                                        .padding(10.dp, 0.dp)
                                 )
-                                Text(when(draggedItem.value!!) {
-                                    is LongRangeWeapon -> "longRangeWeapon"
-                                    is ShortRangeWeapon -> "shortRangeWeapon"
-                                    is Miscellaneous -> "miscellaneous"
-                                    is Potion -> "potion"
-                                    is Consumable -> "consumable"
-                                    else -> "no class"
-                                },
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f))
                                 Row(
                                     Modifier
+                                        .align(Alignment.BottomEnd)
                                         .fillMaxWidth()
-                                        .weight(1f)
                                 ) {
                                     //Filler
                                     Box(
-                                        Modifier.weight(4f)
-                                    ) {}
+                                        Modifier
+                                            .weight(4f)
+                                    )
                                     //Amount
                                     Text(
                                         draggedItem.value!!.amount.toString(),
-                                        Modifier.weight(1f)
+                                        Modifier
+                                            .padding(5.dp, 0.dp)
+                                            .background(color = lerp(Color.Transparent, Color.White, 0.8f), shape = CircleShape)
+                                            .padding(10.dp, 0.dp)
                                     )
                                 }
                             }
@@ -805,7 +804,7 @@ object InventoryDisplay {
         firstEmptySlot: State<Item?>,
         highlightFirstEmptySlot: MutableState<Boolean>
     ) {
-        val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) Color.LightGray else Color.LightGray.copy(alpha = 0.2f)) }
+        val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) lerp(Color.Transparent, Color.Black, 0.1f) else Color.LightGray.copy(alpha = 0.2f)) }
 
         if(item != null) {
             val boxShape = remember(item.equipped) { mutableStateOf(if(!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
@@ -904,30 +903,27 @@ object InventoryDisplay {
                     ))
             ) {
                 if(item !is EmptySlot) {
-                    Column(
-                        Modifier
-                            .fillMaxSize()
-                    ) {
+                    Box(Modifier.padding(3.dp))
+                    {
+                        //BackgroundIcon
+                        Image(
+                            painterResource(item.iconName),
+                            item.iconName,
+                            Modifier
+                                .fillMaxSize()
+                        )
                         //Name
                         Text(
                             item.name,
                             Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
+                                .padding(5.dp, 0.dp)
+                                .background(color = lerp(Color.Transparent, Color.White, 0.8f), shape = RoundedCornerShape(15.dp))
+                                .padding(10.dp, 0.dp)
                         )
-
-                        //BackgroundIcon
-                        Image(
-                            painterResource(item.iconName),
-                            "${item.iconName}",
-                            Modifier
-                                .weight(5f)
-                        )
-
                         Row(
                             Modifier
+                                .align(Alignment.BottomEnd)
                                 .fillMaxWidth()
-                                .weight(1f)
                         ) {
                             //Filler
                             Box(
@@ -937,7 +933,10 @@ object InventoryDisplay {
                             //Amount
                             Text(
                                 item.amount.toString(),
-                                Modifier.weight(1f)
+                                Modifier
+                                    .padding(5.dp, 0.dp)
+                                    .background(color = lerp(Color.Transparent, Color.White, 0.8f), shape = CircleShape)
+                                    .padding(10.dp, 0.dp)
                             )
                         }
                     }
