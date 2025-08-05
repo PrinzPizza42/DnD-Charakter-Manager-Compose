@@ -839,19 +839,17 @@ object InventoryDisplay {
                             item.name,
                             Modifier
                                 .fillMaxWidth()
-                                .weight(3f)
+                                .weight(1f)
                         )
-                        Text(when(item) {
-                            is LongRangeWeapon -> "longRangeWeapon"
-                            is ShortRangeWeapon -> "shortRangeWeapon"
-                            is Miscellaneous -> "miscellaneous"
-                            is Potion -> "potion"
-                            is Consumable -> "consumable"
-                            else -> "no class"
-                        },
+
+                        //BackgroundIcon
+                        Image(
+                            painterResource(item.iconName),
+                            "${item.iconName}",
                             Modifier
-                                .fillMaxWidth()
-                                .weight(1f))
+                                .weight(5f)
+                        )
+
                         Row(
                             Modifier
                                 .fillMaxWidth()
@@ -859,8 +857,9 @@ object InventoryDisplay {
                         ) {
                             //Filler
                             Box(
-                                Modifier.weight(4f)
-                            ) {}
+                                Modifier
+                                    .weight(4f)
+                            )
                             //Amount
                             Text(
                                 item.amount.toString(),
