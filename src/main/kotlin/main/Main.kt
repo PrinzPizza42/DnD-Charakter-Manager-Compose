@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
@@ -38,11 +39,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import de.luca.dnd_charakter_manager_compose.generated.resources.Res
 import main.InventoryDisplay.displayInv
 import main.InventoryDisplay.showItemDisplayStructure
 import main.ScrollDisplay.scrollDisplay
 import main.InvSelector.inventorySelector
 import main.TabSelector.displayTabSelector
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.skiko.Cursor
 
 @Composable
@@ -202,7 +205,9 @@ fun App() {
 }
 
 fun main() = application {
-    Read.readData();
+    val icon = painterResource("icon.png")
+
+    Read.readData()
 
     Window(
         onCloseRequest = ::exitApplication,
@@ -210,7 +215,7 @@ fun main() = application {
             size = DpSize(1920.dp, 1200.dp)
         ),
         title = "DnD-Charakter-Manager",
-        icon = null
+        icon = icon
     ) {
         App()
     }
