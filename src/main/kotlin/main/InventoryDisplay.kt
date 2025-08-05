@@ -83,115 +83,6 @@ object InventoryDisplay {
     }
 
     @Composable
-    fun sceneryAndBackPackTop(showItemDisplay: MutableState<Boolean>, showSortedInv: MutableState<Boolean>, refreshInv: MutableState<Boolean>) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(250.dp)
-        ) {
-            //Background
-            Box(
-                Modifier
-                    .zIndex(0f)
-                    .fillMaxSize()
-            ) {
-                //Scenery
-                getRandomSceneryImage()
-            }
-
-            //Foreground
-            Row(
-                Modifier
-                    .zIndex(1f)
-                    .fillMaxSize()
-            ) {
-                Image(
-                    painterResource("backPackTopOpenLeft.png"),
-                    contentDescription = "Backpack top left",
-                    modifier = Modifier.weight(1f),
-                    contentScale = ContentScale.FillBounds
-                )
-                Image(
-                    painterResource("backPackTopOpenMiddle.png"),
-                    contentDescription = "Backpack top middle",
-                    modifier = Modifier.width(180.dp),
-                    contentScale = ContentScale.FillBounds
-                )
-                Image(
-                    painterResource("backPackTopOpenRight.png"),
-                    contentDescription = "Backpack top right",
-                    modifier = Modifier.weight(1f),
-                    contentScale = ContentScale.FillBounds
-                )
-            }
-
-            //Sorting
-            Column(
-                Modifier
-                    .zIndex(2f)
-                    .fillMaxWidth()
-            ) {
-                Box(
-                    Modifier
-                        .zIndex(2f)
-                        .weight(1f)
-                        .fillMaxWidth()
-                )
-                {
-                }
-                Box(
-                    Modifier
-                        .zIndex(2f)
-                        .background(Color.Transparent)
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .wrapContentSize(Alignment.Center)
-                )
-                {
-                    val options = listOf("Eigene Sortierung", "Nach Klasse")
-                    var selectedOption by remember { mutableStateOf(options[0]) }
-                    Row {
-                        options.forEach { option ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .weight(1f)
-                            ) {
-                                RadioButton(
-                                    selected = (option == selectedOption),
-                                    onClick = {
-                                        selectedOption = option
-                                        showSortedInv.value = (option == "Nach Klasse")
-                                    },
-                                    colors = RadioButtonDefaults.colors(
-                                        selectedColor = Color.LightGray,
-                                        unselectedColor = Color.White
-                                    )
-                                )
-                                Text(option, color = Color.White)
-                            }
-                        }
-
-                        Button(
-                            onClick = {
-                                println("adding item")
-                                showItemDisplay.value = true
-                            },
-                            content = {
-                                Text("+")
-                            },
-                            modifier = Modifier
-                                .width(75.dp)
-                                .height(75.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    @Composable
     fun showItemDisplayStructure(
         itemDisplayItem: MutableState<Item?>,
         showItemDisplay: MutableState<Boolean>,
@@ -524,6 +415,135 @@ object InventoryDisplay {
         }
     }
 
+    @Composable
+    fun sceneryAndBackPackTop(showItemDisplay: MutableState<Boolean>, showSortedInv: MutableState<Boolean>, refreshInv: MutableState<Boolean>) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+        ) {
+            //Background
+            Box(
+                Modifier
+                    .zIndex(0f)
+                    .fillMaxSize()
+            ) {
+                //Scenery
+                getRandomSceneryImage()
+            }
+
+            //Foreground
+            Row(
+                Modifier
+                    .zIndex(1f)
+                    .fillMaxSize()
+            ) {
+                Image(
+                    painterResource("backPackTopOpenLeft.png"),
+                    contentDescription = "Backpack top left",
+                    modifier = Modifier.weight(1f),
+                    contentScale = ContentScale.FillBounds
+                )
+                Image(
+                    painterResource("backPackTopOpenMiddle.png"),
+                    contentDescription = "Backpack top middle",
+                    modifier = Modifier.width(180.dp),
+                    contentScale = ContentScale.FillBounds
+                )
+                Image(
+                    painterResource("backPackTopOpenRight.png"),
+                    contentDescription = "Backpack top right",
+                    modifier = Modifier.weight(1f),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+
+            //Sorting
+            Column(
+                Modifier
+                    .zIndex(2f)
+                    .fillMaxWidth()
+            ) {
+                Box(
+                    Modifier
+                        .zIndex(2f)
+                        .weight(1.5f)
+                        .fillMaxWidth()
+                )
+                Row(
+                    Modifier
+                        .zIndex(2f)
+                        .weight(1f)
+                ) {
+                    Box(
+                        Modifier
+                            .weight(1f)
+                    )
+
+                    //Content
+                    Box(
+                        Modifier
+                            .background(Color.Transparent)
+                            .weight(5f)
+                            .fillMaxWidth()
+                            .wrapContentSize(Alignment.Center)
+                    )
+                    {
+                        val options = listOf("Eigene Sortierung", "Nach Klasse")
+                        var selectedOption by remember { mutableStateOf(options[0]) }
+                        Row {
+                            options.forEach { option ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .padding(8.dp)
+                                        .weight(1f)
+                                ) {
+                                    RadioButton(
+                                        selected = (option == selectedOption),
+                                        onClick = {
+                                            selectedOption = option
+                                            showSortedInv.value = (option == "Nach Klasse")
+                                        },
+                                        colors = RadioButtonDefaults.colors(
+                                            selectedColor = Color.LightGray,
+                                            unselectedColor = Color.White
+                                        )
+                                    )
+                                    Text(option, color = Color.White)
+                                }
+                            }
+
+
+
+                            Button(
+                                onClick = {
+                                    println("adding item")
+                                    showItemDisplay.value = true
+                                },
+                                content = {
+                                    Text("+")
+                                },
+                                modifier = Modifier
+                                    .width(75.dp)
+                                    .height(75.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    contentColor = Color.Black,
+                                    backgroundColor = lerp(Color.Transparent, Color.White, 0.7f)
+                                )
+                            )
+                        }
+                    }
+
+                    Box(
+                        Modifier
+                            .weight(1f)
+                    )
+                }
+            }
+        }
+    }
+
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
     fun backPack(
@@ -825,7 +845,7 @@ object InventoryDisplay {
                             }
                         )
                     }
-                    .pointerHoverIcon(if(item !is EmptySlot) PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor( Cursor.HAND_CURSOR)) else PointerIcon(
+                    .pointerHoverIcon(if(item !is EmptySlot) PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)) else PointerIcon(
                         Cursor(Cursor.DEFAULT_CURSOR)
                     ))
             ) {
