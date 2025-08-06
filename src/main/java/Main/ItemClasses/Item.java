@@ -1,11 +1,18 @@
 package Main.ItemClasses;
 
+import Data.ImageLoader;
+import Data.JsonUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import Main.ItemClasses.Weapons.LongRangeWeapon;
 import Main.ItemClasses.Weapons.ShortRangeWeapon;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 
@@ -28,7 +35,9 @@ public class Item {
     private int weight;
     private int valueInGold;
     private int amount;
-    protected String iconName = "Log of Wood.png";
+    @JsonIgnore
+    protected String standardIconName = "Log of Wood.png";
+    protected String userIconName;
     @JsonIgnore
     private UUID uuid;
     private Boolean isEquipped = false;
@@ -86,17 +95,34 @@ public class Item {
         return uuid;
     }
 
-//    public void setIcon(ImageIcon icon) {
-//        this.iconSrc = icon;
-//    }
-
-//    @JsonIgnore //TODO rewrite icon manager in kotlin
-//    public ImageIcon getIcon() {
-//        return IconManager.getIconNormalSize(iconName);
-//    }
-
+    @JsonIgnore
     public String getIconName() {
-        return iconName;
+        return standardIconName;
+    }
+
+    public void setUserIconName(String userIconName) {
+        this.userIconName = userIconName;
+    }
+
+    public String getUserIconName() {
+        return this.userIconName;
+    }
+
+    @JsonIgnore
+    public BufferedImage getIcon() {
+        BufferedImage icon;
+        if(this.userIconName != null) {
+            try {
+               icon = ImageLoader.loadImageFromFile(JsonUtil.getUserImagesPathPath().resolve(userIconName).toAbsolutePath().toString()).get();
+               return icon;
+            } catch (NoSuchElementException e) {
+                System.out.println("Could not find user icon " + this.userIconName + " for " + this.name);
+                this.userIconName = null;
+                System.out.println("Reset user icon name for " + this.name);
+            }
+        }
+        icon = ImageLoader.loadImageFromResources(this.standardIconName).get();
+        return icon;
     }
 
     public Item(String name, String description, int weight, int valueInGold, int amount) {
@@ -110,10 +136,5 @@ public class Item {
 
     public Item() {
         this.uuid = UUID.randomUUID();
-    }
-
-    public UUID newUUID() {
-        this.uuid = UUID.randomUUID();
-        return this.uuid;
     }
 }

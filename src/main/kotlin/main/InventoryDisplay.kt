@@ -1,5 +1,6 @@
 package main
 
+import Data.ImageLoader
 import Main.Inventory
 import Main.ItemClasses.*
 import Main.ItemClasses.Weapons.LongRangeWeapon
@@ -9,11 +10,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -28,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusManager
@@ -36,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -51,6 +50,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import org.jetbrains.skiko.Cursor
+import java.awt.FileDialog
+import java.io.File
 import java.util.*
 
 object InventoryDisplay {
@@ -68,6 +69,7 @@ object InventoryDisplay {
         refreshInv: MutableState<Boolean>,
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
+        window: ComposeWindow,
     ) {
         Box(
             modifier = modifier
@@ -85,7 +87,8 @@ object InventoryDisplay {
         showItemDisplay: MutableState<Boolean>,
         onItemChanged: (Item) -> Unit,
         refreshInv: MutableState<Boolean>,
-        focusManager: FocusManager
+        focusManager: FocusManager,
+        window: ComposeWindow
     ) {
         val classes = listOf("Nahkampf-Waffe", "Fernkampf-Waffe", "Verbrauchsgegenstände", "Rüstung", "Trank", "Verschiedenes")
         val selectedClass = remember { mutableStateOf(classes[0]) }
@@ -156,7 +159,7 @@ object InventoryDisplay {
 
                     //Item image
                     Box(Modifier.weight(1f)) {
-                        itemDisplayImage(showItemDisplay, itemDisplayItem)
+                        itemDisplayImage(showItemDisplay, itemDisplayItem, window)
                     }
                 }
             }
@@ -450,7 +453,7 @@ object InventoryDisplay {
     }
 
     @Composable
-    fun itemDisplayImage(showItemDisplay: MutableState<Boolean>, item: MutableState<Item?>) {
+    fun itemDisplayImage(showItemDisplay: MutableState<Boolean>, item: MutableState<Item?>, window: ComposeWindow) {
         Box(
             Modifier
                 .fillMaxSize()
@@ -459,12 +462,33 @@ object InventoryDisplay {
                 Text("No image for this item found")
             }
             else {
-                val painter: Painter = painterResource(item.value!!.iconName)
+                val painter: Painter = item.value!!.icon.toPainter()
 
                 Image(
                     painter = painter,
                     contentDescription = "item icon",
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerHoverIcon(PointerIcon.Hand)
+                        .clickable(
+                            onClick = {
+                                println("Clicked ${item.value!!.name}")
+
+                                val dialog = FileDialog(window, "Wähle eine Datei", FileDialog.LOAD)
+
+                                dialog.isVisible = true
+
+                                val directory = dialog.directory
+                                val preFile = dialog.file
+
+                                if (directory != null && preFile != null) {
+                                    val file = File(directory, preFile)
+                                    println("found ${file.absolutePath}")
+                                    item.value!!.userIconName = file.absolutePath
+                                }
+                            }
+                        )
+                    ,
                     contentScale = ContentScale.Fit
                 )
             }
@@ -749,7 +773,7 @@ object InventoryDisplay {
                             {
                                 //BackgroundIcon
                                 Image(
-                                    painterResource(draggedItem.value!!.iconName),
+                                    draggedItem.value!!.icon.toPainter(),
                                     draggedItem.value!!.iconName,
                                     Modifier
                                         .fillMaxSize()
@@ -908,7 +932,7 @@ object InventoryDisplay {
                     {
                         //BackgroundIcon
                         Image(
-                            painterResource(item.iconName),
+                            item.icon.toPainter(),
                             item.iconName,
                             Modifier
                                 .fillMaxSize()

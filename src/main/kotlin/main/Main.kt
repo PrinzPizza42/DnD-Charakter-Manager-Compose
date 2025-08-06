@@ -10,28 +10,19 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.content.MediaType.Companion.Text
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -39,18 +30,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import de.luca.dnd_charakter_manager_compose.generated.resources.Res
 import main.InventoryDisplay.displayInv
 import main.InventoryDisplay.showItemDisplayStructure
 import main.ScrollDisplay.scrollDisplay
 import main.InvSelector.inventorySelector
 import main.TabSelector.displayTabSelector
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.skiko.Cursor
 
 @Composable
 @Preview
-fun App() {
+fun App(window: ComposeWindow) {
     val showItemDisplay = remember { mutableStateOf(false) }
     val itemDisplayItem = remember { mutableStateOf<Item?>(null) }
 
@@ -172,7 +160,7 @@ fun App() {
 
                 displayTabSelector(showInventory, showScrollPanel, selectedInventory, showInvAnimationEndInv, showInvAnimationEndSpells)
 
-                displayInv(selectedInventory, modifierInv, showItemDisplay, itemDisplayItem, showSortedInv, items, totalSlots, 100.dp, updateInventory, refreshInv, removeItem, addItemAtIndex)
+                displayInv(selectedInventory, modifierInv, showItemDisplay, itemDisplayItem, showSortedInv, items, totalSlots, 100.dp, updateInventory, refreshInv, removeItem, addItemAtIndex, window)
 
                 scrollDisplay(modifierSpells, selectedInventory.value!!, showScrollPanel)
 
@@ -199,7 +187,7 @@ fun App() {
                 }
             }
             if (showItemDisplay.value) {
-                showItemDisplayStructure(itemDisplayItem, showItemDisplay, updateInventory, refreshInv, focusManager)
+                showItemDisplayStructure(itemDisplayItem, showItemDisplay, updateInventory, refreshInv, focusManager, window)
             }
         }
     }
@@ -218,6 +206,6 @@ fun main() = application {
         title = "DnD-Charakter-Manager",
         icon = icon
     ) {
-        App()
+        App(window)
     }
 }

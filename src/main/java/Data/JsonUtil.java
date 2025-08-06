@@ -10,16 +10,24 @@ public class JsonUtil {
     private static final JsonUtil instance = new JsonUtil();
     private static final ObjectMapper mapper = new ObjectMapper();
     private static Path dataPath;
+    private static Path userImagesPath;
 
     private JsonUtil() {
         try {
-            Path path = Paths.get(System.getProperty("user.home"), ".DnD-Character-Manager");
-            if(!path.toFile().exists()){
-                System.out.println(".DnD-Character-Manager does not exist");
-                Files.createDirectories(path);
+            Path dataPath = Paths.get(System.getProperty("user.home"), ".DnD-Character-Manager");
+            if(!dataPath.toFile().exists()){
+                Files.createDirectories(dataPath);
+                System.out.println("Created data dir: " + dataPath.toAbsolutePath());
             }
             System.out.println(".DnD-Character-Manager exists already");
-            this.dataPath = path;
+            JsonUtil.dataPath = dataPath;
+
+            Path userImagesPath = JsonUtil.dataPath.resolve("user_images");
+            if(!userImagesPath.toFile().exists()) {
+                Files.createDirectories(userImagesPath);
+                System.out.println("Created user image dir: " + userImagesPath.toAbsolutePath());
+            }
+            JsonUtil.userImagesPath = userImagesPath;
         }
         catch (Exception e){
             System.out.println("could not check for .DnD-Character-Manager");
@@ -33,6 +41,10 @@ public class JsonUtil {
 
     public static Path getDataPath(){
         return dataPath;
+    }
+
+    public static Path getUserImagesPathPath(){
+        return userImagesPath;
     }
 
     public static ObjectMapper getMapper() {

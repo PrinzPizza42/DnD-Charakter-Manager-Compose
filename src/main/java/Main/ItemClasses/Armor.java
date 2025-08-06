@@ -6,7 +6,7 @@ public class Armor extends Item{
 
     public Armor() {
         super();
-        this.iconName = "armorIcon.png";
+        this.standardIconName = "armorIcon.png";
     }
 
     public Armor(
@@ -21,7 +21,7 @@ public class Armor extends Item{
         super(name, description, weight, valueInGold, amount);
         this.armorValue = armorValue;
         this.armorClass = armorClass;
-        this.iconName = "armorIcon.png";
+        this.standardIconName = "armorIcon.png";
     }
 
     public Integer getArmorValue() {
