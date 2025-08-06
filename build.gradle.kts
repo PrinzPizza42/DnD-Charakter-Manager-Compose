@@ -36,13 +36,16 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "DnD-Charakter-Manager-Compose"
             packageVersion = "1.0.0"
+            includeAllModules = true
 
             windows {
-                iconFile.set(project.file("src/commonMain/composeResources/drawable/icon.ico"))
+                iconFile.set(project.file("src/main/composeResources/drawable/icon.ico"))
+                menuGroup = "DnD-Charakter-Manager"
+                shortcut = true
             }
 
             linux {
-                iconFile.set(project.file("src/commonMain/composeResources/drawable/icon.png"))
+                iconFile.set(project.file("src/main/composeResources/drawable/icon.png"))
             }
         }
     }
