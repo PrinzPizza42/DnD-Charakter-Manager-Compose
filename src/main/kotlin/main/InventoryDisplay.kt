@@ -1,6 +1,5 @@
 package main
 
-import Data.ImageLoader
 import Main.Inventory
 import Main.ItemClasses.*
 import Main.ItemClasses.Weapons.LongRangeWeapon
@@ -152,14 +151,16 @@ object InventoryDisplay {
                         .fillMaxSize()
                         .padding(62.dp, 15.dp)
                 ) {
+                    val reloadKey = remember { mutableStateOf(0) }
+
                     //Item stats
                     Box(Modifier.weight(1f)) {
-                        itemDisplayStats(showItemDisplay, itemDisplayItem, hasSelected, classes, selectedClass, refreshInv, onItemChanged)
+                        itemDisplayStats(showItemDisplay, itemDisplayItem, hasSelected, classes, selectedClass, refreshInv, onItemChanged, reloadKey)
                     }
 
                     //Item image
                     Box(Modifier.weight(1f)) {
-                        itemDisplayImage(showItemDisplay, itemDisplayItem, window)
+                        itemDisplayImage(showItemDisplay, itemDisplayItem, window, reloadKey)
                     }
                 }
             }
@@ -174,7 +175,8 @@ object InventoryDisplay {
         classes: List<String>,
         selectedClass: MutableState<String>,
         refreshInv: MutableState<Boolean>,
-        onItemChanged: (Item) -> Unit
+        onItemChanged: (Item) -> Unit,
+        reloadKey: MutableState<Int>
     ) {
         Row(
             Modifier
@@ -186,7 +188,7 @@ object InventoryDisplay {
             }
             //Normal Display
             else if (itemDisplayItem.value != null) {
-                itemDisplayStatsNormalDisplay(itemDisplayItem)
+                itemDisplayStatsNormalDisplay(itemDisplayItem, reloadKey)
             } else println("Something went wrong")
         }
     }
@@ -233,7 +235,7 @@ object InventoryDisplay {
     }
 
     @Composable
-    fun itemDisplayStatsNormalDisplay(itemDisplayItem: MutableState<Item?>) {
+    fun itemDisplayStatsNormalDisplay(itemDisplayItem: MutableState<Item?>, reloadKey: MutableState<Int>) {
         key(itemDisplayItem.value) {
             Column(
                 Modifier
@@ -448,12 +450,29 @@ object InventoryDisplay {
                     )
                     Text("Ausgerüstet")
                 }
+
+                //Image reset
+                Text("Bild zurücksetzen",
+                    Modifier.clickable (
+                        onClick = {
+                            itemDisplayItem.value!!.userIconName = null
+                            reloadKey.value++
+                            println("Reset userIconName of item ${itemDisplayItem.value!!.name}")
+                        }
+                    )
+                )
             }
         }
     }
 
     @Composable
-    fun itemDisplayImage(showItemDisplay: MutableState<Boolean>, item: MutableState<Item?>, window: ComposeWindow) {
+    fun itemDisplayImage(
+        showItemDisplay: MutableState<Boolean>,
+        item: MutableState<Item?>,
+        window: ComposeWindow,
+        reloadKey: MutableState<Int>
+    ) {
+
         Box(
             Modifier
                 .fillMaxSize()
@@ -462,35 +481,37 @@ object InventoryDisplay {
                 Text("No image for this item found")
             }
             else {
-                val painter: Painter = item.value!!.icon.toPainter()
+                key(reloadKey.value) {
+                    val painter: Painter = item.value!!.icon.toPainter()
+                    Image(
+                        painter = painter,
+                        contentDescription = "item icon",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerHoverIcon(PointerIcon.Hand)
+                            .clickable(
+                                onClick = {
+                                    println("Clicked ${item.value!!.name}")
 
-                Image(
-                    painter = painter,
-                    contentDescription = "item icon",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .pointerHoverIcon(PointerIcon.Hand)
-                        .clickable(
-                            onClick = {
-                                println("Clicked ${item.value!!.name}")
+                                    val dialog = FileDialog(window, "Wähle eine Datei", FileDialog.LOAD)
 
-                                val dialog = FileDialog(window, "Wähle eine Datei", FileDialog.LOAD)
+                                    dialog.isVisible = true
 
-                                dialog.isVisible = true
+                                    val directory = dialog.directory
+                                    val preFile = dialog.file
 
-                                val directory = dialog.directory
-                                val preFile = dialog.file
-
-                                if (directory != null && preFile != null) {
-                                    val file = File(directory, preFile)
-                                    println("found ${file.absolutePath}")
-                                    item.value!!.userIconName = file.absolutePath
+                                    if (directory != null && preFile != null) {
+                                        val file = File(directory, preFile)
+                                        println("found ${file.absolutePath}")
+                                        item.value!!.userIconName = file.absolutePath
+                                        reloadKey.value++
+                                    }
                                 }
-                            }
-                        )
-                    ,
-                    contentScale = ContentScale.Fit
-                )
+                            )
+                        ,
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
         }
     }
