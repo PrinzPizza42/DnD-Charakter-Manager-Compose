@@ -13,17 +13,10 @@ import java.nio.file.Paths;
 public class Write {
     private static final Write instance = new Write();
 
-    private Write(){
-    }
+    private Write(){}
 
     public static Write getInstance() {
         return instance;
-    }
-
-    public static void save() {
-        System.out.println("Saved"); //TODO implement saving in pdf
-        if(Main.usePDF) saveInPDF();
-        else saveInJSON();
     }
 
     private static void saveInPDF() {
@@ -31,7 +24,7 @@ public class Write {
     }
 
     private static void saveInJSON() {
-        System.out.println("in JSON");
+        System.out.println("Saving in JSON");
         ObjectMapper mapper = JsonUtil.getMapper();
         for(Inventory inv : InvSelector.INSTANCE.getInventoryMutableList()) {
             safeInJSON(mapper, inv);
@@ -44,9 +37,11 @@ public class Write {
             File file = path.toFile();
             if(file.exists()) {
                 System.out.println("File already exists at: " + file.getAbsolutePath());
-                file.delete();
+                boolean delete = file.delete();
+                System.out.println("Deleted: " + delete);
             }
             mapper.writeValue(new File(path.toString()), inv);
+            System.out.println("Saved file");
         }
         catch (Exception e) {
             e.printStackTrace();

@@ -1,5 +1,6 @@
 package main
 
+import Data.Read
 import Data.Write
 import Main.Inventory
 import androidx.compose.animation.animateColorAsState
@@ -87,6 +88,7 @@ object TabSelector {
                                 Write.safe(selectedInventory.value!!)
                                 println("Auto saved inv " + selectedInventory.value!!.name + " on close")
                                 selectedInventory.value = null
+                                Read.readData()
                             }
                         })
                         .pointerMoveFilter(

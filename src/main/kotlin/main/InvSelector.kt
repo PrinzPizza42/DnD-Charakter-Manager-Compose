@@ -19,11 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.LightGray
-import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -31,7 +27,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import main.InvSelector.inventoryMutableList
 
 object InvSelector {
     lateinit var inventoryMutableList: SnapshotStateList<Inventory>
@@ -56,7 +51,7 @@ object InvSelector {
                     Modifier
                         .weight(1f)
                 ) {
-                    addSidebarItems(inventories, selectedInventory)
+                    addInvElements(inventories, selectedInventory)
                 }
             }
         }
@@ -101,7 +96,7 @@ object InvSelector {
     }
 
     @Composable
-    fun addSidebarItems(inventories: SnapshotStateList<Inventory>, selectedInventory: MutableState<Inventory?>) {
+    fun addInvElements(inventories: SnapshotStateList<Inventory>, selectedInventory: MutableState<Inventory?>) {
         LazyColumn(
             Modifier
                 .width(300.dp)
@@ -114,13 +109,13 @@ object InvSelector {
                         .height(8.dp)
                 )
 
-                sidebarItem(inv, inventories, selectedInventory)
+                invElement(inv, inventories, selectedInventory)
             }
         }
     }
 
     @Composable
-    fun sidebarItem(
+    fun invElement(
         inv: Inventory,
         inventories: SnapshotStateList<Inventory>,
         selectedInventory: MutableState<Inventory?>
