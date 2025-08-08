@@ -1,5 +1,6 @@
 package main
 
+import Data.ImageLoader
 import Data.Read
 import Main.Inventory
 import Main.ItemClasses.*
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -194,7 +196,7 @@ fun App(window: ComposeWindow) {
 }
 
 fun main() = application {
-    val icon = painterResource("icon.png")
+    val icon = remember { ImageLoader.loadImageFromResources("icon.png").get().toPainter() }
 
     Read.readData()
 

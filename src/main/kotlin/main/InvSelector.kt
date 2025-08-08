@@ -1,5 +1,6 @@
 package main
 
+import Data.ImageLoader
 import Data.Write
 import Main.Inventory
 import androidx.compose.foundation.Image
@@ -20,6 +21,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -171,8 +173,9 @@ object InvSelector {
                             .fillMaxSize()
                             .zIndex(0f)
                     )
+                    val delete = remember { ImageLoader.loadImageFromResources("deleteIconRed.png").get().toPainter() }
                     Image(
-                        painter = painterResource("deleteIconWhite.svg"),
+                        painter = delete,
                         contentDescription = "delete",
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier

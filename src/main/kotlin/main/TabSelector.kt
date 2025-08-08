@@ -1,5 +1,6 @@
 package main
 
+import Data.ImageLoader
 import Data.Read
 import Data.Write
 import Main.Inventory
@@ -37,6 +38,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerMoveFilter
@@ -102,8 +104,9 @@ object TabSelector {
                             }
                         )
                 ) {
+                    val home = remember { ImageLoader.loadImageFromResources("home.png").get().toPainter() }
                     Image(
-                        painter = painterResource("home.png"),
+                        painter = home,
                         contentScale = ContentScale.FillWidth,
                         contentDescription = "home",
                         modifier = Modifier
@@ -161,8 +164,9 @@ object TabSelector {
                             }
                         )
                 ) {
+                    val backPackIcon = remember { ImageLoader.loadImageFromResources("backPackIcon.png").get().toPainter() }
                     Image(
-                        painter = painterResource("backPackIcon.png"),
+                        painter = backPackIcon,
                         contentScale = ContentScale.FillWidth,
                         contentDescription = "inv",
                         modifier = Modifier
@@ -212,8 +216,9 @@ object TabSelector {
                             }
                         )
                 ) {
+                    val scrollIcon = remember { ImageLoader.loadImageFromResources("scrollIcon.png").get().toPainter() }
                     Image(
-                        painter = painterResource("scrollIcon.png"),
+                        painter = scrollIcon,
                         contentScale = ContentScale.FillWidth,
                         contentDescription = "inv",
                         modifier = Modifier

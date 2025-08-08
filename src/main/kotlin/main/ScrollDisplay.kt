@@ -1,5 +1,6 @@
 package main
 
+import Data.ImageLoader
 import Main.Inventory
 import Main.Spell
 import androidx.compose.animation.animateColorAsState
@@ -117,9 +118,10 @@ object ScrollDisplay {
                     .background(Color.DarkGray),
                 contentAlignment = Alignment.Center
             ) {
+                val scrollPanelBackgroundTop = remember { ImageLoader.loadImageFromResources("scrollPanelBackgroundTop.png").get().toPainter() }
                 Image(
-                    painter = painterResource("scrollPanelBackgroundTop.png"),
-                    contentDescription = null,
+                    painter = scrollPanelBackgroundTop,
+                    contentDescription = "scrollPanelBackgroundTop",
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .fillMaxSize()
@@ -133,8 +135,9 @@ object ScrollDisplay {
                         .wrapContentSize(Alignment.Center)
                         .zIndex(1f)
                 ) {
+                    val scrollBackGround = remember { ImageLoader.loadImageFromResources("scrollBackGround.png").get().toPainter() }
                     Image(
-                        painter = painterResource("scrollBackGround.png"),
+                        painter = scrollBackGround,
                         contentDescription = null,
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier
@@ -198,8 +201,9 @@ object ScrollDisplay {
                             color = coloredBackGround,
                         )
                 )
+                val scrollPanelBackgroundMiddle = remember { ImageLoader.loadImageFromResources("scrollPanelBackgroundMiddle.png").get().toPainter() }
                 Image(
-                    painter = painterResource("scrollPanelBackgroundMiddle.png"),
+                    painter = scrollPanelBackgroundMiddle,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -266,24 +270,27 @@ object ScrollDisplay {
                                         .fillMaxSize()
                                         .padding(3.dp)
                                 ) {
+                                    val scrollBackGroundLeft = remember { ImageLoader.loadImageFromResources("scrollBackGroundLeft.png").get().toPainter() }
                                     Image(
-                                        painter = painterResource("scrollBackGroundLeft.png"),
+                                        painter = scrollBackGroundLeft,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .fillMaxHeight()
                                             .width(scrollEndsWith),
                                         contentScale = ContentScale.FillBounds,
                                     )
+                                    val scrollBackGroundMiddle = remember { ImageLoader.loadImageFromResources("scrollBackGroundMiddle.png").get().toPainter() }
                                     Image(
-                                        painter = painterResource("scrollBackGroundMiddle.png"),
+                                        painter = scrollBackGroundMiddle,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .fillMaxHeight()
                                             .weight(1f),
                                         contentScale = ContentScale.FillBounds,
                                     )
+                                    val scrollBackGroundRight = remember { ImageLoader.loadImageFromResources("scrollBackGroundRight.png").get().toPainter() }
                                     Image(
-                                        painter = painterResource("scrollBackGroundRight.png"),
+                                        painter = scrollBackGroundRight,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .fillMaxHeight()
@@ -397,24 +404,27 @@ object ScrollDisplay {
                                 val density = LocalDensity.current
                                 val scrollEndsWith = with(density) { 43.toDp() }
                                 Row(Modifier.zIndex(1f)) {
+                                    val scrollForegroundRight = remember { ImageLoader.loadImageFromResources("scrollForegroundRight.png").get().toPainter() }
                                     Image(
-                                        painter = painterResource("scrollForegroundRight.png"),
+                                        painter = scrollForegroundRight,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .fillMaxHeight()
                                             .width(scrollEndsWith),
                                         contentScale = ContentScale.FillHeight,
                                     )
+                                    val scrollForegroundMiddle = remember { ImageLoader.loadImageFromResources("scrollForegroundMiddle.png").get().toPainter() }
                                     Image(
-                                        painter = painterResource("scrollForegroundMiddle.png"),
+                                        painter = scrollForegroundMiddle,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .fillMaxHeight()
                                             .weight(1f),
                                         contentScale = ContentScale.FillBounds,
                                     )
+                                    val scrollForegroundLeft = remember { ImageLoader.loadImageFromResources("scrollForegroundLeft.png").get().toPainter() }
                                     Image(
-                                        painter = painterResource("scrollForegroundLeft.png"),
+                                        painter = scrollForegroundLeft,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .fillMaxHeight()

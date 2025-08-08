@@ -1,5 +1,6 @@
 package main
 
+import Data.ImageLoader
 import Main.Inventory
 import Main.ItemClasses.*
 import Main.ItemClasses.Weapons.LongRangeWeapon
@@ -43,6 +44,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.isDebugInspectorInfoEnabled
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
@@ -135,8 +137,9 @@ object InventoryDisplay {
                         })
                     }
             ) {
+                val itemDisplayBackGround = remember { ImageLoader.loadImageFromResources("itemDisplayBackGround.png").get().toPainter() }
                 Image(
-                    painterResource("itemDisplayBackGround.png"),
+                    itemDisplayBackGround,
                     "itemDisplayBackGround",
                     Modifier
                         .zIndex(11f)
@@ -482,7 +485,7 @@ object InventoryDisplay {
             }
             else {
                 key(reloadKey.value) {
-                    val painter: Painter = item.value!!.icon.toPainter()
+                    val painter: Painter = remember(item.value!!.icon) { item.value!!.icon.toPainter() }
                     Image(
                         painter = painter,
                         contentDescription = "item icon",
@@ -539,20 +542,23 @@ object InventoryDisplay {
                     .zIndex(1f)
                     .fillMaxSize()
             ) {
+                val backPackTopOpenLeft = remember { ImageLoader.loadImageFromResources("backPackTopOpenLeft.png").get().toPainter() }
                 Image(
-                    painterResource("backPackTopOpenLeft.png"),
+                    backPackTopOpenLeft,
                     contentDescription = "Backpack top left",
                     modifier = Modifier.weight(1f),
                     contentScale = ContentScale.FillBounds
                 )
+                val backPackTopOpenMiddle = remember { ImageLoader.loadImageFromResources("backPackTopOpenMiddle.png").get().toPainter() }
                 Image(
-                    painterResource("backPackTopOpenMiddle.png"),
+                    backPackTopOpenMiddle,
                     contentDescription = "Backpack top middle",
                     modifier = Modifier.width(180.dp),
                     contentScale = ContentScale.FillBounds
                 )
+                val backPackTopOpenRight = remember { ImageLoader.loadImageFromResources("backPackTopOpenRight.png").get().toPainter() }
                 Image(
-                    painterResource("backPackTopOpenRight.png"),
+                    backPackTopOpenRight,
                     contentDescription = "Backpack top right",
                     modifier = Modifier.weight(1f),
                     contentScale = ContentScale.FillBounds
@@ -679,8 +685,9 @@ object InventoryDisplay {
             .fillMaxSize()
         ) {
             //Background
+            val backPackBackgroundOpen = remember { ImageLoader.loadImageFromResources("backPackBackgroundOpen.jpg").get().toPainter() }
             Image(
-                painterResource("backPackBackgroundOpen.jpg"),
+                backPackBackgroundOpen,
                 "Backpack background",
                 Modifier
                     .fillMaxSize(),
@@ -756,7 +763,10 @@ object InventoryDisplay {
                             Modifier
                                 .fillMaxWidth()
                         ) {
-                            Image(painterResource("deleteIconRed.svg"), "Delete",
+                            val deleteIconRed = remember { ImageLoader.loadImageFromResources("deleteIconRed.png").get().toPainter() }
+                            Image(
+                                deleteIconRed,
+                                "Delete",
                                 Modifier
                                     .padding(10.dp)
                                     .align(Alignment.Center)
@@ -793,8 +803,9 @@ object InventoryDisplay {
                             Box(Modifier.padding(3.dp))
                             {
                                 //BackgroundIcon
+                                val icon = remember(draggedItem.value!!.icon) { draggedItem.value!!.icon.toPainter() }
                                 Image(
-                                    draggedItem.value!!.icon.toPainter(),
+                                    icon,
                                     draggedItem.value!!.iconName,
                                     Modifier
                                         .fillMaxSize()
@@ -952,8 +963,9 @@ object InventoryDisplay {
                     Box(Modifier.padding(3.dp))
                     {
                         //BackgroundIcon
+                        val icon = remember(item.icon) { item.icon.toPainter() }
                         Image(
-                            item.icon.toPainter(),
+                            icon,
                             item.iconName,
                             Modifier
                                 .fillMaxSize()
