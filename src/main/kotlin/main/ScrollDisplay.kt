@@ -735,6 +735,10 @@ object ScrollDisplay {
 
     private fun resetUsedSpellSlots(spellSlots: MutableList<Pair<Int, Int>>) {
         for(slot in spellSlots) {
-            spellSlots[spellSlots.indexOf(slot)] = Pair(slot.second, slot.second)
+            val before = slot
+            val index = spellSlots.indexOf(slot)
+            spellSlots[index] = Pair(slot.second, slot.second)
+            val after = spellSlots[index]
+            println("reset spellslots: before $before after $after")
         }
     }

@@ -14,8 +14,8 @@ public class Inventory {
     private ArrayList<Item> items = new ArrayList<>();
     private final ArrayList<Spell> spells = new ArrayList<>();
     private String name = "Inventory";
-    private ArrayList<Integer> spellSlotsUsed = new ArrayList<>();
-    private ArrayList<Integer> spellSlotsMax = new ArrayList<>();
+    private volatile ArrayList<Integer> spellSlotsUsed = new ArrayList<>();
+    private volatile ArrayList<Integer> spellSlotsMax = new ArrayList<>();
     private boolean loadedLevels = false;
 
     @JsonIgnore
@@ -58,15 +58,27 @@ public class Inventory {
 
     public void resetUsedSpellSlots() {
         spellSlotsUsed.forEach(used -> spellSlotsUsed.set(spellSlotsUsed.indexOf(used), spellSlotsMax.get(spellSlotsUsed.indexOf(used))));
+        for(Pair<Integer, Integer> level : spellLevels) {
+            int index = spellLevels.indexOf(level);
+            int a = level.component1();
+            int b = level.component2();
+            Pair<Integer, Integer> replacement = new Pair<>(b, b);
+            spellLevels.set(index, replacement);
+        }
+        System.out.println("reset spellslotsUsed " + spellSlotsUsed);
     }
 
     public void setSpellSlotsUsed(ArrayList<Integer> spellSlotsUsed) {
+        System.out.println("setting spellSlotsUsed to " + spellSlotsUsed);
         this.spellSlotsUsed = spellSlotsUsed;
     }
 
     public ArrayList<Integer> getSpellSlotsUsed() {
+        System.out.println("Before clear: " + spellSlotsUsed);
         spellSlotsUsed.clear();
+        System.out.println("After clear: " + spellSlotsUsed);
         System.out.println("getting spellSlotsUsed:");
+        System.out.println("Spelllevels: " + spellLevels);
         for (Pair<Integer, Integer> spellLevel : spellLevels) {
             spellSlotsUsed.addLast(spellLevel.getFirst());
         }
