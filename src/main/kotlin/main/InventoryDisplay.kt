@@ -54,6 +54,7 @@ import org.jetbrains.skiko.Cursor
 import java.awt.FileDialog
 import java.io.File
 import java.util.*
+import kotlin.random.Random
 
 object InventoryDisplay {
     @Composable
@@ -681,6 +682,7 @@ object InventoryDisplay {
             Consumable::class to 4,
             Miscellaneous::class to 5
         )
+
         Box(Modifier
             .fillMaxSize()
         ) {
@@ -714,15 +716,14 @@ object InventoryDisplay {
                     contentPadding = PaddingValues(10.dp)
                 ) {
                     items(
-                        items = if(showSortedInv.value) {
-                            if(refreshInv.value) {
+                        items = if (showSortedInv.value) {
+                            if (refreshInv.value) {
                                 refreshInv.value = false
                             }
                             println("loading items")
-                            items.sortedBy { item -> typePriority[item!!::class] ?: Int.MAX_VALUE}
-                        }
-                        else {
-                            if(refreshInv.value) {
+                            items.sortedBy { item -> typePriority[item!!::class] ?: Int.MAX_VALUE }
+                        } else {
+                            if (refreshInv.value) {
                                 refreshInv.value = false
                             }
                             items
@@ -733,7 +734,17 @@ object InventoryDisplay {
                             Modifier
                                 .animateItem()
                         ) {
-                            invSlot(item, showItemDisplay, itemDisplayItem, onItemChanged, items, draggedItem, dragHoveredOver, removeItem, addItemAtIndex, firstEmptySlot, highlightFirstEmptySlot)
+                            invSlot(
+                                item,
+                                showItemDisplay,
+                                itemDisplayItem,
+                                draggedItem,
+                                dragHoveredOver,
+                                removeItem,
+                                addItemAtIndex,
+                                firstEmptySlot,
+                                highlightFirstEmptySlot
+                            )
                         }
                     }
                 }
@@ -852,8 +863,6 @@ object InventoryDisplay {
         item: Item?,
         showItemDisplay: MutableState<Boolean>,
         itemDisplayItem: MutableState<Item?>,
-        onItemChanged: (Item) -> Unit,
-        items: List<Item?>,
         draggedItem: MutableState<Item?>,
         dragHoveredOver: MutableState<Item?>,
         removeItem: (Item) -> Unit,
@@ -862,33 +871,37 @@ object InventoryDisplay {
         highlightFirstEmptySlot: MutableState<Boolean>
     ) {
         val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) lerp(Color.Transparent, Color.Black, 0.1f) else Color.LightGray.copy(alpha = 0.2f)) }
-
-        if(item != null) {
-            val boxShape = remember(item.equipped) { mutableStateOf(if(!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
+        println("inv slot load ${Random.nextInt()}") //DEBUG
+        if (item != null) {
+            val boxShape = remember(item.equipped) {
+                mutableStateOf(
+                    if (!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)
+                )
+            }
             var isHovered by remember { mutableStateOf(false) }
-            val borderColor = remember(item.equipped) { mutableStateOf(Color.Transparent)  }
+            val borderColor = remember(item.equipped) { mutableStateOf(Color.Transparent) }
 
-            if(dragHoveredOver.value != null) {
-                if(dragHoveredOver.value!! is EmptySlot && highlightFirstEmptySlot.value && firstEmptySlot.value == item) {
+            if (dragHoveredOver.value != null) {
+                if (dragHoveredOver.value!! is EmptySlot && highlightFirstEmptySlot.value && firstEmptySlot.value == item) {
                     remember(item.equipped) {
                         borderColor.value = Color.Red
                     }
-                }
-                else if(dragHoveredOver.value!! == item) {
-                    if(item !is EmptySlot || firstEmptySlot.value == item) {
+                } else if (dragHoveredOver.value!! == item) {
+                    if (item !is EmptySlot || firstEmptySlot.value == item) {
                         remember(item.equipped) {
                             borderColor.value = Color.Red
                         }
-                    }
-                    else {
+                    } else {
                         remember(item.equipped) {
                             borderColor.value = Color.Black.copy(alpha = 0.1f)
                         }
                     }
                 }
-            }
-            else {
-                borderColor.value = if(item is EmptySlot) Color.Black.copy(alpha = 0.1f) else if(!item.equipped) Color.Black.copy(alpha = 0.3f) else Color.Yellow.copy(alpha = 0.7f)
+            } else {
+                borderColor.value =
+                    if (item is EmptySlot) Color.Black.copy(alpha = 0.1f) else if (!item.equipped) Color.Black.copy(
+                        alpha = 0.3f
+                    ) else Color.Yellow.copy(alpha = 0.7f)
                 highlightFirstEmptySlot.value = false
             }
 
@@ -898,7 +911,7 @@ object InventoryDisplay {
             )
 
             val elevation by animateDpAsState(
-                targetValue = if (isHovered && item !is EmptySlot) 6.dp else if(item !is EmptySlot) 2.dp else 0.dp,
+                targetValue = if (isHovered && item !is EmptySlot) 6.dp else if (item !is EmptySlot) 2.dp else 0.dp,
                 animationSpec = tween(durationMillis = 150)
             )
 
@@ -909,15 +922,15 @@ object InventoryDisplay {
                     .pointerMoveFilter(
                         onEnter = {
                             isHovered = true
-                            if(draggedItem.value != null && item is EmptySlot) {
+                            if (draggedItem.value != null && item is EmptySlot) {
                                 highlightFirstEmptySlot.value = true
                             }
-                            if(draggedItem.value != null) dragHoveredOver.value = item
+                            if (draggedItem.value != null) dragHoveredOver.value = item
                             false
                         },
                         onExit = {
                             isHovered = false
-                            if(draggedItem.value != null && item is EmptySlot) {
+                            if (draggedItem.value != null && item is EmptySlot) {
                                 highlightFirstEmptySlot.value = false
                             }
                             if (draggedItem.value != null) dragHoveredOver.value = null
@@ -935,19 +948,18 @@ object InventoryDisplay {
                         detectTapGestures(
                             onTap = {
                                 println("clicked item " + item.name)
-                                if(draggedItem.value != null) {
+                                if (draggedItem.value != null) {
                                     println("drop item before " + item.name)
                                     addItemAtIndex(draggedItem.value!!, item)
                                     draggedItem.value = null
                                     dragHoveredOver.value = null
-                                }
-                                else if(item !is EmptySlot) {
+                                } else if (item !is EmptySlot) {
                                     itemDisplayItem.value = item
                                     showItemDisplay.value = true
                                 }
                             },
                             onLongPress = {
-                                if(item !is EmptySlot && draggedItem.value == null) {
+                                if (item !is EmptySlot && draggedItem.value == null) {
                                     println("longpress " + item.name)
                                     draggedItem.value = item
                                     removeItem(item)
@@ -955,11 +967,13 @@ object InventoryDisplay {
                             }
                         )
                     }
-                    .pointerHoverIcon(if(item !is EmptySlot) PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)) else PointerIcon(
-                        Cursor(Cursor.DEFAULT_CURSOR)
-                    ))
+                    .pointerHoverIcon(
+                        if (item !is EmptySlot) PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)) else PointerIcon(
+                            Cursor(Cursor.DEFAULT_CURSOR)
+                        )
+                    )
             ) {
-                if(item !is EmptySlot) {
+                if (item !is EmptySlot) {
                     Box(Modifier.padding(3.dp))
                     {
                         //BackgroundIcon
@@ -975,7 +989,10 @@ object InventoryDisplay {
                             item.name,
                             Modifier
                                 .padding(5.dp, 0.dp)
-                                .background(color = lerp(Color.Transparent, Color.White, 0.8f), shape = RoundedCornerShape(15.dp))
+                                .background(
+                                    color = lerp(Color.Transparent, Color.White, 0.8f),
+                                    shape = RoundedCornerShape(15.dp)
+                                )
                                 .padding(10.dp, 0.dp)
                         )
                         Row(
@@ -993,18 +1010,21 @@ object InventoryDisplay {
                                 item.amount.toString(),
                                 Modifier
                                     .padding(5.dp, 0.dp)
-                                    .background(color = lerp(Color.Transparent, Color.White, 0.8f), shape = CircleShape)
+                                    .background(
+                                        color = lerp(Color.Transparent, Color.White, 0.8f),
+                                        shape = CircleShape
+                                    )
                                     .padding(10.dp, 0.dp)
                             )
                         }
                     }
                 }
             }
-        }
-        else {
-            Box(Modifier
-                .size(100.dp)
-                .background(backGroundColor.value.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+        } else {
+            Box(
+                Modifier
+                    .size(100.dp)
+                    .background(backGroundColor.value.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
             )
         }
     }
