@@ -672,7 +672,20 @@ object InventoryDisplay {
                 items.firstOrNull { it is EmptySlot }
             }
         }
-        val highlightFirstEmptySlot = remember { mutableStateOf(false) }
+
+        val highlightedItem by remember(draggedItem.value, dragHoveredOver.value) {
+            derivedStateOf {
+                if (draggedItem.value != null) {
+                    if (dragHoveredOver.value != null && dragHoveredOver.value !is EmptySlot) {
+                        dragHoveredOver.value
+                    } else {
+                        firstEmptySlot.value
+                    }
+                } else {
+                    null
+                }
+            }
+        }
 
         val typePriority = mapOf(
             ShortRangeWeapon::class to 0,
@@ -711,23 +724,20 @@ object InventoryDisplay {
                         }
                     }
             ) {
+                val sortedItems = remember(items, showSortedInv.value) {
+                    if (showSortedInv.value) {
+                        items.sortedBy { item -> typePriority[item!!::class] ?: Int.MAX_VALUE }
+                    } else {
+                        items
+                    }
+                }
+
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 104.dp),
                     contentPadding = PaddingValues(10.dp)
                 ) {
                     items(
-                        items = if (showSortedInv.value) {
-                            if (refreshInv.value) {
-                                refreshInv.value = false
-                            }
-                            println("loading items")
-                            items.sortedBy { item -> typePriority[item!!::class] ?: Int.MAX_VALUE }
-                        } else {
-                            if (refreshInv.value) {
-                                refreshInv.value = false
-                            }
-                            items
-                        },
+                        items = sortedItems,
                         key = { item -> item?.uuid ?: UUID.randomUUID() }
                     ) { item: Item? ->
                         Box(
@@ -742,8 +752,7 @@ object InventoryDisplay {
                                 dragHoveredOver,
                                 removeItem,
                                 addItemAtIndex,
-                                firstEmptySlot,
-                                highlightFirstEmptySlot
+                                highlightedItem == item
                             )
                         }
                     }
@@ -867,11 +876,10 @@ object InventoryDisplay {
         dragHoveredOver: MutableState<Item?>,
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
-        firstEmptySlot: State<Item?>,
-        highlightFirstEmptySlot: MutableState<Boolean>
+        isHighlighted: Boolean
     ) {
         val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) lerp(Color.Transparent, Color.Black, 0.1f) else Color.LightGray.copy(alpha = 0.2f)) }
-        println("inv slot load ${Random.nextInt()}") //DEBUG
+
         if (item != null) {
             val boxShape = remember(item.equipped) {
                 mutableStateOf(
@@ -879,30 +887,15 @@ object InventoryDisplay {
                 )
             }
             var isHovered by remember { mutableStateOf(false) }
-            val borderColor = remember(item.equipped) { mutableStateOf(Color.Transparent) }
+            val borderColor = remember(item.equipped, isHighlighted) { mutableStateOf(Color.Transparent) }
 
-            if (dragHoveredOver.value != null) {
-                if (dragHoveredOver.value!! is EmptySlot && highlightFirstEmptySlot.value && firstEmptySlot.value == item) {
-                    remember(item.equipped) {
-                        borderColor.value = Color.Red
-                    }
-                } else if (dragHoveredOver.value!! == item) {
-                    if (item !is EmptySlot || firstEmptySlot.value == item) {
-                        remember(item.equipped) {
-                            borderColor.value = Color.Red
-                        }
-                    } else {
-                        remember(item.equipped) {
-                            borderColor.value = Color.Black.copy(alpha = 0.1f)
-                        }
-                    }
-                }
+            if (isHighlighted) {
+                borderColor.value = Color.Red
             } else {
                 borderColor.value =
                     if (item is EmptySlot) Color.Black.copy(alpha = 0.1f) else if (!item.equipped) Color.Black.copy(
                         alpha = 0.3f
                     ) else Color.Yellow.copy(alpha = 0.7f)
-                highlightFirstEmptySlot.value = false
             }
 
             val scale by animateFloatAsState(
@@ -922,18 +915,16 @@ object InventoryDisplay {
                     .pointerMoveFilter(
                         onEnter = {
                             isHovered = true
-                            if (draggedItem.value != null && item is EmptySlot) {
-                                highlightFirstEmptySlot.value = true
+                            if (draggedItem.value != null) {
+                                dragHoveredOver.value = item
                             }
-                            if (draggedItem.value != null) dragHoveredOver.value = item
                             false
                         },
                         onExit = {
                             isHovered = false
-                            if (draggedItem.value != null && item is EmptySlot) {
-                                highlightFirstEmptySlot.value = false
+                            if (draggedItem.value != null) {
+                                dragHoveredOver.value = null
                             }
-                            if (draggedItem.value != null) dragHoveredOver.value = null
                             false
                         }
                     )
