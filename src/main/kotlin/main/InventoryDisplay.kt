@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusManager
@@ -44,9 +45,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.isDebugInspectorInfoEnabled
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -54,7 +55,6 @@ import org.jetbrains.skiko.Cursor
 import java.awt.FileDialog
 import java.io.File
 import java.util.*
-import kotlin.random.Random
 
 object InventoryDisplay {
     @Composable
@@ -77,7 +77,7 @@ object InventoryDisplay {
             modifier = modifier
         ) {
             Column{
-                sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv)
+                sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv, items)
                 backPack(inv, showItemDisplay, itemDisplayItem, showSortedInv, items, onItemChanged, refreshInv, removeItem, addItemAtIndex)
             }
         }
@@ -521,7 +521,11 @@ object InventoryDisplay {
     }
 
     @Composable
-    fun sceneryAndBackPackTop(showItemDisplay: MutableState<Boolean>, showSortedInv: MutableState<Boolean>, refreshInv: MutableState<Boolean>) {
+    fun sceneryAndBackPackTop(
+        showItemDisplay: MutableState<Boolean>,
+        showSortedInv: MutableState<Boolean>,
+        refreshInv: MutableState<Boolean>,
+        items: List<Item?>, ) {
         Box(
             Modifier
                 .fillMaxWidth()
@@ -566,7 +570,7 @@ object InventoryDisplay {
                 )
             }
 
-            //Sorting
+            //BackPack functions
             Column(
                 Modifier
                     .zIndex(2f)
@@ -622,6 +626,16 @@ object InventoryDisplay {
                                 }
                             }
 
+                            //BackPack weight
+                            val modifier = Modifier.padding(10.dp, 0.dp)
+
+                            val backPackWeight = remember(items) { mutableStateOf(items.toMutableList().sumOf { it!!.weight * it.amount}.toFloat()) }
+                            backPackTopValue(modifier, backPackWeight, mutableStateOf(100f), "Gewicht")
+
+                            //BackPack value
+                            val backPackValue = remember(items) { mutableStateOf(items.toMutableList().sumOf { it!!.valueInGold * it.amount}.toFloat()) }
+                            backPackTopValue(modifier, backPackValue, mutableStateOf(null), "Wert in Gold")
+
                             Button(
                                 onClick = {
                                     println("adding item")
@@ -634,8 +648,8 @@ object InventoryDisplay {
                                     .width(75.dp)
                                     .height(75.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    contentColor = Color.Black,
-                                    backgroundColor = lerp(Color.Transparent, Color.White, 0.7f)
+                                    contentColor = Color.White,
+                                    backgroundColor = lerp(Color.Transparent, Color.Black, 0.2f)
                                 )
                             )
                         }
@@ -646,6 +660,61 @@ object InventoryDisplay {
                             .weight(1f)
                     )
                 }
+            }
+        }
+    }
+
+    @Composable
+    fun backPackTopValue(modifier: Modifier, value: MutableState<Float>, maxValue: MutableState<Float?>, title: String) {
+        val valueCorrelatingColor by remember(value, maxValue) { mutableStateOf(
+            if(maxValue.value == null) Color.DarkGray
+            else lerp(Color.DarkGray, Color.Red, value.value / maxValue.value!!)
+        )}
+
+        val backGroundColor = remember { lerp(Color.Transparent, Color.Black, 0.2f) }
+        val textColor = remember { Color.White }
+
+        Column(
+            modifier
+                .background(backGroundColor, RoundedCornerShape(5.dp))
+                .clip(RoundedCornerShape(5.dp))
+                .width(100.dp)
+                .height(75.dp)
+        ) {
+            Text(
+                text = "$title:",
+                color = textColor,
+                modifier = Modifier
+                    .weight(1f)
+                    .align(Alignment.CenterHorizontally)
+            )
+
+            //Progressbar
+            Box(
+                Modifier
+                    .height(50.dp)
+            ) {
+                val text: String = "${value.value}" + if(maxValue.value != null) "/${maxValue.value}" else ""
+                Text(
+                    text = text,
+                    color = textColor,
+                    modifier = Modifier
+                        .zIndex(1f)
+                        .padding(0.dp, 15.dp, 0.dp, 0.dp)
+                        .fillMaxSize(),
+                    textAlign = TextAlign.Center,
+                )
+
+                LinearProgressIndicator(
+                    progress = value.value / (maxValue.value ?: 1f),
+                    color = valueCorrelatingColor,
+                    modifier = Modifier
+                        .zIndex(0f)
+                        .padding(5.dp)
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(5.dp))
+                        .shadow(0.dp, ambientColor = Color.White, spotColor = Color.Black)
+                )
             }
         }
     }
@@ -698,7 +767,8 @@ object InventoryDisplay {
 
         Box(Modifier
             .fillMaxSize()
-        ) {
+        )
+        {
             //Background
             val backPackBackgroundOpen = remember { ImageLoader.loadImageFromResources("backPackBackgroundOpen.jpg").get().toPainter() }
             Image(
