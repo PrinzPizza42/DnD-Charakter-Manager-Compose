@@ -197,6 +197,7 @@ public class Inventory {
         this.spellSlotsUsed.addAll(other.spellSlotsUsed);
         this.spellSlotsMax.addAll(other.spellSlotsMax);
         this.loadedLevels = other.loadedLevels;
+        this.maxCarryingCapacity = other.maxCarryingCapacity;
         this.spellLevels.addAll(other.spellLevels);
     }
 }
