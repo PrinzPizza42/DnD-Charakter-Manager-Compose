@@ -17,7 +17,7 @@ public class Inventory {
     private volatile ArrayList<Integer> spellSlotsUsed = new ArrayList<>();
     private volatile ArrayList<Integer> spellSlotsMax = new ArrayList<>();
     private boolean loadedLevels = false;
-
+    private float maxCarryingCapacity = 100f;
     @JsonIgnore
     public UUID uuid = UUID.randomUUID();
     @JsonIgnore
@@ -32,6 +32,14 @@ public class Inventory {
         this.name = name;
         this.uuid = uuid;
         this.items = items;
+    }
+
+    public float getMaxCarryingCapacity() {
+        return maxCarryingCapacity;
+    }
+
+    public void setMaxCarryingCapacity(float maxCarryingCapacity) {
+        this.maxCarryingCapacity = maxCarryingCapacity;
     }
 
     public void addLastSpellSlot(Pair<Integer, Integer> slot) {

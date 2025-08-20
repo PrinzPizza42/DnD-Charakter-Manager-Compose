@@ -77,7 +77,7 @@ object InventoryDisplay {
             modifier = modifier
         ) {
             Column{
-                sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv, items)
+                sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv, items, inv)
                 backPack(inv, showItemDisplay, itemDisplayItem, showSortedInv, items, onItemChanged, refreshInv, removeItem, addItemAtIndex)
             }
         }
@@ -520,12 +520,14 @@ object InventoryDisplay {
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     fun sceneryAndBackPackTop(
         showItemDisplay: MutableState<Boolean>,
         showSortedInv: MutableState<Boolean>,
         refreshInv: MutableState<Boolean>,
-        items: List<Item?>, ) {
+        items: List<Item?>,
+        inv: MutableState<Inventory?>, ) {
         Box(
             Modifier
                 .fillMaxWidth()
@@ -601,6 +603,37 @@ object InventoryDisplay {
                             .wrapContentSize(Alignment.Center)
                     )
                     {
+                        val showChangeBackPackWeight = remember { mutableStateOf(false) }
+
+                        if (showChangeBackPackWeight.value) {
+                            Box(Modifier.zIndex(4f)) {
+                                val input =
+                                    remember { mutableStateOf(TextFieldValue(inv.value!!.maxCarryingCapacity.toString())) }
+                                var isError by remember { mutableStateOf(false) }
+                                TextField(
+                                    value = input.value,
+                                    onValueChange = {
+                                        input.value = it
+                                        if (it.text.toFloatOrNull() == null) {
+                                            isError = true
+                                        } else {
+                                            isError = false
+                                            inv.value!!.maxCarryingCapacity = it.text.toFloat()
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    label = {
+                                        Text("Maximalgewicht")
+                                    },
+                                    singleLine = true,
+                                    isError = isError,
+//                                    color = TextFieldDefaults.textFieldColors(
+//                                        backgroundColor = Color.LightGray
+//                                    )
+                                )
+                            }
+                        }
                         val options = listOf("Eigene Sortierung", "Nach Klasse")
                         var selectedOption by remember { mutableStateOf(options[0]) }
                         Row {
@@ -630,11 +663,20 @@ object InventoryDisplay {
                             val modifier = Modifier.padding(10.dp, 0.dp)
 
                             val backPackWeight = remember(items) { mutableStateOf(items.toMutableList().sumOf { it!!.weight * it.amount}.toFloat()) }
-                            backPackTopValue(modifier, backPackWeight, mutableStateOf(100f), "Gewicht")
+
+                            Box(
+                                Modifier
+                                    .onClick {
+                                        println("Change backpack max weight")
+                                        showChangeBackPackWeight.value = true
+                                    }
+                            ) {
+                                backPackTopValue(modifier, backPackWeight, inv.value!!.maxCarryingCapacity, "Gewicht")
+                            }
 
                             //BackPack value
                             val backPackValue = remember(items) { mutableStateOf(items.toMutableList().sumOf { it!!.valueInGold * it.amount}.toFloat()) }
-                            backPackTopValue(modifier, backPackValue, mutableStateOf(null), "Wert in Gold")
+                            backPackTopValue(modifier, backPackValue, null, "Wert in Gold")
 
                             Button(
                                 onClick = {
@@ -664,11 +706,12 @@ object InventoryDisplay {
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun backPackTopValue(modifier: Modifier, value: MutableState<Float>, maxValue: MutableState<Float?>, title: String) {
+    fun backPackTopValue(modifier: Modifier, value: MutableState<Float>, maxValue: Float?, title: String) {
         val valueCorrelatingColor by remember(value, maxValue) { mutableStateOf(
-            if(maxValue.value == null) Color.DarkGray
-            else lerp(Color.DarkGray, Color.Red, value.value / maxValue.value!!)
+            if(maxValue == null) Color.DarkGray
+            else lerp(Color.DarkGray, Color.Red, value.value / maxValue!!)
         )}
 
         val backGroundColor = remember { lerp(Color.Transparent, Color.Black, 0.2f) }
@@ -694,7 +737,7 @@ object InventoryDisplay {
                 Modifier
                     .height(50.dp)
             ) {
-                val text: String = "${value.value}" + if(maxValue.value != null) "/${maxValue.value}" else ""
+                val text: String = "${value.value}" + if(maxValue != null) "/${maxValue}" else ""
                 Text(
                     text = text,
                     color = textColor,
@@ -706,7 +749,7 @@ object InventoryDisplay {
                 )
 
                 LinearProgressIndicator(
-                    progress = value.value / (maxValue.value ?: 1f),
+                    progress = value.value / (maxValue ?: 1f),
                     color = valueCorrelatingColor,
                     modifier = Modifier
                         .zIndex(0f)
