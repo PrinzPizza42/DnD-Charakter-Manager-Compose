@@ -11,20 +11,19 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPainter
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -32,11 +31,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.ui.zIndex
 import main.InventoryDisplay.displayInv
 import main.InventoryDisplay.showItemDisplayStructure
 import main.ScrollDisplay.scrollDisplay
 import main.InvSelector.inventorySelector
 import main.TabSelector.displayTabSelector
+import kotlin.coroutines.ContinuationInterceptor
 
 @Composable
 @Preview
@@ -209,5 +210,55 @@ fun main() = application {
         icon = icon
     ) {
         App(window)
+    }
+}
+
+@Composable
+fun getFloatInputOverlay(
+    modifier: Modifier,
+    startValue: Float,
+    text: String,
+    onConfirm: (Float) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Box(
+        modifier
+    ) {
+        val input =
+            remember { mutableStateOf(TextFieldValue(startValue.toString())) }
+        var isError by remember { mutableStateOf(false) }
+
+        TextField(
+            value = input.value,
+            onValueChange = {
+                input.value = it
+                isError = it.text.toFloatOrNull() == null
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .onPreviewKeyEvent { event ->
+                    if (event.type == KeyEventType.KeyDown) {
+                        when (event.key) {
+                            Key.Enter -> {
+                                if(!isError) onConfirm(input.value.text.toFloat())
+                                true
+                            }
+                            Key.Escape -> {
+                                onDismiss()
+                                true
+                            }
+                            else -> false
+                        }
+                    } else {
+                        false
+                    }
+                }
+            ,
+            label = {
+                Text(text)
+            },
+            singleLine = true,
+            isError = isError
+        )
     }
 }

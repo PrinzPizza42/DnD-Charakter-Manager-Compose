@@ -606,33 +606,26 @@ object InventoryDisplay {
                         val showChangeBackPackWeight = remember { mutableStateOf(false) }
 
                         if (showChangeBackPackWeight.value) {
-                            Box(Modifier.zIndex(4f)) {
-                                val input =
-                                    remember { mutableStateOf(TextFieldValue(inv.value!!.maxCarryingCapacity.toString())) }
-                                var isError by remember { mutableStateOf(false) }
-                                TextField(
-                                    value = input.value,
-                                    onValueChange = {
-                                        input.value = it
-                                        if (it.text.toFloatOrNull() == null) {
-                                            isError = true
-                                        } else {
-                                            isError = false
-                                            inv.value!!.maxCarryingCapacity = it.text.toFloat()
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth(),
-                                    label = {
-                                        Text("Maximalgewicht")
-                                    },
-                                    singleLine = true,
-                                    isError = isError,
-//                                    color = TextFieldDefaults.textFieldColors(
-//                                        backgroundColor = Color.LightGray
-//                                    )
-                                )
-                            }
+                            getFloatInputOverlay(
+                                Modifier
+                                    .fillMaxSize()
+                                    .zIndex(12f)
+                                    .background(lerp(Color.Transparent, Color.White, 0.5f)),
+                                inv.value!!.maxCarryingCapacity,
+                                "Maximalgewicht",
+                                onConfirm = { value ->
+                                    println(value.toString())
+                                    showChangeBackPackWeight.value = false
+                                    inv.value!!.maxCarryingCapacity = value
+
+                                    println("confirmed")
+                                },
+                                onDismiss = {
+                                    showChangeBackPackWeight.value = false
+
+                                    println("dismissed")
+                                }
+                            )
                         }
                         val options = listOf("Eigene Sortierung", "Nach Klasse")
                         var selectedOption by remember { mutableStateOf(options[0]) }
@@ -667,11 +660,11 @@ object InventoryDisplay {
                             Box(
                                 Modifier
                                     .onClick {
-                                        println("Change backpack max weight")
                                         showChangeBackPackWeight.value = true
                                     }
                             ) {
                                 backPackTopValue(modifier, backPackWeight, inv.value!!.maxCarryingCapacity, "Gewicht")
+                                println("maxCarryingCapacity: ${inv.value!!.maxCarryingCapacity}")
                             }
 
                             //BackPack value
