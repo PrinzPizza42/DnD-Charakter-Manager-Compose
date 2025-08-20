@@ -138,7 +138,7 @@ object InvSelector {
                 Button(
                     onClick = {
                         println("opening inv " + inv.name)
-                        selectedInventory.value = inv
+                        selectedInventory.value = Inventory(inv)
                         inv.items.forEach { item -> println(item.name + " : " + item.uuid) }
                     },
                     content = {
