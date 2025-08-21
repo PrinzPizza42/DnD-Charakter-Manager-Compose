@@ -606,11 +606,15 @@ object InventoryDisplay {
                         val showChangeBackPackWeight = remember { mutableStateOf(false) }
 
                         if (showChangeBackPackWeight.value) {
+                            val weightChangerColor = remember { lerp(Color.Transparent, Color.White, 0.9f) }
+
                             getFloatInputOverlay(
                                 Modifier
                                     .fillMaxSize()
                                     .zIndex(12f)
-                                    .background(lerp(Color.Transparent, Color.White, 0.5f)),
+                                    .background(weightChangerColor, RoundedCornerShape(5.dp))
+                                    .clip(RoundedCornerShape(5.dp))
+                                ,
                                 inv.value!!.maxCarryingCapacity,
                                 "Maximalgewicht",
                                 onConfirm = { value ->
