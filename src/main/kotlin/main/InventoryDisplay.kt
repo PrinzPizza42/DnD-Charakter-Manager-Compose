@@ -637,7 +637,7 @@ object InventoryDisplay {
                         }
 
 
-                        val options = listOf("Eigene Sortierung", "Nach Klasse")
+                        val options = listOf("Eigene", "Item-Klasse")
                         var selectedOption by remember { mutableStateOf(options[0]) }
                         val range = remember { 50f.rangeTo(150f) }
                         Row {
@@ -650,25 +650,37 @@ object InventoryDisplay {
                                 modifier = Modifier.weight(1f),
                             )
 
-                            options.forEach { option ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                        .weight(1f)
-                                ) {
-                                    RadioButton(
-                                        selected = (option == selectedOption),
-                                        onClick = {
-                                            selectedOption = option
-                                            showSortedInv.value = (option == "Nach Klasse")
-                                        },
-                                        colors = RadioButtonDefaults.colors(
-                                            selectedColor = Color.LightGray,
-                                            unselectedColor = Color.White
+                            val backGroundColor = remember { lerp(Color.Transparent, Color.Black, 0.2f) }
+
+                            Column(
+                                Modifier
+                                    .size(150.dp, 100.dp)
+                                    .background(backGroundColor, RoundedCornerShape(5.dp))
+                                    .clip(RoundedCornerShape(5.dp))
+                            ) {
+                                Text(
+                                    text = "Sortierung:",
+                                    color = Color.White,
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                )
+
+                                options.forEach { option ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        RadioButton(
+                                            selected = (option == selectedOption),
+                                            onClick = {
+                                                selectedOption = option
+                                                showSortedInv.value = (option == "Item-Klasse")
+                                            },
+                                            colors = RadioButtonDefaults.colors(
+                                                selectedColor = Color.LightGray,
+                                                unselectedColor = Color.White
+                                            )
                                         )
-                                    )
-                                    Text(option, color = Color.White)
+                                        Text(option, color = Color.White)
+                                    }
                                 }
                             }
 
@@ -684,7 +696,6 @@ object InventoryDisplay {
                                     }
                             ) {
                                 backPackTopValue(modifier, backPackWeight, inv.value!!.maxCarryingCapacity, "Gewicht")
-                                println("maxCarryingCapacity: ${inv.value!!.maxCarryingCapacity}")
                             }
 
                             //BackPack value
@@ -724,7 +735,7 @@ object InventoryDisplay {
     fun backPackTopValue(modifier: Modifier, value: MutableState<Float>, maxValue: Float?, title: String) {
         val valueCorrelatingColor by remember(value, maxValue) { mutableStateOf(
             if(maxValue == null) Color.DarkGray
-            else lerp(Color.DarkGray, Color.Red, value.value / maxValue!!)
+            else lerp(Color.DarkGray, Color.Red, value.value / maxValue)
         )}
 
         val backGroundColor = remember { lerp(Color.Transparent, Color.Black, 0.2f) }
