@@ -73,12 +73,14 @@ object InventoryDisplay {
         addItemAtIndex: (Item, Item) -> Unit,
         window: ComposeWindow,
     ) {
+        val slotSize = remember { mutableStateOf(100.dp) }
+
         Box(
             modifier = modifier
         ) {
             Column{
-                sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv, items, inv)
-                backPack(inv, showItemDisplay, itemDisplayItem, showSortedInv, items, onItemChanged, refreshInv, removeItem, addItemAtIndex)
+                sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv, items, inv, slotSize)
+                backPack(inv, showItemDisplay, itemDisplayItem, showSortedInv, items, onItemChanged, refreshInv, removeItem, addItemAtIndex, slotSize)
             }
         }
     }
@@ -527,7 +529,9 @@ object InventoryDisplay {
         showSortedInv: MutableState<Boolean>,
         refreshInv: MutableState<Boolean>,
         items: List<Item?>,
-        inv: MutableState<Inventory?>, ) {
+        inv: MutableState<Inventory?>,
+        slotSize: MutableState<Dp>,
+        ) {
         Box(
             Modifier
                 .fillMaxWidth()
@@ -631,9 +635,21 @@ object InventoryDisplay {
                                 }
                             )
                         }
+
+
                         val options = listOf("Eigene Sortierung", "Nach Klasse")
                         var selectedOption by remember { mutableStateOf(options[0]) }
+                        val range = remember { 50f.rangeTo(150f) }
                         Row {
+                            Slider(
+                                value = slotSize.value.value,
+                                valueRange = range,
+                                onValueChange = {
+                                    slotSize.value = it.dp
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+
                             options.forEach { option ->
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -771,6 +787,7 @@ object InventoryDisplay {
         refreshInv: MutableState<Boolean>,
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
+        slotSize: MutableState<Dp>,
     ) {
         val draggedItem = remember { mutableStateOf<Item?>(null) }
         val draggedItemOffset = remember { mutableStateOf(Offset.Zero) }
@@ -842,8 +859,10 @@ object InventoryDisplay {
                     }
                 }
 
+                val slotPadding = remember { 4.dp }
+
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 104.dp),
+                    columns = GridCells.Adaptive(minSize = slotSize.value + slotPadding),
                     contentPadding = PaddingValues(10.dp)
                 ) {
                     items(
@@ -862,7 +881,8 @@ object InventoryDisplay {
                                 dragHoveredOver,
                                 removeItem,
                                 addItemAtIndex,
-                                highlightedItem == item
+                                highlightedItem == item,
+                                slotSize
                             )
                         }
                     }
@@ -986,7 +1006,8 @@ object InventoryDisplay {
         dragHoveredOver: MutableState<Item?>,
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
-        isHighlighted: Boolean
+        isHighlighted: Boolean,
+        slotSize: MutableState<Dp>
     ) {
         val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) lerp(Color.Transparent, Color.Black, 0.1f) else Color.LightGray.copy(alpha = 0.2f)) }
 
@@ -1021,7 +1042,7 @@ object InventoryDisplay {
             Box(
                 modifier = Modifier
                     .padding(4.dp)
-                    .size(100.dp)
+                    .size(slotSize.value)
                     .pointerMoveFilter(
                         onEnter = {
                             isHovered = true
