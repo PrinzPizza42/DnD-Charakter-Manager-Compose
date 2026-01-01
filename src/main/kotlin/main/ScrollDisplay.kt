@@ -247,9 +247,8 @@ object ScrollDisplay {
         selectedSpellSliderValue: MutableState<Float>
     ) {
         var isHovered by remember { mutableStateOf(false) }
-        var inEditMode by remember { mutableStateOf(false) }
         val scale by animateFloatAsState(
-            targetValue = if (isHovered || inEditMode) 100f else 50f,
+            targetValue = if (isHovered) 100f else 50f,
             animationSpec = tween(
                 durationMillis = 300,
                 easing = FastOutSlowInEasing
@@ -257,11 +256,6 @@ object ScrollDisplay {
         )
 
         var sliderValue by remember { mutableStateOf(1f) }
-
-        val textStyle =
-            if (inEditMode) TextStyle().copy(fontStyle = FontStyle.Italic) else if (spell.isTemplate) TextStyle().copy(
-                textDecoration = TextDecoration.Underline
-            ) else TextStyle()
 
         Box(
             Modifier
@@ -334,18 +328,16 @@ object ScrollDisplay {
                                 if(keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
                                     println("Enter")
                                     focusManager.clearFocus()
-                                    inEditMode = false
+//                                    inEditMode = false
                                     true
                                 }
                                 else false
                             },
                         singleLine = true,
-                        readOnly = !inEditMode,
-                        textStyle = textStyle
+                        readOnly = false
                     )
 
-                    val firstButtonText: String = if (inEditMode) "Löschen" else if(sliderValue.roundToInt() - 1 >= 0 && spellLevelsCount.value > 0 && spellLevels[sliderValue.roundToInt() - 1].first <= 0) "Nicht genug" else "Benutzen"
-                    val secondButtonText: String = if (inEditMode) "Fertig" else  "Bearbeiten"
+                    val firstButtonText: String = if(sliderValue.roundToInt() - 1 >= 0 && spellLevelsCount.value > 0 && spellLevels[sliderValue.roundToInt() - 1].first <= 0) "Nicht genug" else "Benutzen"
 
                     Box(
                         Modifier
@@ -358,7 +350,6 @@ object ScrollDisplay {
                             Modifier
                                 .zIndex(1f)
                                 .clickable {
-                                    if (!inEditMode) {
                                         val sliderValueRounded = sliderValue.roundToInt()
                                         val oldPair = spellLevels[sliderValueRounded - 1]
                                         val newPair = Pair(oldPair.first - 1, oldPair.second)
@@ -370,15 +361,6 @@ object ScrollDisplay {
                                             inv.spellLevels[sliderValueRounded - 1] = newPair
                                             println("Cast spell " + spell.name)
                                         }
-                                    } else {
-                                        spells.remove(spell)
-                                        inv.spells.remove(spell)
-                                        println(
-                                            "removed spell " + spell.name + " internal: " + spells.contains(
-                                                spell
-                                            ) + " external: " + inv.spells.contains(spell)
-                                        )
-                                    }
                                 }
                                 .fillMaxSize()
                                 .wrapContentSize(Alignment.Center)
@@ -394,11 +376,17 @@ object ScrollDisplay {
                             .width(130.dp)
                     ) {
                         Text(
-                            secondButtonText,
+                            "Entfernen",
                             Modifier
                                 .zIndex(1f)
                                 .clickable {
-                                    inEditMode = !inEditMode
+                                    spells.remove(spell)
+                                    inv.spells.remove(spell)
+                                    println(
+                                        "removed spell " + spell.name + " internal: " + spells.contains(
+                                            spell
+                                        ) + " external: " + inv.spells.contains(spell)
+                                    )
                                 }
                                 .fillMaxSize()
                                 .wrapContentSize(Alignment.Center)
@@ -415,8 +403,7 @@ object ScrollDisplay {
                     .zIndex(1f)
                     .fillMaxWidth()
                     .height(50.dp)
-            )
-            {
+            ) {
                 val density = LocalDensity.current
                 val scrollEndsWith = with(density) { 43.toDp() }
                 Row(Modifier.zIndex(1f)) {
@@ -473,14 +460,12 @@ object ScrollDisplay {
                                     if(keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
                                         println("Enter")
                                         focusManager.clearFocus()
-                                        inEditMode = false
                                         true
                                     }
                                     else false
                                 },
                             singleLine = true,
-                            readOnly = !inEditMode,
-                            textStyle = textStyle,
+                            readOnly = false
                         )
                     }
 
