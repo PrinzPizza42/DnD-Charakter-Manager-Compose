@@ -104,13 +104,6 @@ object ScrollDisplay {
 
         val selectedSpellSliderValue = remember { mutableStateOf(0f) }
 
-        var addButtonHover by remember { mutableStateOf(false) }
-
-        val addButtonScale by animateFloatAsState(
-            targetValue = if(addButtonHover) 1.1f else 0.9f,
-            animationSpec = tween(durationMillis = 500)
-        )
-
         Column {
             //Function bar
             Box(
@@ -131,6 +124,12 @@ object ScrollDisplay {
                 )
 
                 //Add Button
+                var addButtonHover by remember { mutableStateOf(false) }
+                val addButtonScale by animateFloatAsState(
+                    targetValue = if(addButtonHover) 1.1f else 0.9f,
+                    animationSpec = tween(durationMillis = 500)
+                )
+
                 Box(
                     Modifier
                         .fillMaxSize()
@@ -157,23 +156,15 @@ object ScrollDisplay {
                         Modifier
                             .zIndex(1f)
                             .clickable {
-                                val newSpell = Spell("Neuer Zauber (Vorlage)", "(Vorlage)", 1)
+                                val newSpell = Spell("Neuer Zauber (Vorlage)", "Beschreibung (Vorlage)", 1)
                                 spells.add(0, newSpell)
                                 inv.spells.add(0, newSpell)
                                 coroutineScope.launch {
                                     listState.animateScrollToItem(index = 0)
                                 }
                             }
-                            .pointerMoveFilter (
-                                onEnter = {
-                                    addButtonHover = true
-                                    false
-                                },
-                                onExit = {
-                                    addButtonHover = false
-                                    false
-                                }
-                            )
+                            .onPointerEvent(PointerEventType.Enter) { addButtonHover = true }
+                            .onPointerEvent(PointerEventType.Exit) { addButtonHover = false }
                             .height(100.dp)
                             .width(200.dp)
                             .wrapContentSize(Alignment.Center)
