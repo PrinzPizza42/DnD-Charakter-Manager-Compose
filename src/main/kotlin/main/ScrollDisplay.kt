@@ -427,7 +427,7 @@ object ScrollDisplay {
                         modifier = Modifier
                             .fillMaxHeight()
                             .width(scrollEndsWith),
-                        contentScale = ContentScale.FillHeight,
+                        contentScale = ContentScale.FillBounds,
                     )
                     val scrollForegroundMiddle = remember { ImageLoader.loadImageFromResources("scrollForegroundMiddle.png").get().toPainter() }
                     Image(
@@ -445,7 +445,7 @@ object ScrollDisplay {
                         modifier = Modifier
                             .fillMaxHeight()
                             .width(scrollEndsWith),
-                        contentScale = ContentScale.FillHeight,
+                        contentScale = ContentScale.FillBounds,
                     )
                 }
                 Row(
