@@ -5,6 +5,7 @@ import Main.Inventory
 import Main.Spell
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,17 +21,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.*
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.TextFieldValue
@@ -93,8 +97,6 @@ object ScrollDisplay {
                      spellLevelsCount: MutableState<Int>,
                      couldNotCast: MutableState<Int?>
     ) {
-        val selectedSpell = remember(spells) { mutableStateOf<Spell?>(null) }
-
         val focusManager = LocalFocusManager.current
 
         val listState = rememberLazyListState()
@@ -219,291 +221,310 @@ object ScrollDisplay {
                     state = listState
                 ) {
                     items(spells, key = { it.uuid }) { spell ->
-
-                        //Spell Item
-                        val isHovered = selectedSpell.value == spell
-                        var inEditMode by remember { mutableStateOf(false) }
-                        val scale by animateFloatAsState(
-                            targetValue = if (isHovered || inEditMode) 100f else 50f,
-                            animationSpec = tween(
-                                durationMillis = 300,
-                                easing = FastOutSlowInEasing
-                            ),
-                        )
-
-                        var sliderValue by remember { mutableStateOf(1f) }
-
-                        val textStyle =
-                            if (inEditMode) TextStyle().copy(fontStyle = FontStyle.Italic) else if (spell.isTemplate) TextStyle().copy(
-                                textDecoration = TextDecoration.Underline
-                            ) else TextStyle()
-
                         Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(20.dp)
-                                .animateItemPlacement()
-                                .pointerMoveFilter(
-                                    onEnter = {
-                                        selectedSpell.value = spell
-                                        false
-                                    },
-                                    onExit = {
-                                        selectedSpell.value = null
-                                        false
-                                    }
-                                )
-                                
+                            Modifier.animateItem(
+                                fadeInSpec = tween(300),
+                                fadeOutSpec = tween(300))
                         ) {
-                            val density = LocalDensity.current
-                            val scrollEndsWith = with(density) { 43.toDp() }
-
-                            //Background
-                            Box(
-                                Modifier
-                                    .zIndex(1f)
-                                    .fillMaxWidth()
-                                    .height(scale.dp)
-                            ) {
-                                Row(
-                                    Modifier
-                                        .fillMaxSize()
-                                        .padding(3.dp)
-                                ) {
-                                    val scrollBackGroundLeft = remember { ImageLoader.loadImageFromResources("scrollBackGroundLeft.png").get().toPainter() }
-                                    Image(
-                                        painter = scrollBackGroundLeft,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .width(scrollEndsWith),
-                                        contentScale = ContentScale.FillBounds,
-                                    )
-                                    val scrollBackGroundMiddle = remember { ImageLoader.loadImageFromResources("scrollBackGroundMiddle.png").get().toPainter() }
-                                    Image(
-                                        painter = scrollBackGroundMiddle,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .weight(1f),
-                                        contentScale = ContentScale.FillBounds,
-                                    )
-                                    val scrollBackGroundRight = remember { ImageLoader.loadImageFromResources("scrollBackGroundRight.png").get().toPainter() }
-                                    Image(
-                                        painter = scrollBackGroundRight,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .width(scrollEndsWith),
-                                        contentScale = ContentScale.FillBounds,
-                                    )
-                                }
-                                Row(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(0.dp, 40.dp, 0.dp, 6.dp)
-                                ) {
-                                    val descInput = remember { mutableStateOf(TextFieldValue(spell.description)) }
-                                    BasicTextField(
-                                        value = descInput.value,
-                                        onValueChange = {
-                                            descInput.value = it
-                                            spell.description = it.text
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .padding(20.dp, 15.dp, 0.dp, 0.dp)
-                                            .weight(1f)
-                                            .onKeyEvent { keyEvent ->
-                                                if(keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
-                                                    println("Enter")
-                                                    focusManager.clearFocus()
-                                                    inEditMode = false
-                                                    true
-                                                }
-                                                else false
-                                            },
-                                        singleLine = true,
-                                        readOnly = !inEditMode,
-                                        textStyle = textStyle
-                                    )
-
-                                    val firstButtonText: String = if (inEditMode) "Löschen" else if(sliderValue.roundToInt() - 1 >= 0 && spellLevelsCount.value > 0 && spellLevels[sliderValue.roundToInt() - 1].first <= 0) "Nicht genug" else "Benutzen"
-                                    val secondButtonText: String = if (inEditMode) "Fertig" else  "Bearbeiten"
-
-                                    Box(
-                                        Modifier
-                                            .fillMaxHeight()
-                                            .padding(20.dp, 10.dp, 20.dp, 10.dp)
-                                            .width(130.dp)
-                                    ) {
-                                        Text(
-                                            firstButtonText,
-                                            Modifier
-                                                .zIndex(1f)
-                                                .clickable {
-                                                    if (!inEditMode) {
-                                                        val sliderValueRounded = sliderValue.roundToInt()
-                                                        val oldPair = spellLevels[sliderValueRounded - 1]
-                                                        val newPair = Pair(oldPair.first - 1, oldPair.second)
-                                                        if (oldPair.first <= 0) {
-                                                            println("Could not cast spell because level " + sliderValueRounded + " does not contain enough unused spell slots: " + oldPair)
-                                                            couldNotCast.value = sliderValueRounded
-                                                        } else {
-                                                            spellLevels[sliderValueRounded - 1] = newPair
-                                                            inv.spellLevels[sliderValueRounded - 1] = newPair
-                                                            println("Cast spell " + spell.name)
-                                                        }
-                                                    } else {
-                                                        spells.remove(spell)
-                                                        inv.spells.remove(spell)
-                                                        println(
-                                                            "removed spell " + spell.name + " internal: " + spells.contains(
-                                                                spell
-                                                            ) + " external: " + inv.spells.contains(spell)
-                                                        )
-                                                    }
-                                                }
-                                                .fillMaxSize()
-                                                .wrapContentSize(Alignment.Center)
-                                                .clipToBounds(),
-                                            fontSize = 23.sp,
-                                        )
-                                    }
-
-                                    Box(
-                                        Modifier
-                                            .fillMaxHeight()
-                                            .padding(20.dp, 10.dp, 20.dp, 10.dp)
-                                            .width(130.dp)
-                                    ) {
-                                        Text(
-                                            secondButtonText,
-                                            Modifier
-                                                .zIndex(1f)
-                                                .clickable {
-                                                    inEditMode = !inEditMode
-                                                }
-                                                .fillMaxSize()
-                                                .wrapContentSize(Alignment.Center)
-                                                .clipToBounds(),
-                                            fontSize = 23.sp,
-                                        )
-                                    }
-                                }
-                            }
-
-                            //Foreground
-                            Box(
-                                Modifier
-                                    .zIndex(1f)
-                                    .fillMaxWidth()
-                                    .height(50.dp)
+                            spellElement(
+                                spell,
+                                focusManager,
+                                spellLevelsCount,
+                                spellLevels,
+                                couldNotCast,
+                                inv,
+                                spells,
+                                selectedSpellSliderValue
                             )
-                            {
-                                val density = LocalDensity.current
-                                val scrollEndsWith = with(density) { 43.toDp() }
-                                Row(Modifier.zIndex(1f)) {
-                                    val scrollForegroundRight = remember { ImageLoader.loadImageFromResources("scrollForegroundRight.png").get().toPainter() }
-                                    Image(
-                                        painter = scrollForegroundRight,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .width(scrollEndsWith),
-                                        contentScale = ContentScale.FillHeight,
-                                    )
-                                    val scrollForegroundMiddle = remember { ImageLoader.loadImageFromResources("scrollForegroundMiddle.png").get().toPainter() }
-                                    Image(
-                                        painter = scrollForegroundMiddle,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .weight(1f),
-                                        contentScale = ContentScale.FillBounds,
-                                    )
-                                    val scrollForegroundLeft = remember { ImageLoader.loadImageFromResources("scrollForegroundLeft.png").get().toPainter() }
-                                    Image(
-                                        painter = scrollForegroundLeft,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .width(scrollEndsWith),
-                                        contentScale = ContentScale.FillHeight,
-                                    )
-                                }
-                                Row(
-                                    Modifier
-                                        .zIndex(2f)
-                                        .fillMaxWidth()
-                                        .height(50.dp)
-                                ) {
-                                    Box(
-                                        Modifier
-                                            .fillMaxHeight()
-                                            .weight(1f)
-                                    ) {
-                                        val nameInput = remember { mutableStateOf(TextFieldValue(spell.name)) }
-                                        BasicTextField(
-                                            value = nameInput.value,
-                                            onValueChange = {
-                                                nameInput.value = it
-                                                spell.name = it.text
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(20.dp, 15.dp, 0.dp, 0.dp)
-                                                .onKeyEvent { keyEvent ->
-                                                    if(keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
-                                                        println("Enter")
-                                                        focusManager.clearFocus()
-                                                        inEditMode = false
-                                                        true
-                                                    }
-                                                    else false
-                                                },
-                                            singleLine = true,
-                                            readOnly = !inEditMode,
-                                            textStyle = textStyle,
-                                        )
-                                    }
-
-                                    Text(
-                                        "Level: " + sliderValue.roundToInt(),
-                                        Modifier
-                                            .padding(20.dp, 0.dp, 0.dp, 0.dp)
-                                    )
-
-                                    val steps: Int =
-                                        if (spellLevelsCount.value - 2 > 0) spellLevelsCount.value - 2 else 0
-
-                                    Slider(
-                                        value = sliderValue,
-                                        onValueChange = {
-                                            sliderValue = if (steps == 0) it.roundToInt().toFloat()
-                                            else it
-                                            if (isHovered) selectedSpellSliderValue.value = sliderValue
-                                        },
-                                        valueRange = 1f..if (spellLevelsCount.value > 0f) spellLevelsCount.value.toFloat() else 1f,
-                                        steps = steps,
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .padding(0.dp, 0.dp, 6.dp, 0.dp)
-                                            .weight(1f),
-                                        colors = SliderDefaults.colors(
-                                            thumbColor = getLevelColorFromGradient(
-                                                sliderValue.roundToInt().toFloat() / spellLevelsCount.value.toFloat()
-                                            ).copy(alpha = 1f),
-                                            activeTrackColor = getLevelColorFromGradient(
-                                                sliderValue.roundToInt().toFloat() / spellLevelsCount.value.toFloat()
-                                            ),
-                                            inactiveTrackColor = Color.White.copy(alpha = 0.25f)
-                                        )
-                                    )
-                                }
-                            }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalComposeUiApi::class)
+    @Composable
+    fun spellElement(
+        spell: Spell,
+        focusManager: FocusManager,
+        spellLevelsCount: MutableState<Int>,
+        spellLevels: MutableList<Pair<Int, Int>>,
+        couldNotCast: MutableState<Int?>,
+        inv: Inventory,
+        spells: SnapshotStateList<Spell>,
+        selectedSpellSliderValue: MutableState<Float>
+    ) {
+        var isHovered by remember { mutableStateOf(false) }
+        var inEditMode by remember { mutableStateOf(false) }
+        val scale by animateFloatAsState(
+            targetValue = if (isHovered || inEditMode) 100f else 50f,
+            animationSpec = tween(
+                durationMillis = 300,
+                easing = FastOutSlowInEasing
+            ),
+        )
+
+        var sliderValue by remember { mutableStateOf(1f) }
+
+        val textStyle =
+            if (inEditMode) TextStyle().copy(fontStyle = FontStyle.Italic) else if (spell.isTemplate) TextStyle().copy(
+                textDecoration = TextDecoration.Underline
+            ) else TextStyle()
+
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+                .onPointerEvent(PointerEventType.Enter) { isHovered = true }
+                .onPointerEvent(PointerEventType.Exit) { isHovered = false }
+
+        ) {
+            val density = LocalDensity.current
+            val scrollEndsWith = with(density) { 43.toDp() }
+
+            //Background
+            Box(
+                Modifier
+                    .zIndex(1f)
+                    .fillMaxWidth()
+                    .height(scale.dp)
+            ) {
+                Row(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(3.dp)
+                ) {
+                    val scrollBackGroundLeft = remember { ImageLoader.loadImageFromResources("scrollBackGroundLeft.png").get().toPainter() }
+                    Image(
+                        painter = scrollBackGroundLeft,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(scrollEndsWith),
+                        contentScale = ContentScale.FillBounds,
+                    )
+                    val scrollBackGroundMiddle = remember { ImageLoader.loadImageFromResources("scrollBackGroundMiddle.png").get().toPainter() }
+                    Image(
+                        painter = scrollBackGroundMiddle,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(1f),
+                        contentScale = ContentScale.FillBounds,
+                    )
+                    val scrollBackGroundRight = remember { ImageLoader.loadImageFromResources("scrollBackGroundRight.png").get().toPainter() }
+                    Image(
+                        painter = scrollBackGroundRight,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(scrollEndsWith),
+                        contentScale = ContentScale.FillBounds,
+                    )
+                }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp, 40.dp, 0.dp, 6.dp)
+                ) {
+                    val descInput = remember { mutableStateOf(TextFieldValue(spell.description)) }
+                    BasicTextField(
+                        value = descInput.value,
+                        onValueChange = {
+                            descInput.value = it
+                            spell.description = it.text
+                        },
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .padding(20.dp, 15.dp, 0.dp, 0.dp)
+                            .weight(1f)
+                            .onKeyEvent { keyEvent ->
+                                if(keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
+                                    println("Enter")
+                                    focusManager.clearFocus()
+                                    inEditMode = false
+                                    true
+                                }
+                                else false
+                            },
+                        singleLine = true,
+                        readOnly = !inEditMode,
+                        textStyle = textStyle
+                    )
+
+                    val firstButtonText: String = if (inEditMode) "Löschen" else if(sliderValue.roundToInt() - 1 >= 0 && spellLevelsCount.value > 0 && spellLevels[sliderValue.roundToInt() - 1].first <= 0) "Nicht genug" else "Benutzen"
+                    val secondButtonText: String = if (inEditMode) "Fertig" else  "Bearbeiten"
+
+                    Box(
+                        Modifier
+                            .fillMaxHeight()
+                            .padding(20.dp, 10.dp, 20.dp, 10.dp)
+                            .width(130.dp)
+                    ) {
+                        Text(
+                            firstButtonText,
+                            Modifier
+                                .zIndex(1f)
+                                .clickable {
+                                    if (!inEditMode) {
+                                        val sliderValueRounded = sliderValue.roundToInt()
+                                        val oldPair = spellLevels[sliderValueRounded - 1]
+                                        val newPair = Pair(oldPair.first - 1, oldPair.second)
+                                        if (oldPair.first <= 0) {
+                                            println("Could not cast spell because level " + sliderValueRounded + " does not contain enough unused spell slots: " + oldPair)
+                                            couldNotCast.value = sliderValueRounded
+                                        } else {
+                                            spellLevels[sliderValueRounded - 1] = newPair
+                                            inv.spellLevels[sliderValueRounded - 1] = newPair
+                                            println("Cast spell " + spell.name)
+                                        }
+                                    } else {
+                                        spells.remove(spell)
+                                        inv.spells.remove(spell)
+                                        println(
+                                            "removed spell " + spell.name + " internal: " + spells.contains(
+                                                spell
+                                            ) + " external: " + inv.spells.contains(spell)
+                                        )
+                                    }
+                                }
+                                .fillMaxSize()
+                                .wrapContentSize(Alignment.Center)
+                                .clipToBounds(),
+                            fontSize = 23.sp,
+                        )
+                    }
+
+                    Box(
+                        Modifier
+                            .fillMaxHeight()
+                            .padding(20.dp, 10.dp, 20.dp, 10.dp)
+                            .width(130.dp)
+                    ) {
+                        Text(
+                            secondButtonText,
+                            Modifier
+                                .zIndex(1f)
+                                .clickable {
+                                    inEditMode = !inEditMode
+                                }
+                                .fillMaxSize()
+                                .wrapContentSize(Alignment.Center)
+                                .clipToBounds(),
+                            fontSize = 23.sp,
+                        )
+                    }
+                }
+            }
+
+            //Foreground
+            Box(
+                Modifier
+                    .zIndex(1f)
+                    .fillMaxWidth()
+                    .height(50.dp)
+            )
+            {
+                val density = LocalDensity.current
+                val scrollEndsWith = with(density) { 43.toDp() }
+                Row(Modifier.zIndex(1f)) {
+                    val scrollForegroundRight = remember { ImageLoader.loadImageFromResources("scrollForegroundRight.png").get().toPainter() }
+                    Image(
+                        painter = scrollForegroundRight,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(scrollEndsWith),
+                        contentScale = ContentScale.FillHeight,
+                    )
+                    val scrollForegroundMiddle = remember { ImageLoader.loadImageFromResources("scrollForegroundMiddle.png").get().toPainter() }
+                    Image(
+                        painter = scrollForegroundMiddle,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(1f),
+                        contentScale = ContentScale.FillBounds,
+                    )
+                    val scrollForegroundLeft = remember { ImageLoader.loadImageFromResources("scrollForegroundLeft.png").get().toPainter() }
+                    Image(
+                        painter = scrollForegroundLeft,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(scrollEndsWith),
+                        contentScale = ContentScale.FillHeight,
+                    )
+                }
+                Row(
+                    Modifier
+                        .zIndex(2f)
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Box(
+                        Modifier
+                            .fillMaxHeight()
+                            .weight(1f)
+                    ) {
+                        val nameInput = remember { mutableStateOf(TextFieldValue(spell.name)) }
+                        BasicTextField(
+                            value = nameInput.value,
+                            onValueChange = {
+                                nameInput.value = it
+                                spell.name = it.text
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp, 15.dp, 0.dp, 0.dp)
+                                .onKeyEvent { keyEvent ->
+                                    if(keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
+                                        println("Enter")
+                                        focusManager.clearFocus()
+                                        inEditMode = false
+                                        true
+                                    }
+                                    else false
+                                },
+                            singleLine = true,
+                            readOnly = !inEditMode,
+                            textStyle = textStyle,
+                        )
+                    }
+
+                    Text(
+                        "Level: " + sliderValue.roundToInt(),
+                        Modifier
+                            .padding(20.dp, 0.dp, 0.dp, 0.dp)
+                    )
+
+                    val steps: Int =
+                        if (spellLevelsCount.value - 2 > 0) spellLevelsCount.value - 2 else 0
+
+                    Slider(
+                        value = sliderValue,
+                        onValueChange = {
+                            sliderValue = if (steps == 0) it.roundToInt().toFloat()
+                            else it
+                            if (isHovered) selectedSpellSliderValue.value = sliderValue
+                        },
+                        valueRange = 1f..if (spellLevelsCount.value > 0f) spellLevelsCount.value.toFloat() else 1f,
+                        steps = steps,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .padding(0.dp, 0.dp, 6.dp, 0.dp)
+                            .weight(1f),
+                        colors = SliderDefaults.colors(
+                            thumbColor = getLevelColorFromGradient(
+                                sliderValue.roundToInt().toFloat() / spellLevelsCount.value.toFloat()
+                            ).copy(alpha = 1f),
+                            activeTrackColor = getLevelColorFromGradient(
+                                sliderValue.roundToInt().toFloat() / spellLevelsCount.value.toFloat()
+                            ),
+                            inactiveTrackColor = Color.White.copy(alpha = 0.25f)
+                        )
+                    )
                 }
             }
         }
