@@ -20,11 +20,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -52,7 +47,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -272,8 +266,7 @@ object InventoryDisplay {
                 )
 
                 //Description
-                val descInput =
-                    remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.description)) }
+                val descInput = remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.description)) }
                 TextField(
                     value = descInput.value,
                     onValueChange = {
@@ -338,34 +331,19 @@ object InventoryDisplay {
                 }
 
                 //Weight
-                val weightInput = remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.weight.toString())) }
-                val validWeight = remember { mutableStateOf(true) }
-                var weightModifier: Modifier = Modifier
-                if (!validWeight.value) weightModifier = Modifier.background(Color.Red)
-                TextField(
-                    value = weightInput.value,
-                    onValueChange = {
-                        weightInput.value = it
-                        try {
-                            val weight = it.text.toInt()
-                            itemDisplayItem.value!!.weight = weight
-                            validWeight.value = true
-                        } catch (e: NumberFormatException) {
-                            println("Could not get int from " + it.text)
-                            validWeight.value = false
-                        }
-                    },
-                    modifier = weightModifier
-                        .fillMaxWidth(),
-                    label = {
-                        Text("Gewicht")
-                    },
-                    singleLine = true,
+                val weightValue = remember { mutableStateOf(itemDisplayItem.value!!.weight) }
+                val weightRange = IntRange(0, 500)
+
+                StepShifterIntBig(
+                    "Gewicht:",
+                    weightRange,
+                    weightValue,
+                    { increase -> itemDisplayItem.value!!.weight += increase },
+                    { decrease -> itemDisplayItem.value!!.weight -= decrease }
                 )
 
                 //Value
-                val valueInput =
-                    remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.valueInGold.toString())) }
+                val valueInput = remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.valueInGold.toString())) }
                 val validValue = remember { mutableStateOf(true) }
                 var valueModifier: Modifier = Modifier
                 if (!validValue.value) valueModifier = Modifier.background(Color.Red)

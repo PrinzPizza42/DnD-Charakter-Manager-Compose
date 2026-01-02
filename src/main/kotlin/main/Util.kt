@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -93,7 +94,7 @@ fun StepShifterIntSmall(
         modifier = Modifier
             .padding(4.dp)
     ) {
-        Text(label)
+        Text(label, textAlign = TextAlign.Center)
         StepShifterInt(
             range,
             value,
@@ -112,37 +113,55 @@ fun StepShifterIntBig(
     onDecrease: (Int) -> Unit,
     bigStep: Int = 5
 ) {
-    Text(label)
-    IconButton(
-        onClick = { if (value.value > range.first) {
-            onIncrease(bigStep)
-            value.value -= bigStep
-        } },
-        enabled = value.value > range.first
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(4.dp)
     ) {
-        Text("$bigStep")
-        Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Minus")
-    }
-    StepShifterInt(
-        range,
-        value,
-        { onIncrease(1) },
-        { onDecrease(1) }
-    )
-    IconButton(
-        onClick = { if (value.value < range.last) {
-            onDecrease(bigStep)
-            value.value += bigStep
-        }},
-        enabled = value.value < range.last
-    ) {
-        Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Plus")
-        Text("$bigStep")
+        Text(label, textAlign = TextAlign.Center)
+        IconButton(
+            onClick = {
+                if (value.value >= range.first + bigStep) {
+                    onDecrease(bigStep)
+                    value.value -= bigStep
+                }
+            },
+            enabled = value.value >= range.first + bigStep
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("$bigStep", textAlign = TextAlign.Center)
+                Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "MinusBigStep")
+            }
+        }
+        StepShifterInt(
+            range,
+            value,
+            { onIncrease(1) },
+            { onDecrease(1) }
+        )
+        IconButton(
+            onClick = {
+                if (value.value <= range.last - bigStep) {
+                    onIncrease(bigStep)
+                    value.value += bigStep
+                }
+            },
+            enabled = value.value <= range.last - bigStep
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.KeyboardArrowRight, contentDescription = "PlusBigStep")
+                Text("$bigStep", textAlign = TextAlign.Center)
+            }
+        }
     }
 }
 
 @Composable
-fun StepShifterInt(
+private fun StepShifterInt(
     range: IntRange,
     value: MutableState<Int>,
     onIncrease: () -> Unit,
@@ -150,8 +169,6 @@ fun StepShifterInt(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(4.dp)
     ) {
         IconButton(
             onClick = { if (value.value > range.first) {
@@ -165,8 +182,8 @@ fun StepShifterInt(
 
         Text(
             text = "${value.value}",
-            modifier = Modifier.padding(horizontal = 10.dp),
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
         )
 
         IconButton(
