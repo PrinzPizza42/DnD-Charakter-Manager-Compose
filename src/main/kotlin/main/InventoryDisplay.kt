@@ -330,39 +330,19 @@ object InventoryDisplay {
                     )
 
                     //Armor Class
-                    val armorClassInput = remember { mutableStateOf(TextFieldValue(armor.armorClass.toString())) }
-                    var errorClass by remember { mutableStateOf(false) }
-
-                    TextField(
-                        value = armorClassInput.value,
-                        onValueChange = {
-                            armorClassInput.value = it
-
-                            try {
-                                val inputClass: ArmorClasses = ArmorClasses.valueOf(it.text.uppercase())
-
-                                armor.armorClass = inputClass
-
-                                errorClass = false
-                            }
-                            catch (e: Exception) {
-                                println("Could not get enum value armor class from: $it")
-                                errorClass = true
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        label = {
-                            Text("Rüstungsklasse (Light, Medium, Heavy)")
-                        },
-                        singleLine = true,
-                        isError = errorClass
+                    DropdownString(
+                        "Rüstungsklasse",
+                        ArmorClasses.entries.map { it.name },
+                        mutableStateOf(armor.armorClass.toString()),
+                        {
+                            newClass -> armor.armorClass = ArmorClasses.valueOf(newClass)
+                            println("Armor class value changed to ${armor.armorClass}")
+                        }
                     )
                 }
 
                 //Weight
-                val weightInput =
-                    remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.weight.toString())) }
+                val weightInput = remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.weight.toString())) }
                 val validWeight = remember { mutableStateOf(true) }
                 var weightModifier: Modifier = Modifier
                 if (!validWeight.value) weightModifier = Modifier.background(Color.Red)
@@ -415,8 +395,7 @@ object InventoryDisplay {
                 )
 
                 //Amount
-                val amountInput =
-                    remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.amount.toString())) }
+                val amountInput = remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.amount.toString())) }
                 val validAmount = remember { mutableStateOf(true) }
                 var amountModifier: Modifier = Modifier
                 if (!validAmount.value) amountModifier = Modifier.background(Color.Red)
@@ -606,8 +585,7 @@ object InventoryDisplay {
                             .weight(5f)
                             .fillMaxWidth()
                             .wrapContentSize(Alignment.Center)
-                    )
-                    {
+                    ) {
                         val showChangeBackPackWeight = remember { mutableStateOf(false) }
 
                         if (showChangeBackPackWeight.value) {
@@ -618,8 +596,7 @@ object InventoryDisplay {
                                     .fillMaxSize()
                                     .zIndex(12f)
                                     .background(weightChangerColor, RoundedCornerShape(5.dp))
-                                    .clip(RoundedCornerShape(5.dp))
-                                ,
+                                    .clip(RoundedCornerShape(5.dp)),
                                 inv.value!!.maxCarryingCapacity,
                                 "Maximalgewicht",
                                 onConfirm = { value ->

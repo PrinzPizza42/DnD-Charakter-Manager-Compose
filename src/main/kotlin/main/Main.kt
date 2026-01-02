@@ -163,7 +163,21 @@ fun App(window: ComposeWindow) {
 
                 displayTabSelector(showInventory, showScrollPanel, selectedInventory, showInvAnimationEndInv, showInvAnimationEndSpells)
 
-                displayInv(selectedInventory, modifierInv, showItemDisplay, itemDisplayItem, showSortedInv, items, totalSlots, 100.dp, updateInventory, refreshInv, removeItem, addItemAtIndex, window)
+                displayInv(
+                    selectedInventory,
+                    modifierInv,
+                    showItemDisplay,
+                    itemDisplayItem,
+                    showSortedInv,
+                    items,
+                    totalSlots,
+                    100.dp,
+                    updateInventory,
+                    refreshInv,
+                    removeItem,
+                    addItemAtIndex,
+                    window
+                )
 
                 scrollDisplay(modifierSpells, selectedInventory.value!!, showScrollPanel)
 
