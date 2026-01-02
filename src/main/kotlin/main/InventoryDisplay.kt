@@ -376,18 +376,28 @@ object InventoryDisplay {
 
                 //Equipped
                 val equipped = remember(itemDisplayItem.value, itemDisplayItem.value!!.equipped) { mutableStateOf(itemDisplayItem.value!!.equipped) }
-                Row {
-                    Checkbox(
-                        checked = equipped.value,
-                        onCheckedChange = {
-                            itemDisplayItem.value!!.equipped = it
-                            equipped.value = it
-                        },
-                        modifier = Modifier
-                            .width(30.dp)
-                            .padding(horizontal = 10.dp),
-                    )
-                    Text("Ausgerüstet")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Ausgerüstet", Modifier.width(150.dp))
+                    Box(
+                        Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Checkbox(
+                            checked = equipped.value,
+                            onCheckedChange = {
+                                itemDisplayItem.value!!.equipped = it
+                                equipped.value = it
+                            },
+                            modifier = Modifier
+                                .width(30.dp)
+                                .padding(horizontal = 10.dp),
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = Color.Yellow,
+                                uncheckedColor = Color.Black,
+                                checkmarkColor = Color.Black
+                            )
+                        )
+                    }
                 }
 
                 //Image reset
