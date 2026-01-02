@@ -33,6 +33,8 @@ import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -252,6 +254,9 @@ object ScrollDisplay {
 
         var sliderValue by remember { mutableStateOf(1f) }
 
+        val templateTextStile = remember { TextStyle.Default.copy(fontStyle = FontStyle.Italic) }
+        val normalTextStile = remember { TextStyle.Default.copy(fontStyle = FontStyle.Normal) }
+
         Box(
             Modifier
                 .fillMaxWidth()
@@ -328,7 +333,8 @@ object ScrollDisplay {
                                 else false
                             },
                         singleLine = true,
-                        readOnly = false
+                        readOnly = false,
+                        textStyle = if(spell.isTemplate) templateTextStile else normalTextStile
                     )
 
                     val firstButtonText: String = if(spellLevels.isEmpty() || (sliderValue.roundToInt() - 1 >= 0 && spellLevelsCount.value > 0 && spellLevels[sliderValue.roundToInt() - 1].first <= 0)) "Nicht genug" else "Benutzen"
@@ -364,7 +370,7 @@ object ScrollDisplay {
                                 .fillMaxSize()
                                 .wrapContentSize(Alignment.Center)
                                 .clipToBounds(),
-                            fontSize = 23.sp,
+                            fontSize = 23.sp
                         )
                     }
 
@@ -464,7 +470,8 @@ object ScrollDisplay {
                                     else false
                                 },
                             singleLine = true,
-                            readOnly = false
+                            readOnly = false,
+                            textStyle = if(spell.isTemplate) templateTextStile else normalTextStile
                         )
                     }
 
