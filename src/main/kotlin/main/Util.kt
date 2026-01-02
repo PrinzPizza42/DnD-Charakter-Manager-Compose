@@ -2,15 +2,19 @@ package main
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -18,10 +22,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -70,6 +76,107 @@ fun DropdownString(
                     }
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun StepShifterIntSmall(
+    label: String,
+    range: IntRange,
+    value: MutableState<Int>,
+    onIncrease: () -> Unit,
+    onDecrease: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(4.dp)
+    ) {
+        Text(label)
+        StepShifterInt(
+            range,
+            value,
+            onIncrease,
+            onDecrease
+        )
+    }
+}
+
+@Composable
+fun StepShifterIntBig(
+    label: String,
+    range: IntRange,
+    value: MutableState<Int>,
+    onIncrease: (Int) -> Unit,
+    onDecrease: (Int) -> Unit,
+    bigStep: Int = 5
+) {
+    Text(label)
+    IconButton(
+        onClick = { if (value.value > range.first) {
+            onIncrease(bigStep)
+            value.value -= bigStep
+        } },
+        enabled = value.value > range.first
+    ) {
+        Text("$bigStep")
+        Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Minus")
+    }
+    StepShifterInt(
+        range,
+        value,
+        { onIncrease(1) },
+        { onDecrease(1) }
+    )
+    IconButton(
+        onClick = { if (value.value < range.last) {
+            onDecrease(bigStep)
+            value.value += bigStep
+        }},
+        enabled = value.value < range.last
+    ) {
+        Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Plus")
+        Text("$bigStep")
+    }
+}
+
+@Composable
+fun StepShifterInt(
+    range: IntRange,
+    value: MutableState<Int>,
+    onIncrease: () -> Unit,
+    onDecrease: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(4.dp)
+    ) {
+        IconButton(
+            onClick = { if (value.value > range.first) {
+                onDecrease()
+                value.value -= 1
+            } },
+            enabled = value.value > range.first
+        ) {
+            Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Minus")
+        }
+
+        Text(
+            text = "${value.value}",
+            modifier = Modifier.padding(horizontal = 10.dp),
+            fontWeight = FontWeight.Bold
+        )
+
+        IconButton(
+            onClick = { if (value.value < range.last) {
+                onIncrease()
+                value.value += 1
+            }},
+            enabled = value.value < range.last
+        ) {
+            Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Plus")
         }
     }
 }

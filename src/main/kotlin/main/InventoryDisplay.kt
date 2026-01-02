@@ -20,6 +20,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -47,6 +52,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -305,28 +311,18 @@ object InventoryDisplay {
                 if(itemDisplayItem.value is Armor) {
                     //Armor Value
                     val armor: Armor = itemDisplayItem.value as Armor
-                    val armorValueInput = remember { mutableStateOf(TextFieldValue(armor.armorValue.toString())) }
-                    var errorValue by remember { mutableStateOf(false) }
+                    val armorValue = remember { mutableStateOf(armor.armorValue) }
+                    val armorValueRange = IntRange(0, 20)
 
-                    TextField(
-                        value = armorValueInput.value,
-                        onValueChange = {
-                            armorValueInput.value = it
-                            val inputInt = it.text.toIntOrNull()
-
-                            if(inputInt == null) errorValue = true
-                            else {
-                                errorValue = false
-                                armor.armorValue = inputInt
-                            }
+                    StepShifterIntSmall(
+                        "Rüstungswert:",
+                        armorValueRange,
+                        armorValue,
+                        {
+                            armor.armorValue += 1
+                            println("Increased 1 to ${armor.armorValue}")
                         },
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        label = {
-                            Text("Rüstungswert")
-                        },
-                        singleLine = true,
-                        isError = errorValue
+                        { armor.armorValue -= 1 }
                     )
 
                     //Armor Class
