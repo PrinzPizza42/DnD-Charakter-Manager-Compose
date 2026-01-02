@@ -343,56 +343,27 @@ object InventoryDisplay {
                 )
 
                 //Value
-                val valueInput = remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.valueInGold.toString())) }
-                val validValue = remember { mutableStateOf(true) }
-                var valueModifier: Modifier = Modifier
-                if (!validValue.value) valueModifier = Modifier.background(Color.Red)
-                TextField(
-                    value = valueInput.value,
-                    onValueChange = {
-                        valueInput.value = it
-                        try {
-                            val value = it.text.toInt()
-                            itemDisplayItem.value!!.valueInGold = value
-                            validValue.value = true
-                        } catch (e: NumberFormatException) {
-                            println("Could not get int from " + it.text)
-                            validValue.value = false
-                        }
-                    },
-                    modifier = valueModifier
-                        .fillMaxWidth(),
-                    label = {
-                        Text("Wert in Gold")
-                    },
-                    singleLine = true,
+                val valueValue = remember { mutableStateOf(itemDisplayItem.value!!.valueInGold) }
+                val valueRange = IntRange(0, 1000)
+
+                StepShifterIntBig(
+                    "Wert in Gold:",
+                    valueRange,
+                    valueValue,
+                    { increase -> itemDisplayItem.value!!.valueInGold += increase },
+                    { decrease -> itemDisplayItem.value!!.valueInGold -= decrease }
                 )
 
                 //Amount
-                val amountInput = remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.amount.toString())) }
-                val validAmount = remember { mutableStateOf(true) }
-                var amountModifier: Modifier = Modifier
-                if (!validAmount.value) amountModifier = Modifier.background(Color.Red)
-                TextField(
-                    value = amountInput.value,
+                val amountValue = remember { mutableStateOf(itemDisplayItem.value!!.amount) }
+                val amountRange = IntRange(0, 500)
 
-                    onValueChange = {
-                        amountInput.value = it
-                        try {
-                            val amount = it.text.toInt()
-                            itemDisplayItem.value!!.amount = amount
-                            validAmount.value = true
-                        } catch (e: NumberFormatException) {
-                            println("Could not get int from " + it.text)
-                            validAmount.value = false
-                        }
-                    },
-                    modifier = amountModifier
-                        .fillMaxWidth(),
-                    label = {
-                        Text("Menge")
-                    },
-                    singleLine = true,
+                StepShifterIntBig(
+                    "Menge:",
+                    amountRange,
+                    amountValue,
+                    { increase -> itemDisplayItem.value!!.amount += increase },
+                    { decrease -> itemDisplayItem.value!!.amount -= decrease }
                 )
 
                 //Equipped
