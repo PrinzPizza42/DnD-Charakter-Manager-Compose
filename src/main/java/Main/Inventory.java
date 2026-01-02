@@ -102,4 +102,31 @@ public class Inventory {
             spellLevels.set(index, replacement);
         }
     }
+
+    public void setSpellSlotsUsed(ArrayList<Integer> spellSlotsUsed) {
+        this.spellSlotsUsed = spellSlotsUsed;
+    }
+
+    public ArrayList<Integer> getSpellSlotsUsed() {
+        spellSlotsUsed.clear();
+        for (Pair<Integer, Integer> spellLevel : spellLevels) {
+            spellSlotsUsed.addLast(spellLevel.getFirst());
+        }
+        System.out.println(spellSlotsUsed);
+        return this.spellSlotsUsed;
+    }
+
+    public void setSpellSlotsMax(ArrayList<Integer> spellSlotsMax) {
+        this.spellSlotsMax = spellSlotsMax;
+    }
+
+    public ArrayList<Integer> getSpellSlotsMax() {
+        spellSlotsMax.clear();
+        System.out.println("getting spellSlotsMax:");
+        for (Pair<Integer, Integer> spellLevel : spellLevels) {
+            spellSlotsMax.addLast(spellLevel.getSecond());
+        }
+        System.out.println(spellSlotsMax);
+        return this.spellSlotsMax;
+    }
 }
