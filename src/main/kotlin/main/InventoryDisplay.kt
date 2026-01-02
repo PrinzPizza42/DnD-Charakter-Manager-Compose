@@ -319,7 +319,7 @@ object InventoryDisplay {
                     )
 
                     //Armor Class
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(4.dp)) {
                         Text("Rüstungsklasse:", modifier = Modifier.width(150.dp))
                         Box(
                             Modifier.fillMaxWidth(),
@@ -376,7 +376,7 @@ object InventoryDisplay {
 
                 //Equipped
                 val equipped = remember(itemDisplayItem.value, itemDisplayItem.value!!.equipped) { mutableStateOf(itemDisplayItem.value!!.equipped) }
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(4.dp)) {
                     Text("Ausgerüstet", Modifier.width(150.dp))
                     Box(
                         Modifier.fillMaxWidth(),
