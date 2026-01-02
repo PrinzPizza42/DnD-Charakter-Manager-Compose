@@ -39,10 +39,11 @@ import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -80,7 +81,7 @@ object InventoryDisplay {
         ) {
             Column{
                 sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv, items, inv, slotSize)
-                backPack(inv, showItemDisplay, itemDisplayItem, showSortedInv, items, onItemChanged, refreshInv, removeItem, addItemAtIndex, slotSize)
+                backPack(showItemDisplay, itemDisplayItem, showSortedInv, items, removeItem, addItemAtIndex, slotSize)
             }
         }
     }
@@ -789,40 +790,17 @@ object InventoryDisplay {
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
     fun backPack(
-        inv: MutableState<Inventory?>,
         showItemDisplay: MutableState<Boolean>,
         itemDisplayItem: MutableState<Item?>,
         showSortedInv: MutableState<Boolean>,
         items: List<Item?>,
-        onItemChanged: (Item) -> Unit,
-        refreshInv: MutableState<Boolean>,
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
-        slotSize: MutableState<Dp>,
+        slotSize: MutableState<Dp>
     ) {
+        val dragMode = remember { mutableStateOf(false) }
         val draggedItem = remember { mutableStateOf<Item?>(null) }
         val draggedItemOffset = remember { mutableStateOf(Offset.Zero) }
-        val dragHoveredOver = remember { mutableStateOf<Item?>(null) }
-
-        val firstEmptySlot = remember(items) {
-            derivedStateOf {
-                items.firstOrNull { it is EmptySlot }
-            }
-        }
-
-        val highlightedItem by remember(draggedItem.value, dragHoveredOver.value) {
-            derivedStateOf {
-                if (draggedItem.value != null) {
-                    if (dragHoveredOver.value != null && dragHoveredOver.value !is EmptySlot) {
-                        dragHoveredOver.value
-                    } else {
-                        firstEmptySlot.value
-                    }
-                } else {
-                    null
-                }
-            }
-        }
 
         val typePriority = mapOf(
             ShortRangeWeapon::class to 0,
@@ -889,11 +867,11 @@ object InventoryDisplay {
                                 showItemDisplay,
                                 itemDisplayItem,
                                 draggedItem,
-                                dragHoveredOver,
                                 removeItem,
                                 addItemAtIndex,
-                                highlightedItem == item,
-                                slotSize
+                                slotSize,
+                                dragMode,
+                                items
                             )
                         }
                     }
@@ -935,7 +913,7 @@ object InventoryDisplay {
                                     .clickable {
                                         println("deleted item " + draggedItem.value!!.name)
                                         draggedItem.value = null
-                                        dragHoveredOver.value = null
+                                        dragMode.value = false
                                     }
                                     .clipToBounds()
                             )
@@ -1014,11 +992,11 @@ object InventoryDisplay {
         showItemDisplay: MutableState<Boolean>,
         itemDisplayItem: MutableState<Item?>,
         draggedItem: MutableState<Item?>,
-        dragHoveredOver: MutableState<Item?>,
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
-        isHighlighted: Boolean,
-        slotSize: MutableState<Dp>
+        slotSize: MutableState<Dp>,
+        dragMode: MutableState<Boolean>,
+        items: List<Item?>
     ) {
         val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) lerp(Color.Transparent, Color.Black, 0.1f) else Color.LightGray.copy(alpha = 0.2f)) }
 
@@ -1029,24 +1007,26 @@ object InventoryDisplay {
                 )
             }
             var isHovered by remember { mutableStateOf(false) }
-            val borderColor = remember(item.equipped, isHighlighted) { mutableStateOf(Color.Transparent) }
-
-            if (isHighlighted) {
-                borderColor.value = Color.Red
-            } else {
-                borderColor.value =
-                    if (item is EmptySlot) Color.Black.copy(alpha = 0.1f) else if (!item.equipped) Color.Black.copy(
-                        alpha = 0.3f
-                    ) else Color.Yellow.copy(alpha = 0.7f)
-            }
+            val borderColor = remember(item.equipped, dragMode.value, isHovered) {
+                mutableStateOf(
+                    if(dragMode.value && isHovered) {
+                        Color.Red
+                    } else if (item is EmptySlot) {
+                        Color.Black.copy(alpha = 0.1f)
+                    } else if (!item.equipped) {
+                        Color.Black.copy(
+                            alpha = 0.3f
+                        )
+                    } else Color.Yellow.copy(alpha = 0.7f)
+            )}
 
             val scale by animateFloatAsState(
-                targetValue = if (isHovered && item !is EmptySlot) 1.08f else 1f,
+                targetValue = if (isHovered && item !is EmptySlot && !dragMode.value) 1.08f else 1f,
                 animationSpec = tween(durationMillis = 150)
             )
 
             val elevation by animateDpAsState(
-                targetValue = if (isHovered && item !is EmptySlot) 6.dp else if (item !is EmptySlot) 2.dp else 0.dp,
+                targetValue = if (isHovered && item !is EmptySlot && !dragMode.value) 6.dp else if (item !is EmptySlot) 2.dp else 0.dp,
                 animationSpec = tween(durationMillis = 150)
             )
 
@@ -1054,22 +1034,8 @@ object InventoryDisplay {
                 modifier = Modifier
                     .padding(4.dp)
                     .size(slotSize.value)
-                    .pointerMoveFilter(
-                        onEnter = {
-                            isHovered = true
-                            if (draggedItem.value != null) {
-                                dragHoveredOver.value = item
-                            }
-                            false
-                        },
-                        onExit = {
-                            isHovered = false
-                            if (draggedItem.value != null) {
-                                dragHoveredOver.value = null
-                            }
-                            false
-                        }
-                    )
+                    .onPointerEvent(PointerEventType.Enter) { isHovered = true }
+                    .onPointerEvent(PointerEventType.Exit) { isHovered = false }
                     .graphicsLayer {
                         this.scaleX = scale
                         this.scaleY = scale
@@ -1081,11 +1047,11 @@ object InventoryDisplay {
                         detectTapGestures(
                             onTap = {
                                 println("clicked item " + item.name)
-                                if (draggedItem.value != null) {
+                                if (dragMode.value) {
                                     println("drop item before " + item.name)
                                     addItemAtIndex(draggedItem.value!!, item)
                                     draggedItem.value = null
-                                    dragHoveredOver.value = null
+                                    dragMode.value = false
                                 } else if (item !is EmptySlot) {
                                     itemDisplayItem.value = item
                                     showItemDisplay.value = true
@@ -1095,6 +1061,7 @@ object InventoryDisplay {
                                 if (item !is EmptySlot && draggedItem.value == null) {
                                     println("longpress " + item.name)
                                     draggedItem.value = item
+                                    dragMode.value = true
                                     removeItem(item)
                                 }
                             }

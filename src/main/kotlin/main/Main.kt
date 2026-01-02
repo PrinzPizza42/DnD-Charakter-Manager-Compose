@@ -224,8 +224,7 @@ fun getFloatInputOverlay(
     Box(
         modifier
     ) {
-        val input =
-            remember { mutableStateOf(TextFieldValue(startValue.toString())) }
+        val input = remember { mutableStateOf(TextFieldValue(startValue.toString())) }
         var isError by remember { mutableStateOf(false) }
 
         TextField(
