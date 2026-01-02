@@ -870,8 +870,7 @@ object InventoryDisplay {
                                 removeItem,
                                 addItemAtIndex,
                                 slotSize,
-                                dragMode,
-                                items
+                                dragMode
                             )
                         }
                     }
@@ -995,8 +994,7 @@ object InventoryDisplay {
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
         slotSize: MutableState<Dp>,
-        dragMode: MutableState<Boolean>,
-        items: List<Item?>
+        dragMode: MutableState<Boolean>
     ) {
         val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) lerp(Color.Transparent, Color.Black, 0.1f) else Color.LightGray.copy(alpha = 0.2f)) }
 
