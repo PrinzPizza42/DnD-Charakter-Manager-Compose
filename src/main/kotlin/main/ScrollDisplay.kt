@@ -5,7 +5,6 @@ import Main.Inventory
 import Main.Spell
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,7 +25,6 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -35,11 +33,8 @@ import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -328,7 +323,6 @@ object ScrollDisplay {
                                 if(keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
                                     println("Enter")
                                     focusManager.clearFocus()
-//                                    inEditMode = false
                                     true
                                 }
                                 else false
@@ -337,7 +331,7 @@ object ScrollDisplay {
                         readOnly = false
                     )
 
-                    val firstButtonText: String = if(sliderValue.roundToInt() - 1 >= 0 && spellLevelsCount.value > 0 && spellLevels[sliderValue.roundToInt() - 1].first <= 0) "Nicht genug" else "Benutzen"
+                    val firstButtonText: String = if(spellLevels.isEmpty() || (sliderValue.roundToInt() - 1 >= 0 && spellLevelsCount.value > 0 && spellLevels[sliderValue.roundToInt() - 1].first <= 0)) "Nicht genug" else "Benutzen"
 
                     Box(
                         Modifier
@@ -350,6 +344,10 @@ object ScrollDisplay {
                             Modifier
                                 .zIndex(1f)
                                 .clickable {
+                                    if(spellLevels.isEmpty()){
+                                        println("Could not cast spell, because there are no spellLevels")
+                                    }
+                                    else {
                                         val sliderValueRounded = sliderValue.roundToInt()
                                         val oldPair = spellLevels[sliderValueRounded - 1]
                                         val newPair = Pair(oldPair.first - 1, oldPair.second)
@@ -361,6 +359,7 @@ object ScrollDisplay {
                                             inv.spellLevels[sliderValueRounded - 1] = newPair
                                             println("Cast spell " + spell.name)
                                         }
+                                    }
                                 }
                                 .fillMaxSize()
                                 .wrapContentSize(Alignment.Center)
@@ -542,7 +541,7 @@ object ScrollDisplay {
                         .clickable {
                             val newLevel = Pair(5, 5)
                             spellLevels.addLast(newLevel)
-                            inv.addLastSpellSlot(newLevel)
+                            inv.addLastSpellLevel(newLevel)
                             println("added level")
                         }
                         .weight(1f)
@@ -567,9 +566,9 @@ object ScrollDisplay {
                     text ="-",
                     modifier = Modifier
                         .clickable {
-                            if(spellLevels.size > 1) {
+                            if(spellLevels.isNotEmpty()) {
                                 spellLevels.removeLast()
-                                inv.removeSpellSlot(spellLevels.size)
+                                inv.removeSpellLevel(spellLevels.size)
                                 println("removed level")
                             }
                         }

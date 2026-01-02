@@ -24,14 +24,38 @@ public class Inventory {
     private final ArrayList<Pair<Integer, Integer>> spellLevels = new ArrayList<>();
 
 
+    public Inventory() {}
+
     public Inventory(String name) {
         this.name = name;
+        addLastSpellLevel(new Pair<>(3, 3));
     }
 
     public Inventory(String name, UUID uuid, ArrayList<Item> items) {
         this.name = name;
         this.uuid = uuid;
         this.items = items;
+    }
+
+    @JsonIgnore
+    public Inventory(Inventory other) {
+        this.name = other.name;
+        this.uuid = UUID.randomUUID();
+        this.items = new ArrayList<>(other.items);
+        this.spells.addAll(other.spells);
+        this.spellSlotsUsed.addAll(other.spellSlotsUsed);
+        this.spellSlotsMax.addAll(other.spellSlotsMax);
+        this.loadedLevels = other.loadedLevels;
+        this.maxCarryingCapacity = other.maxCarryingCapacity;
+        this.spellLevels.addAll(other.spellLevels);
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public ArrayList<Item> getItems() {
+        return items;
     }
 
     public float getMaxCarryingCapacity() {
@@ -42,11 +66,15 @@ public class Inventory {
         this.maxCarryingCapacity = maxCarryingCapacity;
     }
 
-    public void addLastSpellSlot(Pair<Integer, Integer> slot) {
-        spellLevels.addLast(slot);
+    public ArrayList<Spell> getSpells() {
+        return spells;
     }
 
-    public void removeSpellSlot(int index) {
+    public void addLastSpellLevel(Pair<Integer, Integer> level) {
+        spellLevels.addLast(level);
+    }
+
+    public void removeSpellLevel(int index) {
         spellLevels.remove(index);
     }
 
@@ -73,131 +101,5 @@ public class Inventory {
             Pair<Integer, Integer> replacement = new Pair<>(b, b);
             spellLevels.set(index, replacement);
         }
-        System.out.println("reset spellslotsUsed " + spellSlotsUsed);
-    }
-
-    public void setSpellSlotsUsed(ArrayList<Integer> spellSlotsUsed) {
-        System.out.println("setting spellSlotsUsed to " + spellSlotsUsed);
-        this.spellSlotsUsed = spellSlotsUsed;
-    }
-
-    public ArrayList<Integer> getSpellSlotsUsed() {
-        System.out.println("Before clear: " + spellSlotsUsed);
-        spellSlotsUsed.clear();
-        System.out.println("After clear: " + spellSlotsUsed);
-        System.out.println("getting spellSlotsUsed:");
-        System.out.println("Spelllevels: " + spellLevels);
-        for (Pair<Integer, Integer> spellLevel : spellLevels) {
-            spellSlotsUsed.addLast(spellLevel.getFirst());
-        }
-        System.out.println(spellSlotsUsed);
-        return this.spellSlotsUsed;
-    }
-
-    public void setSpellSlotsMax(ArrayList<Integer> spellSlotsMax) {
-        this.spellSlotsMax = spellSlotsMax;
-    }
-
-    public ArrayList<Integer> getSpellSlotsMax() {
-        spellSlotsMax.clear();
-        System.out.println("getting spellSlotsMax:");
-        for (Pair<Integer, Integer> spellLevel : spellLevels) {
-            spellSlotsMax.addLast(spellLevel.getSecond());
-        }
-        System.out.println(spellSlotsMax);
-        return this.spellSlotsMax;
-    }
-
-    public Inventory() {}
-
-    public String getName() {
-        return this.name;
-    }
-
-    public ArrayList<Item> getItems() {
-        return items;
-    }
-
-    public ArrayList<Spell> getSpells() {
-        return spells;
-    }
-
-    public void addItem(Item item) {
-        items.add(item);
-    }
-
-    @JsonIgnore
-    public void removeItem(Item item) {
-        items.remove(item);
-    }
-
-    @JsonIgnore
-    public void print() {
-        for (Item item : items) {
-            System.out.println((items.indexOf(item) + 1) + ". " + item.getAmount() + "x - " + item.getValueInGold() + "G - " + item.getName() + ": " + item.getDescription() + " - " + item.getWeight() + "lb");
-        }
-    }
-
-    @JsonIgnore
-    public void printSorted() {
-        System.out.println("Waffen:");
-        boolean foundWeapons = false;
-        for (Item item : items) {
-            if(item instanceof Weapon) {
-                foundWeapons = true;
-                System.out.println((items.indexOf(item) + 1) + ". " + item.getAmount() + "x - " + ((Weapon) item).getDamage() + "DMG - " + item.getName() + ": " + item.getDescription());
-            }
-        }
-        if(!foundWeapons) System.out.println("Keine Waffen gefunden");
-
-        System.out.println("\nVerbrauchbares:");
-        boolean foundConsumables = false;
-        for (Item item : items) {
-            if(item instanceof Consumable) {
-                foundConsumables = true;
-                System.out.println((items.indexOf(item) + 1) + ". " + item.getAmount() + "x - " + item.getName() + ": " + item.getDescription());
-            }
-        }
-        if(!foundConsumables) System.out.println("Keine verbrauchbaren Gegenstände gefunden");
-
-        System.out.println("\nSonstiges:");
-        boolean foundMisc = false;
-        for (Item item : items) {
-            if(item instanceof Miscellaneous) {
-                foundMisc = true;
-                System.out.println((items.indexOf(item) + 1) + ". " + item.getAmount() + "x - " + item.getName() + ": " + item.getDescription());
-            }
-        }
-        if(!foundMisc) System.out.println("Keine sonstigen Gegenstände gefunden");
-    }
-
-    @JsonIgnore
-    public Item getAtIndex(int index) {
-        return items.get(index);
-    }
-
-    @JsonIgnore
-    public boolean contains(Item item) {
-        return items.contains(item);
-    }
-
-    @JsonIgnore
-    public void moveItemToPlace(Item item, int place) {
-        if(!items.contains(item)) return;
-        items.remove(item);
-        items.add(place, item);
-    }
-
-    @JsonIgnore
-    public Inventory(Inventory other) {
-        this.name = other.name;
-        this.uuid = UUID.randomUUID();
-        this.items = new ArrayList<>(other.items);
-        this.spells.addAll(other.spells);
-        this.spellSlotsUsed.addAll(other.spellSlotsUsed);
-        this.spellSlotsMax.addAll(other.spellSlotsMax);
-        this.loadedLevels = other.loadedLevels;
-        this.maxCarryingCapacity = other.maxCarryingCapacity;
-        this.spellLevels.addAll(other.spellLevels);
     }
 }
