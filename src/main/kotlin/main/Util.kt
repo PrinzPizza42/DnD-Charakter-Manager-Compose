@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun DropdownString(
-    label: String,
+    label: String?,
     options: List<String>,
     selectedOption: MutableState<String>,
     onChange: (String) -> Unit
@@ -51,7 +51,7 @@ fun DropdownString(
             value = selectedOption.value,
             onValueChange = {},
             readOnly = true,
-            label = { Text(label) },
+            label =  { if(label != null) Text(label) },
             trailingIcon = {
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,

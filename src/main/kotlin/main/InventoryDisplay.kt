@@ -319,15 +319,23 @@ object InventoryDisplay {
                     )
 
                     //Armor Class
-                    DropdownString(
-                        "Rüstungsklasse",
-                        ArmorClasses.entries.map { it.name },
-                        mutableStateOf(armor.armorClass.toString()),
-                        {
-                            newClass -> armor.armorClass = ArmorClasses.valueOf(newClass)
-                            println("Armor class value changed to ${armor.armorClass}")
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Rüstungsklasse:", modifier = Modifier.width(150.dp))
+                        Box(
+                            Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            DropdownString(
+                                null,
+                                ArmorClasses.entries.map { it.name },
+                                mutableStateOf(armor.armorClass.toString()),
+                                {
+                                        newClass -> armor.armorClass = ArmorClasses.valueOf(newClass)
+                                    println("Armor class value changed to ${armor.armorClass}")
+                                }
+                            )
                         }
-                    )
+                    }
                 }
 
                 //Weight
