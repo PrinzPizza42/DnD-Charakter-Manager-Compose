@@ -35,7 +35,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.AppImage)
             packageName = "DnD-Charakter-Manager-Compose"
-            packageVersion = "1.1.0"
+            packageVersion = "1.2.0"
             includeAllModules = true
 
             windows {
