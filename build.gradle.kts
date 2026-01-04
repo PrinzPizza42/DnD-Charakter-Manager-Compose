@@ -33,7 +33,7 @@ compose.desktop {
         mainClass = "main.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.AppImage)
             packageName = "DnD-Charakter-Manager-Compose"
             packageVersion = "1.1.0"
             includeAllModules = true
@@ -46,6 +46,11 @@ compose.desktop {
 
             linux {
                 iconFile.set(project.file("src/main/composeResources/drawable/icon.png"))
+            }
+
+            buildTypes.release.proguard {
+                version.set("7.6.1")
+                configurationFiles.from(project.file("compose-desktop.pro"))
             }
         }
     }

@@ -44,6 +44,10 @@
             freetype
             fontconfig
 
+            # Required for GTK file dialogs
+            gsettings-desktop-schemas
+            glib-networking
+
             # Helper tools
             unzip
             zip
@@ -58,6 +62,9 @@
             export JAVA_HOME=${pkgs.jdk}/lib/openjdk
             export PATH=$JAVA_HOME/bin:$PATH
             export _JAVA_AWT_WM_NONREPARENTING=1
+            
+            # Ensure GSettings schemas are found
+            export XDG_DATA_DIRS=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS
 
             echo "Kotlin Compose Environment Loaded"
             echo "If you have GPU issues, try running: run-gpu"
