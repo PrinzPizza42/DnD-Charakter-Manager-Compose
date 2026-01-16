@@ -45,7 +45,6 @@ fun App(window: ComposeWindow) {
     val showItemDisplay = remember { mutableStateOf(false) }
     val itemDisplayItem = remember { mutableStateOf<Item?>(null) }
 
-    val refreshTrigger = remember { mutableStateOf(0) }
     val selectedInventory = remember { mutableStateOf<Inventory?>(null) }
 
     val showInventory = remember { mutableStateOf(true) }
@@ -53,7 +52,7 @@ fun App(window: ComposeWindow) {
 
     val showSortedInv = remember { mutableStateOf(false) }
 
-    val showInvSelector = remember(refreshTrigger.value, selectedInventory.value) { mutableStateOf(selectedInventory.value == null) }
+    val showInvSelector = remember(selectedInventory.value) { mutableStateOf(selectedInventory.value == null) }
 
     val totalSlots = 50
 
@@ -107,7 +106,6 @@ fun App(window: ComposeWindow) {
             newInv.items.clear()
             newInv.items.addAll(newItems)
             selectedInventory.value = newInv
-            println("removed item " + item.name)
         }
     }
 
@@ -140,32 +138,11 @@ fun App(window: ComposeWindow) {
             Row(Modifier
                 .fillMaxSize()
             ) {
-                val showInvAnimationEndInv = remember { mutableStateOf(true) }
-                val weightInv = animateFloatAsState(
-                    if(showInventory.value) 1f else 0.01f,
-                    label = "weight",
-                    finishedListener = {
-                        showInvAnimationEndInv.value = showInventory.value
-                    }
-                )
-
-                val showInvAnimationEndSpells = remember { mutableStateOf(true) }
-                val weightSpells = animateFloatAsState(
-                    if(showScrollPanel.value) 1f else 0.01f,
-                    label = "weight",
-                    finishedListener = {
-                        showInvAnimationEndSpells.value = showScrollPanel.value
-                    }
-                )
-
-                val modifierInv = if(showInvAnimationEndInv.value) Modifier.weight(weightInv.value) else Modifier.width(0.dp)
-                val modifierSpells = if(showInvAnimationEndSpells.value) Modifier.weight(weightSpells.value) else Modifier.width(0.dp)
-
-                displayTabSelector(showInventory, showScrollPanel, selectedInventory, showInvAnimationEndInv, showInvAnimationEndSpells)
+                displayTabSelector(showInventory, showScrollPanel, selectedInventory)
 
                 displayInv(
                     selectedInventory,
-                    modifierInv,
+                    if(showInventory.value) Modifier.weight(1f) else Modifier.weight(0.00001f),
                     showItemDisplay,
                     itemDisplayItem,
                     showSortedInv,
@@ -179,20 +156,18 @@ fun App(window: ComposeWindow) {
                     window
                 )
 
-                scrollDisplay(modifierSpells, selectedInventory.value!!, showScrollPanel)
-
-                val backGroundColor = animateColorAsState(
-                    if(!showInvAnimationEndSpells.value && !showInvAnimationEndInv.value) Color.Gray else Color.Black,
-                    label = "background color",
-                    animationSpec = tween(300)
+                scrollDisplay(
+                    if(showScrollPanel.value) Modifier.weight(1f) else Modifier.weight(0.00001f),
+                    selectedInventory.value!!,
+                    showScrollPanel
                 )
 
-                if(!showInvAnimationEndSpells.value && !showInvAnimationEndInv.value) {
+                if(!showInventory.value && !showScrollPanel.value) {
                     Box(
                         Modifier
                             .weight(1f)
                             .fillMaxHeight()
-                            .background(backGroundColor.value)
+                            .background(Color.Gray)
                     ) {
                         Text(
                             text = "Keine Panels ausgewählt",

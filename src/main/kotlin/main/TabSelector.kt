@@ -46,9 +46,7 @@ object TabSelector {
     fun displayTabSelector(
         showInventory: MutableState<Boolean>,
         showScrollPanel: MutableState<Boolean>,
-        selectedInventory: MutableState<Inventory?>,
-        showInvAnimationEndInv: MutableState<Boolean>,
-        showInvAnimationEndSpells: MutableState<Boolean>
+        selectedInventory: MutableState<Inventory?>
     ) {
         Column(Modifier
             .fillMaxHeight()
