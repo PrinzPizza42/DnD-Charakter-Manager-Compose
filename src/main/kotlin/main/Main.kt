@@ -7,7 +7,11 @@ import Main.ItemClasses.*
 import Main.ItemClasses.Weapons.LongRangeWeapon
 import Main.ItemClasses.Weapons.ShortRangeWeapon
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
@@ -135,47 +139,69 @@ fun App(window: ComposeWindow) {
 
     if(!showInvSelector.value) {
         Box(Modifier.fillMaxSize()) {
+            val animationSpec = tween<Float>(300, 0)
+            val inventoryWeight by animateFloatAsState(
+                targetValue = if (showInventory.value) 1f else 0.0001f,
+                animationSpec = animationSpec
+            )
+            val scrollWeight by animateFloatAsState(
+                targetValue = if (showScrollPanel.value) 1f else 0.0001f,
+                animationSpec = animationSpec
+            )
+            val emptyWeight by animateFloatAsState(
+                targetValue = if (!showInventory.value && !showScrollPanel.value) 1f else 0.0001f,
+                animationSpec = animationSpec
+            )
+
             Row(Modifier
                 .fillMaxSize()
             ) {
                 displayTabSelector(showInventory, showScrollPanel, selectedInventory)
 
-                displayInv(
-                    selectedInventory,
-                    if(showInventory.value) Modifier.weight(1f) else Modifier.weight(0.00001f),
-                    showItemDisplay,
-                    itemDisplayItem,
-                    showSortedInv,
-                    items,
-                    totalSlots,
-                    100.dp,
-                    updateInventory,
-                    refreshInv,
-                    removeItem,
-                    addItemAtIndex,
-                    window
-                )
+                Box(Modifier.weight(inventoryWeight)) {
+                    displayInv(
+                        selectedInventory,
+                        Modifier.fillMaxSize(),
+                        showItemDisplay,
+                        itemDisplayItem,
+                        showSortedInv,
+                        items,
+                        totalSlots,
+                        100.dp,
+                        updateInventory,
+                        refreshInv,
+                        removeItem,
+                        addItemAtIndex,
+                        window
+                    )
+                }
 
-                scrollDisplay(
-                    if(showScrollPanel.value) Modifier.weight(1f) else Modifier.weight(0.00001f),
-                    selectedInventory.value!!,
-                    showScrollPanel
-                )
-
-                if(!showInventory.value && !showScrollPanel.value) {
-                    Box(
-                        Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .background(Color.Gray)
-                    ) {
-                        Text(
-                            text = "Keine Panels ausgewählt",
-                            modifier =  Modifier.align(Alignment.Center),
-                            textAlign = TextAlign.Center,
-                            fontSize = 40.sp
-                        )
+                Box(
+                    Modifier
+                        .weight(emptyWeight)
+                ) {
+                    if (emptyWeight > 0.01f) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .background(Color.Gray)
+                        ) {
+                            Text(
+                                text = "Keine Panels ausgewählt",
+                                modifier = Modifier.align(Alignment.Center),
+                                textAlign = TextAlign.Center,
+                                fontSize = 40.sp
+                            )
+                        }
                     }
+                }
+
+                Box(Modifier.weight(scrollWeight)) {
+                    scrollDisplay(
+                        Modifier.fillMaxSize(),
+                        selectedInventory.value!!,
+                        showScrollPanel
+                    )
                 }
             }
             if (showItemDisplay.value) {
