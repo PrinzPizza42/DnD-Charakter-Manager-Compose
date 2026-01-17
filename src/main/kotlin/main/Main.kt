@@ -10,6 +10,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -20,7 +23,7 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
@@ -30,7 +33,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import main.InventoryDisplay.displayInv
-import main.InventoryDisplay.showItemDisplayStructure
 import main.ScrollDisplay.scrollDisplay
 import main.InvSelector.inventorySelector
 import main.TabSelector.displayTabSelector
@@ -38,8 +40,11 @@ import main.TabSelector.displayTabSelector
 @Composable
 @Preview
 fun App(window: ComposeWindow) {
-    val showItemDisplay = remember { mutableStateOf(false) }
-    val itemDisplayItem = remember { mutableStateOf<Item?>(null) }
+    val activeOverlay = remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
+    val closeOverlay: () -> Unit = { activeOverlay.value = null }
+    val showOverlay: (@Composable () -> Unit) -> Unit = { content ->
+        activeOverlay.value = content
+    }
 
     val selectedInventory = remember { mutableStateOf<Inventory?>(null) }
 
@@ -53,10 +58,6 @@ fun App(window: ComposeWindow) {
     val showInvSelector = remember(selectedInventory.value) { mutableStateOf(selectedInventory.value == null) }
 
     val totalSlots = 50
-
-    val refreshInv = remember { mutableStateOf(false) }
-
-    val focusManager = LocalFocusManager.current
 
     val typePriority = mapOf(
         ShortRangeWeapon::class to 0,
@@ -144,17 +145,14 @@ fun App(window: ComposeWindow) {
                         displayInv(
                             selectedInventory,
                             Modifier.fillMaxSize(),
-                            showItemDisplay,
-                            itemDisplayItem,
                             showSortedInv,
                             items,
-                            totalSlots,
-                            100.dp,
-                            updateInventory,
-                            refreshInv,
                             removeItem,
                             addItemAtIndex,
-                            window
+                            showOverlay,
+                            closeOverlay,
+                            window,
+                            updateInventory
                         )
                     },
                     {
@@ -191,8 +189,24 @@ fun App(window: ComposeWindow) {
                 )
             }
 
-            if (showItemDisplay.value) {
-                showItemDisplayStructure(itemDisplayItem, showItemDisplay, updateInventory, refreshInv, focusManager, window)
+            activeOverlay.value?.let { overlayContent ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.6f))
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onTap = {
+                                    closeOverlay()
+                                }
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box {
+                        overlayContent()
+                    }
+                }
             }
         }
     }

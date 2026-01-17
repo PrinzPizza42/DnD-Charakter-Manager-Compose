@@ -29,7 +29,6 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -46,6 +45,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -62,62 +62,44 @@ object InventoryDisplay {
     fun displayInv(
         inv: MutableState<Inventory?>,
         modifier: Modifier,
-        showItemDisplay: MutableState<Boolean>,
-        itemDisplayItem: MutableState<Item?>,
         showSortedInv: MutableState<Boolean>,
         items: List<Item?>,
-        totalSlots: Int,
-        itemSize: Dp,
-        onItemChanged: (Item) -> Unit,
-        refreshInv: MutableState<Boolean>,
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
+        showOverlay: (@Composable (() -> Unit)) -> Unit,
+        closeOverlay: () -> Unit,
         window: ComposeWindow,
+        updateInventory: (Item) -> Unit,
     ) {
         val slotSize = remember { mutableStateOf(100.dp) }
+
+        val showItemDisplay = remember { mutableStateOf(false) }
 
         Box(
             modifier = modifier
         ) {
             Column{
-                sceneryAndBackPackTop(showItemDisplay, showSortedInv, refreshInv, items, inv, slotSize)
-                backPack(showItemDisplay, itemDisplayItem, showSortedInv, items, removeItem, addItemAtIndex, slotSize)
+                sceneryAndBackPackTop(showSortedInv, items, inv, slotSize, showOverlay, closeOverlay, window, updateInventory)
+                backPack(showItemDisplay, showSortedInv, items, removeItem, addItemAtIndex, slotSize, showOverlay, window, updateInventory)
             }
         }
     }
 
     @Composable
     fun showItemDisplayStructure(
-        itemDisplayItem: MutableState<Item?>,
-        showItemDisplay: MutableState<Boolean>,
+        item: MutableState<Item?>,
         onItemChanged: (Item) -> Unit,
-        refreshInv: MutableState<Boolean>,
-        focusManager: FocusManager,
         window: ComposeWindow
     ) {
         val classes = listOf("Nahkampf-Waffe", "Fernkampf-Waffe", "Verbrauchsgegenstände", "Rüstung", "Trank", "Verschiedenes")
         val selectedClass = remember { mutableStateOf(classes[0]) }
         val hasSelected = remember { mutableStateOf(false) }
+        val focusManager = LocalFocusManager.current
 
         //InvDisplay overlay
         BoxWithConstraints (
             Modifier
-                .zIndex(10f)
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.3f))
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        if(showItemDisplay.value) {
-                            showItemDisplay.value = false
-                            itemDisplayItem.value?.let {
-                                onItemChanged(it)
-                                refreshInv.value = true
-                            }
-                            itemDisplayItem.value = null
-                            println("Detected tap outside, closing item display")
-                        }
-                    })
-                }
         ) {
             val itemDisplayWith: Dp by remember(this.maxWidth) { mutableStateOf(if(this.maxWidth > 1000.dp) 1000.dp else this.maxWidth) }
             //ItemDisplay
@@ -127,16 +109,14 @@ object InventoryDisplay {
                     .zIndex(11f)
                     .size(itemDisplayWith, 700.dp)
                     .onKeyEvent { keyEvent ->
-                        if(keyEvent.key == Key.Escape || keyEvent.key == Key.Enter && showItemDisplay.value) {
+                        if(keyEvent.key == Key.Escape || keyEvent.key == Key.Enter) {
                             focusManager.clearFocus()
-                            println("cleared focus")
                             true
                         }
                         else false
                     }
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = {
-                            println("detected tap inside, clearing focus")
                             focusManager.clearFocus()
                         })
                     }
@@ -162,12 +142,12 @@ object InventoryDisplay {
 
                     //Item stats
                     Box(Modifier.weight(1f)) {
-                        itemDisplayStats(showItemDisplay, itemDisplayItem, hasSelected, classes, selectedClass, refreshInv, onItemChanged, reloadKey)
+                        itemDisplayStats(item, hasSelected, classes, selectedClass, reloadKey, onItemChanged)
                     }
 
                     //Item image
                     Box(Modifier.weight(1f)) {
-                        itemDisplayImage(showItemDisplay, itemDisplayItem, window, reloadKey)
+                        itemDisplayImage(item, window, reloadKey)
                     }
                 }
             }
@@ -176,14 +156,12 @@ object InventoryDisplay {
 
     @Composable
     fun itemDisplayStats(
-        showItemDisplay: MutableState<Boolean>,
         itemDisplayItem: MutableState<Item?>,
         hasSelected: MutableState<Boolean>,
         classes: List<String>,
         selectedClass: MutableState<String>,
-        refreshInv: MutableState<Boolean>,
-        onItemChanged: (Item) -> Unit,
-        reloadKey: MutableState<Int>
+        reloadKey: MutableState<Int>,
+        onItemChanged: (Item) -> Unit
     ) {
         Row(
             Modifier
@@ -191,7 +169,7 @@ object InventoryDisplay {
         ) {
             //Item Create
             if (itemDisplayItem.value == null && !hasSelected.value) {
-                itemDisplayStatsCreateDisplay(classes, selectedClass, hasSelected, itemDisplayItem)
+                itemDisplayStatsCreateDisplay(classes, selectedClass, hasSelected, itemDisplayItem, onItemChanged)
             }
             //Normal Display
             else if (itemDisplayItem.value != null) {
@@ -205,7 +183,8 @@ object InventoryDisplay {
         classes: List<String>,
         selectedClass: MutableState<String>,
         hasSelected: MutableState<Boolean>,
-        itemDisplayItem: MutableState<Item?>
+        itemDisplayItem: MutableState<Item?>,
+        onItemChanged: (Item) -> Unit
     ) {
         Column(
             Modifier
@@ -232,6 +211,7 @@ object InventoryDisplay {
                                     "Verschiedenes" -> itemDisplayItem.value = Miscellaneous("", "", 1, 1, 1)
                                 }
                                 println("Created ${itemDisplayItem.value}")
+                                onItemChanged(itemDisplayItem.value!!)
                             }
                         )
                         Text(option)
@@ -416,7 +396,6 @@ object InventoryDisplay {
 
     @Composable
     fun itemDisplayImage(
-        showItemDisplay: MutableState<Boolean>,
         item: MutableState<Item?>,
         window: ComposeWindow,
         reloadKey: MutableState<Int>
@@ -468,12 +447,14 @@ object InventoryDisplay {
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     fun sceneryAndBackPackTop(
-        showItemDisplay: MutableState<Boolean>,
         showSortedInv: MutableState<Boolean>,
-        refreshInv: MutableState<Boolean>,
         items: List<Item?>,
         inv: MutableState<Inventory?>,
         slotSize: MutableState<Dp>,
+        showOverlay: (@Composable (() -> Unit)) -> Unit,
+        closeOverlay: () -> Unit,
+        window: ComposeWindow,
+        updateInventory: (Item) -> Unit,
         ) {
         Box(
             Modifier
@@ -577,7 +558,6 @@ object InventoryDisplay {
                             )
                         }
 
-
                         val options = listOf("Eigene", "Item-Klasse")
                         var selectedOption by remember { mutableStateOf(options[0]) }
                         val range = remember { 50f.rangeTo(150f) }
@@ -646,7 +626,13 @@ object InventoryDisplay {
                             Button(
                                 onClick = {
                                     println("adding item")
-                                    showItemDisplay.value = true
+                                    showOverlay({
+                                        showItemDisplayStructure(
+                                            mutableStateOf(null),
+                                            updateInventory,
+                                            window
+                                        )
+                                    })
                                 },
                                 content = {
                                     Text("+")
@@ -731,12 +717,14 @@ object InventoryDisplay {
     @Composable
     fun backPack(
         showItemDisplay: MutableState<Boolean>,
-        itemDisplayItem: MutableState<Item?>,
         showSortedInv: MutableState<Boolean>,
         items: List<Item?>,
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
-        slotSize: MutableState<Dp>
+        slotSize: MutableState<Dp>,
+        showOverlay: (@Composable (() -> Unit)) -> Unit,
+        window: ComposeWindow,
+        updateInventory: (Item) -> Unit
     ) {
         val dragMode = remember { mutableStateOf(false) }
         val draggedItem = remember { mutableStateOf<Item?>(null) }
@@ -804,13 +792,14 @@ object InventoryDisplay {
                         ) {
                             invSlot(
                                 item,
-                                showItemDisplay,
-                                itemDisplayItem,
                                 draggedItem,
                                 removeItem,
                                 addItemAtIndex,
                                 slotSize,
-                                dragMode
+                                dragMode,
+                                showOverlay,
+                                window,
+                                updateInventory
                             )
                         }
                     }
@@ -928,13 +917,14 @@ object InventoryDisplay {
     @Composable
     fun invSlot(
         item: Item?,
-        showItemDisplay: MutableState<Boolean>,
-        itemDisplayItem: MutableState<Item?>,
         draggedItem: MutableState<Item?>,
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
         slotSize: MutableState<Dp>,
-        dragMode: MutableState<Boolean>
+        dragMode: MutableState<Boolean>,
+        showOverlay: (@Composable (() -> Unit)) -> Unit,
+        window: ComposeWindow,
+        updateInventory: (Item) -> Unit
     ) {
         val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) lerp(Color.Transparent, Color.Black, 0.1f) else Color.LightGray.copy(alpha = 0.2f)) }
 
@@ -991,13 +981,13 @@ object InventoryDisplay {
                                     draggedItem.value = null
                                     dragMode.value = false
                                 } else if (item !is EmptySlot) {
-                                    itemDisplayItem.value = item
-                                    showItemDisplay.value = true
+                                    showOverlay({
+                                        showItemDisplayStructure(mutableStateOf(item), updateInventory, window)
+                                    })
                                 }
                             },
                             onLongPress = {
                                 if (item !is EmptySlot && draggedItem.value == null) {
-                                    println("longpress " + item.name)
                                     draggedItem.value = item
                                     dragMode.value = true
                                     removeItem(item)
