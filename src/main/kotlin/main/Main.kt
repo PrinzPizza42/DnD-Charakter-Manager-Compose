@@ -43,8 +43,10 @@ fun App(window: ComposeWindow) {
 
     val selectedInventory = remember { mutableStateOf<Inventory?>(null) }
 
-    val showInventory = remember { mutableStateOf(true) }
-    val showScrollPanel = remember { mutableStateOf(true) }
+    val showInventoryTab = remember { mutableStateOf(true) }
+    val showScrollTab = remember { mutableStateOf(true) }
+    val showCharDetailsTab = remember { mutableStateOf(true) }
+    val showEquippedItemsTab = remember { mutableStateOf(true) }
 
     val showSortedInv = remember { mutableStateOf(false) }
 
@@ -133,38 +135,61 @@ fun App(window: ComposeWindow) {
         val sectionSwitch = remember { mutableStateOf(true) } // true = inv & spells; false = char details
 
         Box(Modifier.fillMaxSize()) {
-            // Inv & Spells
-            section(
-                showInventory,
-                showScrollPanel,
-                {
-                    displayInv(
+            if(sectionSwitch.value) {
+                // Inv & Spells
+                section(
+                    showInventoryTab,
+                    showScrollTab,
+                    {
+                        displayInv(
+                            selectedInventory,
+                            Modifier.fillMaxSize(),
+                            showItemDisplay,
+                            itemDisplayItem,
+                            showSortedInv,
+                            items,
+                            totalSlots,
+                            100.dp,
+                            updateInventory,
+                            refreshInv,
+                            removeItem,
+                            addItemAtIndex,
+                            window
+                        )
+                    },
+                    {
+                        scrollDisplay(
+                            Modifier.fillMaxSize(),
+                            selectedInventory.value!!,
+                            showScrollTab
+                        )
+                    },
+                    { displayTabSelector(
+                        showInventoryTab,
+                        showScrollTab,
+                        showCharDetailsTab,
+                        showEquippedItemsTab,
                         selectedInventory,
-                        Modifier.fillMaxSize(),
-                        showItemDisplay,
-                        itemDisplayItem,
-                        showSortedInv,
-                        items,
-                        totalSlots,
-                        100.dp,
-                        updateInventory,
-                        refreshInv,
-                        removeItem,
-                        addItemAtIndex,
-                        window
-                    )
-                },
-                {
-                    scrollDisplay(
-                        Modifier.fillMaxSize(),
-                        selectedInventory.value!!,
-                        showScrollPanel
-                    )
-                },
-                {
-                    displayTabSelector(showInventory, showScrollPanel, selectedInventory)
-                }
-            )
+                        sectionSwitch
+                    ) }
+                )
+            }
+            else {
+                section(
+                    showCharDetailsTab,
+                    showEquippedItemsTab,
+                    {},
+                    {},
+                    { displayTabSelector(
+                        showInventoryTab,
+                        showScrollTab,
+                        showCharDetailsTab,
+                        showEquippedItemsTab,
+                        selectedInventory,
+                        sectionSwitch
+                    ) }
+                )
+            }
 
             if (showItemDisplay.value) {
                 showItemDisplayStructure(itemDisplayItem, showItemDisplay, updateInventory, refreshInv, focusManager, window)

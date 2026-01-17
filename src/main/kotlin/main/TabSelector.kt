@@ -13,12 +13,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.onClick
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.RadioButton
+import androidx.compose.material.RadioButtonDefaults
+import androidx.compose.material.Slider
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -28,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -36,7 +43,6 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 
@@ -48,7 +54,10 @@ object TabSelector {
     fun displayTabSelector(
         showInventory: MutableState<Boolean>,
         showScrollPanel: MutableState<Boolean>,
-        selectedInventory: MutableState<Inventory?>
+        showCharDetailsTab: MutableState<Boolean>,
+        showEquippedItemsTab: MutableState<Boolean>,
+        selectedInventory: MutableState<Inventory?>,
+        sectionSwitch: MutableState<Boolean>
     ) {
         Column(Modifier
             .fillMaxHeight()
@@ -64,6 +73,17 @@ object TabSelector {
                     .fillMaxWidth()
                     .background(lerp(Color.LightGray, Color.DarkGray, 0.6f), RoundedCornerShape(5.dp))
             ) {
+                RadioButton(
+                    selected = sectionSwitch.value,
+                    onClick = {
+                        sectionSwitch.value = true
+                    },
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = Color.LightGray,
+                        unselectedColor = Color.White
+                    )
+                )
+
                 // Show inv button
                 tabElement(
                     {},
@@ -86,14 +106,25 @@ object TabSelector {
                     .fillMaxWidth()
                     .background(lerp(Color.LightGray, Color.DarkGray, 0.6f), RoundedCornerShape(5.dp))
             ) {
+                RadioButton(
+                    selected = !sectionSwitch.value,
+                    onClick = {
+                        sectionSwitch.value = false
+                    },
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = Color.LightGray,
+                        unselectedColor = Color.White
+                    )
+                )
+
                 tabElement(
                     {},
-                    mutableStateOf(false),
+                    showCharDetailsTab,
                     ImageLoader.loadImageFromResources("icon.png").get().toPainter()
                 )
                 tabElement(
                     {},
-                    mutableStateOf(false),
+                    showEquippedItemsTab,
                     ImageLoader.loadImageFromResources("icon.png").get().toPainter()
                 )
             }
