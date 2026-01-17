@@ -343,7 +343,7 @@ object ScrollDisplay {
                         Modifier
                             .fillMaxHeight()
                             .padding(20.dp, 10.dp, 20.dp, 10.dp)
-                            .width(130.dp)
+                            .width(160.dp)
                     ) {
                         Text(
                             firstButtonText,
