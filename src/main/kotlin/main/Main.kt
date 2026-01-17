@@ -22,6 +22,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.key.*
@@ -136,59 +138,66 @@ fun App(window: ComposeWindow) {
 
     if(!showInvSelector.value) {
         val sectionSwitch = remember { mutableStateOf(true) } // true = inv & spells; false = char details
+        val modifier = if(activeOverlay.value != null) Modifier.fillMaxSize().blur(3.dp) else Modifier.fillMaxSize()
 
-        Box(Modifier.fillMaxSize()) {
-            if(sectionSwitch.value) {
-                // Inv & Spells
-                section(
-                    showInventoryTab,
-                    showScrollTab,
-                    {
-                        displayInv(
+        Box(
+            Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier
+            ){
+                if(sectionSwitch.value) {
+                    // Inv & Spells
+                    section(
+                        showInventoryTab,
+                        showScrollTab,
+                        {
+                            displayInv(
+                                selectedInventory,
+                                Modifier.fillMaxSize(),
+                                showSortedInv,
+                                items,
+                                removeItem,
+                                addItemAtIndex,
+                                showOverlay,
+                                closeOverlay,
+                                window,
+                                updateInventory
+                            )
+                        },
+                        {
+                            scrollDisplay(
+                                Modifier.fillMaxSize(),
+                                selectedInventory.value!!,
+                                showScrollTab
+                            )
+                        },
+                        { displayTabSelector(
+                            showInventoryTab,
+                            showScrollTab,
+                            showCharDetailsTab,
+                            showEquippedItemsTab,
                             selectedInventory,
-                            Modifier.fillMaxSize(),
-                            showSortedInv,
-                            items,
-                            removeItem,
-                            addItemAtIndex,
-                            showOverlay,
-                            closeOverlay,
-                            window,
-                            updateInventory
-                        )
-                    },
-                    {
-                        scrollDisplay(
-                            Modifier.fillMaxSize(),
-                            selectedInventory.value!!,
-                            showScrollTab
-                        )
-                    },
-                    { displayTabSelector(
-                        showInventoryTab,
-                        showScrollTab,
+                            sectionSwitch
+                        ) }
+                    )
+                }
+                else {
+                    section(
                         showCharDetailsTab,
                         showEquippedItemsTab,
-                        selectedInventory,
-                        sectionSwitch
-                    ) }
-                )
-            }
-            else {
-                section(
-                    showCharDetailsTab,
-                    showEquippedItemsTab,
-                    {},
-                    {},
-                    { displayTabSelector(
-                        showInventoryTab,
-                        showScrollTab,
-                        showCharDetailsTab,
-                        showEquippedItemsTab,
-                        selectedInventory,
-                        sectionSwitch
-                    ) }
-                )
+                        {},
+                        {},
+                        { displayTabSelector(
+                            showInventoryTab,
+                            showScrollTab,
+                            showCharDetailsTab,
+                            showEquippedItemsTab,
+                            selectedInventory,
+                            sectionSwitch
+                        ) }
+                    )
+                }
             }
 
             activeOverlay.value?.let { overlayContent ->
