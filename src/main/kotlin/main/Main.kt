@@ -6,12 +6,7 @@ import Main.Inventory
 import Main.ItemClasses.*
 import Main.ItemClasses.Weapons.LongRangeWeapon
 import Main.ItemClasses.Weapons.ShortRangeWeapon
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
@@ -26,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
@@ -35,13 +29,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import androidx.compose.ui.zIndex
 import main.InventoryDisplay.displayInv
 import main.InventoryDisplay.showItemDisplayStructure
 import main.ScrollDisplay.scrollDisplay
 import main.InvSelector.inventorySelector
 import main.TabSelector.displayTabSelector
-import kotlin.coroutines.ContinuationInterceptor
 
 @Composable
 @Preview
@@ -138,27 +130,14 @@ fun App(window: ComposeWindow) {
     if(showInvSelector.value) inventorySelector(selectedInventory)
 
     if(!showInvSelector.value) {
+        val sectionSwitch = remember { mutableStateOf(true) } // true = inv & spells; false = char details
+
         Box(Modifier.fillMaxSize()) {
-            val animationSpec = tween<Float>(300, 0)
-            val inventoryWeight by animateFloatAsState(
-                targetValue = if (showInventory.value) 1f else 0.0001f,
-                animationSpec = animationSpec
-            )
-            val scrollWeight by animateFloatAsState(
-                targetValue = if (showScrollPanel.value) 1f else 0.0001f,
-                animationSpec = animationSpec
-            )
-            val emptyWeight by animateFloatAsState(
-                targetValue = if (!showInventory.value && !showScrollPanel.value) 1f else 0.0001f,
-                animationSpec = animationSpec
-            )
-
-            Row(Modifier
-                .fillMaxSize()
-            ) {
-                displayTabSelector(showInventory, showScrollPanel, selectedInventory)
-
-                Box(Modifier.weight(inventoryWeight)) {
+            // Inv & Spells
+            section(
+                showInventory,
+                showScrollPanel,
+                {
                     displayInv(
                         selectedInventory,
                         Modifier.fillMaxSize(),
@@ -174,39 +153,79 @@ fun App(window: ComposeWindow) {
                         addItemAtIndex,
                         window
                     )
-                }
-
-                Box(
-                    Modifier
-                        .weight(emptyWeight)
-                ) {
-                    if (emptyWeight > 0.01f) {
-                        Box(
-                            Modifier
-                                .fillMaxSize()
-                                .background(Color.Gray)
-                        ) {
-                            Text(
-                                text = "Keine Panels ausgewählt",
-                                modifier = Modifier.align(Alignment.Center),
-                                textAlign = TextAlign.Center,
-                                fontSize = 40.sp
-                            )
-                        }
-                    }
-                }
-
-                Box(Modifier.weight(scrollWeight)) {
+                },
+                {
                     scrollDisplay(
                         Modifier.fillMaxSize(),
                         selectedInventory.value!!,
                         showScrollPanel
                     )
+                },
+                {
+                    displayTabSelector(showInventory, showScrollPanel, selectedInventory)
                 }
-            }
+            )
+
             if (showItemDisplay.value) {
                 showItemDisplayStructure(itemDisplayItem, showItemDisplay, updateInventory, refreshInv, focusManager, window)
             }
+        }
+    }
+}
+
+@Composable
+fun section(
+    showTab1: MutableState<Boolean>,
+    showTab2: MutableState<Boolean>,
+    contentTab1: @Composable () -> Unit,
+    contentTab2: @Composable () -> Unit,
+    contentTabSelector: @Composable () -> Unit
+) {
+    val animationSpec = tween<Float>(300, 0)
+    val tab1Weight by animateFloatAsState(
+        targetValue = if (showTab1.value) 1f else 0.0001f,
+        animationSpec = animationSpec
+    )
+    val tab2Weight by animateFloatAsState(
+        targetValue = if (showTab2.value) 1f else 0.0001f,
+        animationSpec = animationSpec
+    )
+    val emptyWeight by animateFloatAsState(
+        targetValue = if (!showTab1.value && !showTab2.value) 1f else 0.0001f,
+        animationSpec = animationSpec
+    )
+
+    Row(Modifier
+        .fillMaxSize()
+    ) {
+        contentTabSelector()
+
+        Box(Modifier.weight(tab1Weight)) {
+            contentTab1()
+        }
+
+        Box(
+            Modifier
+                .weight(emptyWeight)
+        ) {
+            if (emptyWeight > 0.01f) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.Gray)
+                ) {
+                    Text(
+                        text = "Keine Panels ausgewählt",
+                        modifier = Modifier.align(Alignment.Center),
+                        textAlign = TextAlign.Center,
+                        fontSize = 40.sp
+                    )
+                }
+            }
+        }
+
+        Box(Modifier.weight(tab2Weight)) {
+            contentTab2()
         }
     }
 }
