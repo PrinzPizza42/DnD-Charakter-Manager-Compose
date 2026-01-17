@@ -530,34 +530,6 @@ object InventoryDisplay {
                             .fillMaxWidth()
                             .wrapContentSize(Alignment.Center)
                     ) {
-                        val showChangeBackPackWeight = remember { mutableStateOf(false) }
-
-                        if (showChangeBackPackWeight.value) {
-                            val weightChangerColor = remember { lerp(Color.Transparent, Color.White, 0.9f) }
-
-                            getFloatInputOverlay(
-                                Modifier
-                                    .fillMaxSize()
-                                    .zIndex(12f)
-                                    .background(weightChangerColor, RoundedCornerShape(5.dp))
-                                    .clip(RoundedCornerShape(5.dp)),
-                                inv.value!!.maxCarryingCapacity,
-                                "Maximalgewicht",
-                                onConfirm = { value ->
-                                    println(value.toString())
-                                    showChangeBackPackWeight.value = false
-                                    inv.value!!.maxCarryingCapacity = value
-
-                                    println("confirmed")
-                                },
-                                onDismiss = {
-                                    showChangeBackPackWeight.value = false
-
-                                    println("dismissed")
-                                }
-                            )
-                        }
-
                         val options = listOf("Eigene", "Item-Klasse")
                         var selectedOption by remember { mutableStateOf(options[0]) }
                         val range = remember { 50f.rangeTo(150f) }
@@ -609,14 +581,36 @@ object InventoryDisplay {
                             val modifier = Modifier.padding(10.dp, 0.dp)
 
                             val backPackWeight = remember(items) { mutableStateOf(items.toMutableList().sumOf { it!!.weight * it.amount}.toFloat()) }
+                            var backPackWeightUIValue by remember { mutableStateOf(inv.value!!.maxCarryingCapacity) }
 
                             Box(
                                 Modifier
                                     .onClick {
-                                        showChangeBackPackWeight.value = true
+                                        showOverlay({
+                                            val weightChangerColor = remember { lerp(Color.Transparent, Color.White, 0.9f) }
+
+                                            getFloatInputOverlay(
+                                                Modifier
+                                                    .background(weightChangerColor, RoundedCornerShape(5.dp))
+                                                    .clip(RoundedCornerShape(5.dp)),
+                                                inv.value!!.maxCarryingCapacity,
+                                                "Maximalgewicht",
+                                                onConfirm = { value ->
+                                                    println(value.toString())
+                                                    closeOverlay()
+                                                    inv.value!!.maxCarryingCapacity = value
+                                                    backPackWeightUIValue = value
+                                                    println("confirmed")
+                                                },
+                                                onDismiss = {
+                                                    closeOverlay()
+                                                    println("dismissed")
+                                                }
+                                            )
+                                        })
                                     }
                             ) {
-                                backPackTopValue(modifier, backPackWeight, inv.value!!.maxCarryingCapacity, "Gewicht")
+                                backPackTopValue(modifier, backPackWeight, backPackWeightUIValue, "Gewicht")
                             }
 
                             //BackPack value

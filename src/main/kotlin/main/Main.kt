@@ -14,6 +14,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.*
@@ -295,42 +297,68 @@ fun getFloatInputOverlay(
     onDismiss: () -> Unit
 ) {
     Box(
-        modifier
+        modifier,
+        contentAlignment = Alignment.Center
     ) {
         val input = remember { mutableStateOf(TextFieldValue(startValue.toString())) }
         var isError by remember { mutableStateOf(false) }
 
-        TextField(
-            value = input.value,
-            onValueChange = {
-                input.value = it
-                isError = it.text.toFloatOrNull() == null
-            },
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .onPreviewKeyEvent { event ->
-                    if (event.type == KeyEventType.KeyDown) {
-                        when (event.key) {
-                            Key.Enter -> {
-                                if(!isError) onConfirm(input.value.text.toFloat())
-                                true
+                .width(IntrinsicSize.Min),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            TextField(
+                value = input.value,
+                onValueChange = {
+                    input.value = it
+                    isError = it.text.toFloatOrNull() == null
+                },
+                modifier = Modifier
+                    .onPreviewKeyEvent { event ->
+                        if (event.type == KeyEventType.KeyDown) {
+                            when (event.key) {
+                                Key.Enter -> {
+                                    if(!isError) onConfirm(input.value.text.toFloat())
+                                    true
+                                }
+                                Key.Escape -> {
+                                    onDismiss()
+                                    true
+                                }
+                                else -> false
                             }
-                            Key.Escape -> {
-                                onDismiss()
-                                true
-                            }
-                            else -> false
+                        } else {
+                            false
                         }
-                    } else {
-                        false
                     }
-                }
-            ,
-            label = {
-                Text(text)
-            },
-            singleLine = true,
-            isError = isError
-        )
+                ,
+                label = {
+                    Text(text)
+                },
+                singleLine = true,
+                isError = isError
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+            ) {
+                Button(
+                    onClick = {onDismiss()},
+                    content = {
+                        Text("Abbrechen")
+                    }
+                )
+                Button(
+                    onClick = {
+                        val number = input.value.text.toFloatOrNull()
+                        if (number != null) onConfirm(number)
+                    },
+                    content = {
+                        Text("Bestätigen")
+                    }
+                )
+            }
+        }
     }
 }
