@@ -78,6 +78,25 @@ object TabSelector {
                     ImageLoader.loadImageFromResources("scrollIcon.png").get().toPainter()
                 )
             }
+
+            // Character details and equipped items
+            Column(
+                Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth()
+                    .background(lerp(Color.LightGray, Color.DarkGray, 0.6f), RoundedCornerShape(5.dp))
+            ) {
+                tabElement(
+                    {},
+                    mutableStateOf(false),
+                    ImageLoader.loadImageFromResources("icon.png").get().toPainter()
+                )
+                tabElement(
+                    {},
+                    mutableStateOf(false),
+                    ImageLoader.loadImageFromResources("icon.png").get().toPainter()
+                )
+            }
         }
     }
 
