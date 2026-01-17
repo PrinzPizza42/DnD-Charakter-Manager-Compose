@@ -677,8 +677,8 @@ object ScrollDisplay {
                                 .height(20.dp)
                                 .fillMaxWidth()
                                 .graphicsLayer {
-                                    this.scaleX = scale
-                                    this.scaleY = scale
+                                    scaleX = scale
+                                    scaleY = scale
                                 }
                                 .padding(0.dp, 1.dp)
                                 .background(
@@ -693,20 +693,16 @@ object ScrollDisplay {
                                     shape = CircleShape
                                 )
                                 .clip(CircleShape)
-                                .pointerMoveFilter(
-                                    onEnter = {
-                                        isHovered = true
-                                        isHoveredLevel = true
-                                        hoveredSlot = index
-                                        false
-                                    },
-                                    onExit = {
-                                        isHovered = false
-                                        isHoveredLevel = false
-                                        hoveredSlot = -1
-                                        false
-                                    }
-                                )
+                                .onPointerEvent(PointerEventType.Enter) {
+                                    isHovered = true
+                                    isHoveredLevel = true
+                                    hoveredSlot = index
+                                }
+                                .onPointerEvent(PointerEventType.Exit) {
+                                    isHovered = false
+                                    isHoveredLevel = false
+                                    hoveredSlot = -1
+                                }
                                 .clickable {
                                     if (level - 1 >= 0) {
                                         spellLevels[level - 1] = Pair(index + 1, max)
