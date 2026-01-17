@@ -588,7 +588,7 @@ object InventoryDisplay {
                                 onValueChange = {
                                     slotSize.value = it.dp
                                 },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.width(150.dp),
                             )
 
                             val backGroundColor = remember { lerp(Color.Transparent, Color.Black, 0.2f) }
