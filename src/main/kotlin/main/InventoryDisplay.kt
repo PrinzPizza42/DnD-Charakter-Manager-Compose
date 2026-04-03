@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateOf
@@ -47,15 +48,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
 import androidx.compose.ui.zIndex
 import org.jetbrains.skiko.Cursor
 import java.awt.FileDialog
 import java.io.File
 import java.util.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.window.PopupProperties
 
 object InventoryDisplay {
     @Composable
@@ -394,6 +401,7 @@ object InventoryDisplay {
         }
     }
 
+    @OptIn(ExperimentalMaterialApi::class)
     @Composable
     fun itemDisplayImage(
         item: MutableState<Item?>,
@@ -411,6 +419,87 @@ object InventoryDisplay {
             else {
                 key(reloadKey.value) {
                     val painter: Painter = remember(item.value!!.icon) { item.value!!.icon.toPainter() }
+                    var showPopUp by remember { mutableStateOf(false) }
+                    var path by remember { mutableStateOf("") }
+                    val selectedFile: MutableState<File?> = remember { mutableStateOf(null) }
+                    if(showPopUp) {
+                        Popup(
+                            onDismissRequest = { showPopUp = false },
+                            alignment = Alignment.Center,
+                            properties = PopupProperties(focusable = true)
+                        ) {
+                            Column (
+                                Modifier
+                                    .shadow(10.dp, RoundedCornerShape(10.dp))
+                                    .background(Color.White, RoundedCornerShape(10.dp))
+                                    .width(600.dp)
+                                    .height(100.dp)
+                            ) {
+                                Row {
+                                    val availableFiles: SnapshotStateList<File?> = remember { mutableStateListOf(null) }
+
+                                    TextField(
+                                        value = path,
+                                        onValueChange = {
+                                            path = it
+                                        },
+                                        modifier = Modifier
+                                            .weight(3f),
+                                        label = {
+                                            Text("Pfad zum Ordner der Datei")
+                                        },
+                                        placeholder = {
+                                            Text("Pfad")
+                                        },
+                                        singleLine = true,
+                                        keyboardOptions = KeyboardOptions.Default.copy(
+                                            imeAction = ImeAction.Done
+                                        ),
+                                    )
+
+                                    val expanded = remember { mutableStateOf(false) }
+                                    ExposedDropdownMenuBox(
+                                        expanded = expanded.value,
+                                        onExpandedChange = {
+                                            expanded.value = !expanded.value
+                                        }
+                                    ) {
+                                        Button(
+                                            content = { Text(if(selectedFile.value != null) selectedFile.value!!.name else "/") },
+                                            onClick = {
+                                                availableFiles.clear()
+                                                availableFiles.addAll(getFilesInDirectory(path).toMutableStateList())
+                                            }
+                                        )
+                                        ExposedDropdownMenu(
+                                            modifier = Modifier.width(250.dp),
+                                            expanded = expanded.value,
+                                            onDismissRequest = {
+                                                expanded.value = false
+                                            }
+                                        ) {
+                                            for (availableFile in availableFiles) {
+                                                if(availableFile != null) availableFilesDropDownMenuItem(availableFile, expanded, selectedFile)
+                                            }
+                                        }
+                                    }
+                                }
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                ) {
+                                    Button(
+                                        onClick = {
+                                            setImage(path, selectedFile.value!!.name, item, reloadKey)
+                                            showPopUp = false
+                                        }
+                                    ) {
+                                        Text("Übernehmen")
+                                    }
+                                }
+                            }
+                        }
+                    }
                     Image(
                         painter = painter,
                         contentDescription = "item icon",
@@ -419,27 +508,71 @@ object InventoryDisplay {
                             .pointerHoverIcon(PointerIcon.Hand)
                             .clickable(
                                 onClick = {
-                                    println("Clicked ${item.value!!.name}")
+                                    var directory = ""
+                                    var preFile = ""
 
-                                    val dialog = FileDialog(window, "Wähle eine Datei", FileDialog.LOAD)
+                                    val isWindows = System.getProperty("os.name").compareTo("Windows", ignoreCase = true) == 0
 
-                                    dialog.isVisible = true
+                                    if(isWindows) {
+                                        val dialog = FileDialog(window, "Wähle eine Datei", FileDialog.LOAD)
+                                        dialog.isVisible = true
 
-                                    val directory = dialog.directory
-                                    val preFile = dialog.file
-
-                                    if (directory != null && preFile != null) {
-                                        val file = File(directory, preFile)
-                                        println("found ${file.absolutePath}")
-                                        item.value!!.userIconName = file.absolutePath
-                                        reloadKey.value++
+                                        directory = dialog.directory
+                                        preFile = dialog.file
                                     }
+                                    else {
+                                        showPopUp = true
+                                        println("Show popup")
+                                    }
+
+                                    if(isWindows) setImage(directory, preFile, item, reloadKey)
+                                    else showPopUp = true
                                 }
                             )
                         ,
                         contentScale = ContentScale.Fit
                     )
                 }
+            }
+        }
+    }
+
+    fun getFilesInDirectory(directoryPath: String): List<File> {
+        val directory = File(directoryPath)
+
+        if (!directory.exists() || !directory.isDirectory) {
+            return emptyList()
+        }
+
+        return directory.listFiles()?.filter { it.isFile } ?: emptyList()
+    }
+
+    fun setImage(directory: String, preFile: String, item: MutableState<Item?>, reloadKey: MutableState<Int>) {
+        if (directory != null && preFile != null) {
+            val file = File(directory, preFile)
+            println("found ${file.absolutePath}")
+            item.value!!.userIconName = file.absolutePath
+            reloadKey.value++
+        }
+    }
+
+    @Composable
+    fun availableFilesDropDownMenuItem(file: File, expanded: MutableState<Boolean>, selectedFile: MutableState<File?>) {
+        DropdownMenuItem(
+            onClick = {
+                selectedFile.value = file
+                expanded.value = false
+            }
+        ) {
+            Row {
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .width(15.dp)
+                        .background(Color.White, RoundedCornerShape(4.dp))
+                        .padding(vertical = 20.dp)
+                )
+                Text(modifier = Modifier.padding(5.dp), text = file.name)
             }
         }
     }
