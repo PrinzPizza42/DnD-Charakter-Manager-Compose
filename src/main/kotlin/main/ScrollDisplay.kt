@@ -14,6 +14,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -22,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -29,7 +35,6 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -53,7 +58,8 @@ object ScrollDisplay {
                 clear()
                 addAll(inv.spells)
                 println(inv.spells.toString())
-            } }
+            }
+        }
 
         val spellLevels = remember { mutableStateListOf<Pair<Int, Int>>() }
         val spellLevelsCount = remember(spellLevels.size) { mutableStateOf(spellLevels.size) }
@@ -61,9 +67,10 @@ object ScrollDisplay {
         //null when no spell was tried to cast but could not be cast
         val couldNotCast = remember { mutableStateOf<Int?>(null) }
 
-        Row(modifier
-            .fillMaxHeight()
-            .wrapContentSize(Alignment.Center)
+        Row(
+            modifier
+                .fillMaxHeight()
+                .wrapContentSize(Alignment.Center)
         ) {
             // SpellDisplay
             Box(
@@ -76,9 +83,10 @@ object ScrollDisplay {
             }
 
             // ManaSideBar
-            Box(Modifier
-                .fillMaxHeight()
-                .width(50.dp)
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .width(50.dp)
             ) {
                 manaSideBar(inv, spellLevels, spellLevelsCount, couldNotCast)
             }
@@ -87,12 +95,13 @@ object ScrollDisplay {
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
-    fun spellDisplay(inv: Inventory,
-                     showScrollPanel: MutableState<Boolean>,
-                     spells: SnapshotStateList<Spell>,
-                     spellLevels: MutableList<Pair<Int, Int>>,
-                     spellLevelsCount: MutableState<Int>,
-                     couldNotCast: MutableState<Int?>
+    fun spellDisplay(
+        inv: Inventory,
+        showScrollPanel: MutableState<Boolean>,
+        spells: SnapshotStateList<Spell>,
+        spellLevels: MutableList<Pair<Int, Int>>,
+        spellLevelsCount: MutableState<Int>,
+        couldNotCast: MutableState<Int?>
     ) {
         val focusManager = LocalFocusManager.current
 
@@ -110,7 +119,8 @@ object ScrollDisplay {
                     .background(Color.DarkGray),
                 contentAlignment = Alignment.Center
             ) {
-                val scrollPanelBackgroundTop = remember { ImageLoader.loadImageFromResources("scrollPanelBackgroundTop.png").get().toPainter() }
+                val scrollPanelBackgroundTop =
+                    remember { ImageLoader.loadImageFromResources("scrollPanelBackgroundTop.png").get().toPainter() }
                 Image(
                     painter = scrollPanelBackgroundTop,
                     contentDescription = "scrollPanelBackgroundTop",
@@ -123,7 +133,7 @@ object ScrollDisplay {
                 //Add Button
                 var addButtonHover by remember { mutableStateOf(false) }
                 val addButtonScale by animateFloatAsState(
-                    targetValue = if(addButtonHover) 1.1f else 0.9f,
+                    targetValue = if (addButtonHover) 1.1f else 0.9f,
                     animationSpec = tween(durationMillis = 500)
                 )
 
@@ -133,7 +143,8 @@ object ScrollDisplay {
                         .wrapContentSize(Alignment.Center)
                         .zIndex(1f)
                 ) {
-                    val scrollBackGround = remember { ImageLoader.loadImageFromResources("scrollBackGround.png").get().toPainter() }
+                    val scrollBackGround =
+                        remember { ImageLoader.loadImageFromResources("scrollBackGround.png").get().toPainter() }
                     Image(
                         painter = scrollBackGround,
                         contentDescription = null,
@@ -171,10 +182,14 @@ object ScrollDisplay {
                 }
             }
 
-            val coloredBackGround by animateColorAsState(lerp(
-                getLevelColorFromGradient(selectedSpellSliderValue.value / spellLevelsCount.value.toFloat()).copy(alpha = 1f),
-                Color.Black,
-                1f / spellLevelsCount.value.toFloat() / selectedSpellSliderValue.value),
+            val coloredBackGround by animateColorAsState(
+                lerp(
+                    getLevelColorFromGradient(selectedSpellSliderValue.value / spellLevelsCount.value.toFloat()).copy(
+                        alpha = 1f
+                    ),
+                    Color.Black,
+                    1f / spellLevelsCount.value.toFloat() / selectedSpellSliderValue.value
+                ),
                 animationSpec = tween(durationMillis = 600, easing = EaseOutSine)
             )
 
@@ -191,7 +206,8 @@ object ScrollDisplay {
                             color = coloredBackGround,
                         )
                 )
-                val scrollPanelBackgroundMiddle = remember { ImageLoader.loadImageFromResources("scrollPanelBackgroundMiddle.png").get().toPainter() }
+                val scrollPanelBackgroundMiddle =
+                    remember { ImageLoader.loadImageFromResources("scrollPanelBackgroundMiddle.png").get().toPainter() }
                 Image(
                     painter = scrollPanelBackgroundMiddle,
                     contentDescription = null,
@@ -212,7 +228,8 @@ object ScrollDisplay {
                         Box(
                             Modifier.animateItem(
                                 fadeInSpec = tween(300),
-                                fadeOutSpec = tween(300))
+                                fadeOutSpec = tween(300)
+                            )
                         ) {
                             spellElement(
                                 spell,
@@ -231,7 +248,7 @@ object ScrollDisplay {
         }
     }
 
-    @OptIn(ExperimentalComposeUiApi::class)
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
     fun spellElement(
         spell: Spell,
@@ -245,7 +262,7 @@ object ScrollDisplay {
     ) {
         var isHovered by remember { mutableStateOf(false) }
         val scale by animateFloatAsState(
-            targetValue = if (isHovered) 100f else 50f,
+            targetValue = if (isHovered) 150f else 50f,
             animationSpec = tween(
                 durationMillis = 300,
                 easing = FastOutSlowInEasing
@@ -263,7 +280,6 @@ object ScrollDisplay {
                 .padding(20.dp)
                 .onPointerEvent(PointerEventType.Enter) { isHovered = true }
                 .onPointerEvent(PointerEventType.Exit) { isHovered = false }
-
         ) {
             val density = LocalDensity.current
             val scrollEndsWith = with(density) { 43.toDp() }
@@ -280,7 +296,8 @@ object ScrollDisplay {
                         .fillMaxSize()
                         .padding(3.dp)
                 ) {
-                    val scrollBackGroundLeft = remember { ImageLoader.loadImageFromResources("scrollBackGroundLeft.png").get().toPainter() }
+                    val scrollBackGroundLeft =
+                        remember { ImageLoader.loadImageFromResources("scrollBackGroundLeft.png").get().toPainter() }
                     Image(
                         painter = scrollBackGroundLeft,
                         contentDescription = null,
@@ -289,7 +306,8 @@ object ScrollDisplay {
                             .width(scrollEndsWith),
                         contentScale = ContentScale.FillBounds,
                     )
-                    val scrollBackGroundMiddle = remember { ImageLoader.loadImageFromResources("scrollBackGroundMiddle.png").get().toPainter() }
+                    val scrollBackGroundMiddle =
+                        remember { ImageLoader.loadImageFromResources("scrollBackGroundMiddle.png").get().toPainter() }
                     Image(
                         painter = scrollBackGroundMiddle,
                         contentDescription = null,
@@ -298,7 +316,8 @@ object ScrollDisplay {
                             .weight(1f),
                         contentScale = ContentScale.FillBounds,
                     )
-                    val scrollBackGroundRight = remember { ImageLoader.loadImageFromResources("scrollBackGroundRight.png").get().toPainter() }
+                    val scrollBackGroundRight =
+                        remember { ImageLoader.loadImageFromResources("scrollBackGroundRight.png").get().toPainter() }
                     Image(
                         painter = scrollBackGroundRight,
                         contentDescription = null,
@@ -325,78 +344,80 @@ object ScrollDisplay {
                             .padding(20.dp, 15.dp, 0.dp, 0.dp)
                             .weight(1f)
                             .onKeyEvent { keyEvent ->
-                                if(keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
+                                if (keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
                                     println("Enter")
                                     focusManager.clearFocus()
                                     true
-                                }
-                                else false
+                                } else false
                             },
-                        singleLine = true,
+                        singleLine = false,
                         readOnly = false,
-                        textStyle = if(spell.isTemplate) templateTextStile else normalTextStile
+                        textStyle = if (spell.isTemplate) templateTextStile else normalTextStile
                     )
 
-                    val firstButtonText: String = if(spellLevels.isEmpty() || (sliderValue.roundToInt() - 1 >= 0 && spellLevelsCount.value > 0 && spellLevels[sliderValue.roundToInt() - 1].first <= 0)) "Nicht genug" else "Benutzen"
+                    val firstButtonIcon: ImageVector =
+                        if (spellLevels.isEmpty() || (sliderValue.roundToInt() - 1 >= 0 && spellLevelsCount.value > 0 && spellLevels[sliderValue.roundToInt() - 1].first <= 0)) Icons.Default.Warning else Icons.Default.CheckCircle
 
                     Box(
                         Modifier
                             .fillMaxHeight()
                             .padding(20.dp, 10.dp, 20.dp, 10.dp)
-                            .width(160.dp)
+                            .width(50.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            firstButtonText,
-                            Modifier
-                                .zIndex(1f)
-                                .clickable {
-                                    if(spellLevels.isEmpty()){
-                                        println("Could not cast spell, because there are no spellLevels")
-                                    }
-                                    else {
-                                        val sliderValueRounded = sliderValue.roundToInt()
-                                        val oldPair = spellLevels[sliderValueRounded - 1]
-                                        val newPair = Pair(oldPair.first - 1, oldPair.second)
-                                        if (oldPair.first <= 0) {
-                                            println("Could not cast spell because level " + sliderValueRounded + " does not contain enough unused spell slots: " + oldPair)
-                                            couldNotCast.value = sliderValueRounded
-                                        } else {
-                                            spellLevels[sliderValueRounded - 1] = newPair
-                                            inv.spellLevels[sliderValueRounded - 1] = newPair
-                                            println("Cast spell " + spell.name)
-                                        }
-                                    }
-                                }
-                                .fillMaxSize()
-                                .wrapContentSize(Alignment.Center)
-                                .clipToBounds(),
-                            fontSize = 23.sp
-                        )
+                        if (spellLevels.isEmpty() || (sliderValue.roundToInt() - 1 >= 0 && spellLevelsCount.value > 0 && spellLevels[sliderValue.roundToInt() - 1].first <= 0)) {
+                            IconButton(
+                                onClick = {
+                                    onClickFirstButton(spellLevels, couldNotCast, inv, spell, sliderValue)
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = firstButtonIcon,
+                                        contentDescription = ""
+                                    )
+                                },
+                                modifier = Modifier
+                                    .padding(5.dp)
+                            )
+                        } else {
+                            IconButton(
+                                onClick = {
+                                    onClickFirstButton(spellLevels, couldNotCast, inv, spell, sliderValue)
+                                },
+                                content = {
+                                    Text("Use")
+                                },
+                                modifier = Modifier
+                                    .padding(5.dp)
+                            )
+                        }
                     }
 
                     Box(
                         Modifier
                             .fillMaxHeight()
                             .padding(20.dp, 10.dp, 20.dp, 10.dp)
-                            .width(130.dp)
+                            .width(50.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            "Entfernen",
-                            Modifier
-                                .zIndex(1f)
-                                .clickable {
-                                    spells.remove(spell)
-                                    inv.spells.remove(spell)
-                                    println(
-                                        "removed spell " + spell.name + " internal: " + spells.contains(
-                                            spell
-                                        ) + " external: " + inv.spells.contains(spell)
-                                    )
-                                }
-                                .fillMaxSize()
-                                .wrapContentSize(Alignment.Center)
-                                .clipToBounds(),
-                            fontSize = 23.sp,
+                        IconButton(
+                            onClick = {
+                                spells.remove(spell)
+                                inv.spells.remove(spell)
+                                println(
+                                    "removed spell " + spell.name + " internal: " + spells.contains(
+                                        spell
+                                    ) + " external: " + inv.spells.contains(spell)
+                                )
+                            },
+                            content = {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = ""
+                                )
+                            },
+                            modifier = Modifier
+                                .padding(5.dp)
                         )
                     }
                 }
@@ -412,7 +433,8 @@ object ScrollDisplay {
                 val density = LocalDensity.current
                 val scrollEndsWith = with(density) { 43.toDp() }
                 Row(Modifier.zIndex(1f)) {
-                    val scrollForegroundRight = remember { ImageLoader.loadImageFromResources("scrollForegroundRight.png").get().toPainter() }
+                    val scrollForegroundRight =
+                        remember { ImageLoader.loadImageFromResources("scrollForegroundRight.png").get().toPainter() }
                     Image(
                         painter = scrollForegroundRight,
                         contentDescription = null,
@@ -421,7 +443,8 @@ object ScrollDisplay {
                             .width(scrollEndsWith),
                         contentScale = ContentScale.FillBounds,
                     )
-                    val scrollForegroundMiddle = remember { ImageLoader.loadImageFromResources("scrollForegroundMiddle.png").get().toPainter() }
+                    val scrollForegroundMiddle =
+                        remember { ImageLoader.loadImageFromResources("scrollForegroundMiddle.png").get().toPainter() }
                     Image(
                         painter = scrollForegroundMiddle,
                         contentDescription = null,
@@ -430,7 +453,8 @@ object ScrollDisplay {
                             .weight(1f),
                         contentScale = ContentScale.FillBounds,
                     )
-                    val scrollForegroundLeft = remember { ImageLoader.loadImageFromResources("scrollForegroundLeft.png").get().toPainter() }
+                    val scrollForegroundLeft =
+                        remember { ImageLoader.loadImageFromResources("scrollForegroundLeft.png").get().toPainter() }
                     Image(
                         painter = scrollForegroundLeft,
                         contentDescription = null,
@@ -462,16 +486,15 @@ object ScrollDisplay {
                                 .fillMaxWidth()
                                 .padding(20.dp, 15.dp, 0.dp, 0.dp)
                                 .onKeyEvent { keyEvent ->
-                                    if(keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
+                                    if (keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
                                         println("Enter")
                                         focusManager.clearFocus()
                                         true
-                                    }
-                                    else false
+                                    } else false
                                 },
                             singleLine = true,
                             readOnly = false,
-                            textStyle = if(spell.isTemplate) templateTextStile else normalTextStile
+                            textStyle = if (spell.isTemplate) templateTextStile else normalTextStile
                         )
                     }
 
@@ -511,10 +534,38 @@ object ScrollDisplay {
             }
         }
     }
-}
+
+    fun onClickFirstButton(
+        spellLevels: MutableList<Pair<Int, Int>>,
+        couldNotCast: MutableState<Int?>,
+        inv: Inventory,
+        spell: Spell,
+        sliderValue: Float
+    ) {
+        if (spellLevels.isEmpty()) {
+            println("Could not cast spell, because there are no spellLevels")
+        } else {
+            val sliderValueRounded = sliderValue.roundToInt()
+            val oldPair = spellLevels[sliderValueRounded - 1]
+            val newPair = Pair(oldPair.first - 1, oldPair.second)
+            if (oldPair.first <= 0) {
+                println("Could not cast spell because level " + sliderValueRounded + " does not contain enough unused spell slots: " + oldPair)
+                couldNotCast.value = sliderValueRounded
+            } else {
+                spellLevels[sliderValueRounded - 1] = newPair
+                inv.spellLevels[sliderValueRounded - 1] = newPair
+                println("Cast spell " + spell.name)
+            }
+        }
+    }
 
     @Composable
-    fun manaSideBar(inv: Inventory, spellLevels: MutableList<Pair<Int, Int>>, levels: MutableState<Int>, couldNotCast: MutableState<Int?>) {
+    fun manaSideBar(
+        inv: Inventory,
+        spellLevels: MutableList<Pair<Int, Int>>,
+        levels: MutableState<Int>,
+        couldNotCast: MutableState<Int?>
+    ) {
         val scrollState = rememberScrollState()
 
         LaunchedEffect(Unit) {
@@ -543,7 +594,7 @@ object ScrollDisplay {
                     .fillMaxWidth()
             ) {
                 Text(
-                    text ="+",
+                    text = "+",
                     modifier = Modifier
                         .clickable {
                             val newLevel = Pair(5, 5)
@@ -560,20 +611,21 @@ object ScrollDisplay {
                     fontSize = 15.sp
                 )
 
-                Text(levels.value.toString(), Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .background(lerp(Color.DarkGray, Color.White, 0.2f))
-                    .wrapContentSize(Alignment.Center),
+                Text(
+                    levels.value.toString(), Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .background(lerp(Color.DarkGray, Color.White, 0.2f))
+                        .wrapContentSize(Alignment.Center),
                     textAlign = TextAlign.Center,
                     fontSize = 15.sp
                 )
 
                 Text(
-                    text ="-",
+                    text = "-",
                     modifier = Modifier
                         .clickable {
-                            if(spellLevels.isNotEmpty()) {
+                            if (spellLevels.isNotEmpty()) {
                                 spellLevels.removeLast()
                                 inv.removeSpellLevel(spellLevels.size)
                                 println("removed level")
@@ -587,22 +639,22 @@ object ScrollDisplay {
                     textAlign = TextAlign.Center,
                     fontSize = 15.sp
                 )
-
-                Text(
-                    "Reset",
-                     Modifier
-                         .clickable {
-                             resetUsedSpellSlots(spellLevels)
-                             inv.resetUsedSpellSlots()
-                             println("reset used slots")
-                         }
-                         .weight(1f)
-                         .fillMaxWidth()
-                         .background(lerp(Color.DarkGray, Color.White, 0.3f))
-                         .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
-                         .wrapContentSize(Alignment.Center),
-                    textAlign = TextAlign.Center,
-                    fontSize = 15.sp
+                IconButton(
+                    onClick = {
+                        resetUsedSpellSlots(spellLevels)
+                        inv.resetUsedSpellSlots()
+                    },
+                    content = {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = ""
+                        )
+                    },
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .background(lerp(Color.DarkGray, Color.White, 0.3f))
+                        .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
+                        .weight(1f)
                 )
             }
         }
@@ -610,19 +662,29 @@ object ScrollDisplay {
 
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    fun levelElement(level: Int, used: Int, max: Int, spellLevels: MutableList<Pair<Int, Int>>, inv: Inventory, couldNotCast: MutableState<Int?>) {
-        val levelColor = lerp(getLevelColorFromGradient(level.toFloat() / spellLevels.size.toFloat()), Color.White, 0.15f)
+    fun levelElement(
+        level: Int,
+        used: Int,
+        max: Int,
+        spellLevels: MutableList<Pair<Int, Int>>,
+        inv: Inventory,
+        couldNotCast: MutableState<Int?>
+    ) {
+        val levelColor =
+            lerp(getLevelColorFromGradient(level.toFloat() / spellLevels.size.toFloat()), Color.White, 0.15f)
         var isHoveredLevel by remember { mutableStateOf(false) }
         var hoveredSlot by remember { mutableStateOf(-1) } //-1 when not hovered
 
-        Box(Modifier
-            .padding(4.dp, 8.dp)
-            .shadow(elevation = 20.dp)
-            .background(levelColor, RoundedCornerShape(5.dp))
+        Box(
+            Modifier
+                .padding(4.dp, 8.dp)
+                .shadow(elevation = 20.dp)
+                .background(levelColor, RoundedCornerShape(5.dp))
         ) {
-            Column(modifier =
-                Modifier
-                    .fillMaxSize()
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
             ) {
                 Text(
                     level.toString(),
@@ -655,15 +717,20 @@ object ScrollDisplay {
                         val filled = index < used
 
                         val scale by animateFloatAsState(
-                            targetValue = if (isHoveredLevel && hoveredSlot != -1 && hoveredSlot != 0 && hoveredSlot >= index) 1f + (index.toFloat() / max.toFloat()) * 0.25f  else 1f,
+                            targetValue = if (isHoveredLevel && hoveredSlot != -1 && hoveredSlot != 0 && hoveredSlot >= index) 1f + (index.toFloat() / max.toFloat()) * 0.25f else 1f,
                             animationSpec = tween(durationMillis = 200)
                         )
 
                         val slotColor = getSlotColorFromGradient(
-                            index.toFloat() / max.toFloat())
+                            index.toFloat() / max.toFloat()
+                        )
 
                         val backGroundColor =
-                            if (couldNotCast.value == level) Color.Red else if (isHovered && filled) lerp(slotColor, Color.White, 0.3f) else if (filled) slotColor else lerp(levelColor, Color.Black, 0.3f)
+                            if (couldNotCast.value == level) Color.Red else if (isHovered && filled) lerp(
+                                slotColor,
+                                Color.White,
+                                0.3f
+                            ) else if (filled) slotColor else lerp(levelColor, Color.Black, 0.3f)
 
                         val couldNotCountResetCount = remember(backGroundColor) { mutableStateOf(0) }
 
@@ -743,7 +810,7 @@ object ScrollDisplay {
     }
 
     private fun resetUsedSpellSlots(spellSlots: MutableList<Pair<Int, Int>>) {
-        for(slot in spellSlots) {
+        for (slot in spellSlots) {
             val before = slot
             val index = spellSlots.indexOf(slot)
             spellSlots[index] = Pair(slot.second, slot.second)
@@ -751,3 +818,4 @@ object ScrollDisplay {
             println("reset spellslots: before $before after $after")
         }
     }
+}

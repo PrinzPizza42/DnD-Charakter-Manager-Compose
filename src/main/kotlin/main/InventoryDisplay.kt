@@ -408,7 +408,6 @@ object InventoryDisplay {
         window: ComposeWindow,
         reloadKey: MutableState<Int>
     ) {
-
         Box(
             Modifier
                 .fillMaxSize()
@@ -866,10 +865,7 @@ object InventoryDisplay {
             Miscellaneous::class to 5
         )
 
-        Box(Modifier
-            .fillMaxSize()
-        )
-        {
+        Box(Modifier.fillMaxSize()) {
             //Background
             val backPackBackgroundOpen = remember { ImageLoader.loadImageFromResources("backPackBackgroundOpen.jpg").get().toPainter() }
             Image(
