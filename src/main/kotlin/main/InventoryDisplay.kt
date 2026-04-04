@@ -554,7 +554,7 @@ object InventoryDisplay {
             return emptyList()
         }
 
-        return directory.listFiles()?.filter { it.isFile } ?: emptyList()
+        return directory.listFiles()?.filter { it.isFile && (it.extension.contains("png") || it.extension.contains("jpg") || it.extension.contains("svg")) } ?: emptyList()
     }
 
     fun setImage(directory: String, preFile: String, item: MutableState<Item?>, reloadKey: MutableState<Int>) {
