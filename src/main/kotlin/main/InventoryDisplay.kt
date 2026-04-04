@@ -511,31 +511,31 @@ object InventoryDisplay {
                             .pointerHoverIcon(PointerIcon.Hand)
                             .clickable(
                                 onClick = {
-//                                    var directory = ""
-//                                    var preFile = ""
-//
-//                                    val isWindows = System.getProperty("os.name").contains("Windows", ignoreCase = true)
-//
-//                                    if(isWindows) {
-//                                        val dialog = FileDialog(window, "Wähle eine Datei", FileDialog.LOAD)
-//                                        dialog.isVisible = true
-//
-//                                        directory = dialog.directory
-//                                        preFile = dialog.file
-//                                    }
-//                                    else {
-//                                        showPopUp = true
-//                                    }
-//
-//                                    if(isWindows) {
-//                                        try {
-//                                            setImage(directory, preFile, item, reloadKey)
-//                                        } catch (e: NullPointerException) {
-//                                            println("Could not get image from filepicker")
-//                                            e.printStackTrace()
-//                                        }
-//                                    }
-//                                    else showPopUp = true
+                                    var directory = ""
+                                    var preFile = ""
+
+                                    val isWindows = System.getProperty("os.name").contains("Windows", ignoreCase = true)
+
+                                    if(isWindows) {
+                                        val dialog = FileDialog(window, "Wähle eine Datei", FileDialog.LOAD)
+                                        dialog.isVisible = true
+
+                                        directory = dialog.directory
+                                        preFile = dialog.file
+                                    }
+                                    else {
+                                        showPopUp = true
+                                    }
+
+                                    if(isWindows) {
+                                        try {
+                                            setImage(directory, preFile, item, reloadKey)
+                                        } catch (e: NullPointerException) {
+                                            println("Could not get image from filepicker")
+                                            e.printStackTrace()
+                                        }
+                                    }
+                                    else showPopUp = true
                                     showPopUp = true
                                 }
                             )
