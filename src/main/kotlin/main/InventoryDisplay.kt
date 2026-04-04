@@ -510,7 +510,7 @@ object InventoryDisplay {
                                     var directory = ""
                                     var preFile = ""
 
-                                    val isWindows = System.getProperty("os.name").compareTo("Windows", ignoreCase = true) == 0
+                                    val isWindows = System.getProperty("os.name").contains("Windows", ignoreCase = true)
 
                                     if(isWindows) {
                                         val dialog = FileDialog(window, "Wähle eine Datei", FileDialog.LOAD)
@@ -521,10 +521,16 @@ object InventoryDisplay {
                                     }
                                     else {
                                         showPopUp = true
-                                        println("Show popup")
                                     }
 
-                                    if(isWindows) setImage(directory, preFile, item, reloadKey)
+                                    if(isWindows) {
+                                        try {
+                                            setImage(directory, preFile, item, reloadKey)
+                                        } catch (e: NullPointerException) {
+                                            println("Could not get image from filepicker")
+                                            e.printStackTrace()
+                                        }
+                                    }
                                     else showPopUp = true
                                 }
                             )
