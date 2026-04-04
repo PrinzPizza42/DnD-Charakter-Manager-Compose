@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -63,6 +65,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.window.PopupProperties
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object InventoryDisplay {
     @Composable
@@ -471,7 +475,7 @@ object InventoryDisplay {
                                             }
                                         )
                                         ExposedDropdownMenu(
-                                            modifier = Modifier.width(250.dp),
+                                            modifier = Modifier.width(450.dp),
                                             expanded = expanded.value,
                                             onDismissRequest = {
                                                 expanded.value = false
@@ -507,31 +511,32 @@ object InventoryDisplay {
                             .pointerHoverIcon(PointerIcon.Hand)
                             .clickable(
                                 onClick = {
-                                    var directory = ""
-                                    var preFile = ""
-
-                                    val isWindows = System.getProperty("os.name").contains("Windows", ignoreCase = true)
-
-                                    if(isWindows) {
-                                        val dialog = FileDialog(window, "Wähle eine Datei", FileDialog.LOAD)
-                                        dialog.isVisible = true
-
-                                        directory = dialog.directory
-                                        preFile = dialog.file
-                                    }
-                                    else {
-                                        showPopUp = true
-                                    }
-
-                                    if(isWindows) {
-                                        try {
-                                            setImage(directory, preFile, item, reloadKey)
-                                        } catch (e: NullPointerException) {
-                                            println("Could not get image from filepicker")
-                                            e.printStackTrace()
-                                        }
-                                    }
-                                    else showPopUp = true
+//                                    var directory = ""
+//                                    var preFile = ""
+//
+//                                    val isWindows = System.getProperty("os.name").contains("Windows", ignoreCase = true)
+//
+//                                    if(isWindows) {
+//                                        val dialog = FileDialog(window, "Wähle eine Datei", FileDialog.LOAD)
+//                                        dialog.isVisible = true
+//
+//                                        directory = dialog.directory
+//                                        preFile = dialog.file
+//                                    }
+//                                    else {
+//                                        showPopUp = true
+//                                    }
+//
+//                                    if(isWindows) {
+//                                        try {
+//                                            setImage(directory, preFile, item, reloadKey)
+//                                        } catch (e: NullPointerException) {
+//                                            println("Could not get image from filepicker")
+//                                            e.printStackTrace()
+//                                        }
+//                                    }
+//                                    else showPopUp = true
+                                    showPopUp = true
                                 }
                             )
                         ,
@@ -563,20 +568,35 @@ object InventoryDisplay {
 
     @Composable
     fun availableFilesDropDownMenuItem(file: File, expanded: MutableState<Boolean>, selectedFile: MutableState<File?>) {
+        val path = file.toPath().toString()
+
         DropdownMenuItem(
             onClick = {
                 selectedFile.value = file
                 expanded.value = false
             }
         ) {
-            Row {
-                Box(
-                    Modifier
-                        .fillMaxHeight()
-                        .width(15.dp)
-                        .background(Color.White, RoundedCornerShape(4.dp))
-                        .padding(vertical = 20.dp)
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                var painter by remember(path) { mutableStateOf(loadPainterFromFile(path)) }
+
+                if (painter != null) {
+                    Image(
+                        painter = painter!!,
+                        contentDescription = "loaded image",
+                        modifier = Modifier
+                            .size(90.dp)
+                            .padding(5.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "File not found icon",
+                        modifier = Modifier
+                            .size(90.dp)
+                            .padding(5.dp)
+                    )
+                }
                 Text(modifier = Modifier.padding(5.dp), text = file.name)
             }
         }

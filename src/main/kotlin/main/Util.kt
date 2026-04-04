@@ -27,11 +27,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import java.io.File
+import Data.ImageLoader
+import androidx.compose.ui.awt.SwingPanel
+import androidx.compose.ui.graphics.toPainter
+import javax.swing.ImageIcon
+import javax.swing.JLabel
+import javax.swing.SwingConstants
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -210,4 +220,8 @@ private fun StepShifterInt(
             Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Plus")
         }
     }
+}
+
+fun loadPainterFromFile(path: String): Painter? {
+    return ImageLoader.loadImageFromFile(path).map { it.toPainter() }.orElse(null)
 }
