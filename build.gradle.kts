@@ -6,6 +6,10 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+kotlin {
+    jvmToolchain(21)
+}
+
 group = "de.luca"
 version = "1.2-SNAPSHOT"
 
@@ -25,6 +29,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
     implementation("com.fasterxml.jackson.core:jackson-core:2.17.0")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.0")
+    implementation("com.drewnoakes:metadata-extractor:2.19.0")
     implementation(compose.components.resources)
 }
 
