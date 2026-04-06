@@ -9,9 +9,6 @@ import Main.ItemClasses.Weapons.LongRangeWeapon;
 import Main.ItemClasses.Weapons.ShortRangeWeapon;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -113,7 +110,7 @@ public class Item {
         BufferedImage icon;
         if(this.userIconName != null) {
             try {
-               icon = ImageLoader.loadImageFromFile(JsonUtil.getUserImagesPathPath().resolve(userIconName).toAbsolutePath().toString()).get();
+               icon = ImageLoader.loadImageFromFile(JsonUtil.getUserImagesPath().resolve(userIconName).toAbsolutePath().toString()).get();
                return icon;
             } catch (NoSuchElementException e) {
                 System.out.println("Could not find user icon " + this.userIconName + " for " + this.name);

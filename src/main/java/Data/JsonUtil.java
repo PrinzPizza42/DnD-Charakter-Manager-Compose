@@ -43,7 +43,7 @@ public class JsonUtil {
         return dataPath;
     }
 
-    public static Path getUserImagesPathPath(){
+    public static Path getUserImagesPath(){
         return userImagesPath;
     }
 

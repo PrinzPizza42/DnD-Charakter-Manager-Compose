@@ -13,6 +13,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,6 +79,15 @@ public final class ImageLoader {
         } catch (IOException e) {
             System.err.println("Fehler beim Laden der Datei '" + filePath + "': " + e.getMessage());
             return Optional.empty();
+        }
+    }
+
+    public static void copyImageToUserImagesFolder(File file) {
+        try  {
+            Files.copy(file.toPath(), JsonUtil.getUserImagesPath().resolve(file.getName()));
+        } catch (IOException e) {
+            System.out.println("Could not copy image to user_images folder");
+            e.printStackTrace();
         }
     }
 

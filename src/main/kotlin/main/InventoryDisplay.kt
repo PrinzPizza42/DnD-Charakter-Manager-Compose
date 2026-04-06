@@ -560,8 +560,8 @@ object InventoryDisplay {
     fun setImage(directory: String, preFile: String, item: MutableState<Item?>, reloadKey: MutableState<Int>) {
         if (directory != null && preFile != null) {
             val file = File(directory, preFile)
-            println("found ${file.absolutePath}")
-            item.value!!.userIconName = file.absolutePath
+            ImageLoader.copyImageToUserImagesFolder(file)
+            item.value!!.userIconName = file.name
             reloadKey.value++
         }
     }
@@ -613,7 +613,7 @@ object InventoryDisplay {
         closeOverlay: () -> Unit,
         window: ComposeWindow,
         updateInventory: (Item) -> Unit,
-        ) {
+    ) {
         Box(
             Modifier
                 .fillMaxWidth()
