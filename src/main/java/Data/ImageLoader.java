@@ -3,6 +3,7 @@ package Data;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
 import java.awt.geom.AffineTransform;
@@ -14,7 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,9 +82,9 @@ public final class ImageLoader {
         }
     }
 
-    public static void copyImageToUserImagesFolder(File file) {
+    public static void copyImageToUserImagesFolder(File file, @NotNull String finalFileName) {
         try  {
-            Files.copy(file.toPath(), JsonUtil.getUserImagesPath().resolve(file.getName()));
+            Files.copy(file.toPath(), JsonUtil.getUserImagesPath().resolve(finalFileName));
         } catch (IOException e) {
             System.out.println("Could not copy image to user_images folder");
             e.printStackTrace();

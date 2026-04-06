@@ -65,8 +65,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.window.PopupProperties
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 object InventoryDisplay {
     @Composable
@@ -560,8 +558,10 @@ object InventoryDisplay {
     fun setImage(directory: String, preFile: String, item: MutableState<Item?>, reloadKey: MutableState<Int>) {
         if (directory != null && preFile != null) {
             val file = File(directory, preFile)
-            ImageLoader.copyImageToUserImagesFolder(file)
-            item.value!!.userIconName = file.name
+            val uuid = UUID.randomUUID().toString()
+            val finalFileName = "${file.nameWithoutExtension}_${uuid}.${file.extension}"
+            ImageLoader.copyImageToUserImagesFolder(file, finalFileName)
+            item.value!!.userIconName = finalFileName
             reloadKey.value++
         }
     }
