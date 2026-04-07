@@ -341,11 +341,10 @@ object ScrollDisplay {
                         },
                         modifier = Modifier
                             .fillMaxHeight()
-                            .padding(20.dp, 15.dp, 0.dp, 0.dp)
+                            .padding(25.dp, 20.dp, 0.dp, 5.dp)
                             .weight(1f)
                             .onKeyEvent { keyEvent ->
-                                if (keyEvent.key == Key.Enter || keyEvent.key == Key.Escape) {
-                                    println("Enter")
+                                if (keyEvent.key == Key.Escape) {
                                     focusManager.clearFocus()
                                     true
                                 } else false
