@@ -10,24 +10,33 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 
 object InvSelector {
@@ -53,7 +62,7 @@ object InvSelector {
                     Modifier
                         .weight(1f)
                 ) {
-                    addInvElements(inventories, selectedInventory)
+                    inventoryElementsColumn(inventories, selectedInventory)
                 }
             }
         }
@@ -98,7 +107,7 @@ object InvSelector {
     }
 
     @Composable
-    fun addInvElements(inventories: SnapshotStateList<Inventory>, selectedInventory: MutableState<Inventory?>) {
+    fun inventoryElementsColumn(inventories: SnapshotStateList<Inventory>, selectedInventory: MutableState<Inventory?>) {
         LazyColumn(
             Modifier
                 .width(300.dp)
@@ -128,6 +137,59 @@ object InvSelector {
             Modifier
                 .fillMaxWidth()
         ) {
+            if(showDelete) {
+                Popup(
+                    onDismissRequest = { showDelete = false },
+                    alignment = Alignment.Center
+                ) {
+                    Box(
+                        Modifier
+                            .width(250.dp)
+                            .shadow(10.dp, RoundedCornerShape(10.dp))
+                            .background(Color.White, RoundedCornerShape(10.dp))
+                    ) {
+                        Column {
+                            Box(
+                                Modifier
+                                    .padding(5.dp)
+                                    .height(50.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                Text("Willst du " + inv.name + " wirklich löschen?", Modifier.align(Alignment.Center))
+                            }
+
+                            Row(
+                                Modifier
+                                    .padding(5.dp)
+                                    .height(50.dp)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconButton(
+                                    onClick = {
+                                        inventories.remove(inv)
+                                        inventoryMutableList = inventories
+                                        Write.removeInv(inv)
+                                        showDelete = false
+                                    },
+                                    content = {
+                                        Icon(imageVector = Icons.Default.Check, contentDescription = "Approve")
+                                    }
+                                )
+                                IconButton(
+                                    onClick = {
+                                        showDelete = false
+                                    },
+                                    content = {
+                                        Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel")
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
             //Inv display
             Row(
                 Modifier
@@ -182,62 +244,6 @@ object InvSelector {
                             .fillMaxSize()
                             .zIndex(1f)
                     )
-                }
-            }
-            if (showDelete) {
-                Box(
-                    Modifier
-                    .fillMaxSize()
-                    .zIndex(2f)
-                    .background(Color.White.copy(alpha = 0.5f))
-                    .clickable(
-                        onClick = { showDelete = false },
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    )
-                ) {
-                    Column(
-                        Modifier
-                            .fillMaxSize()
-                    ) {
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .height(50.dp)
-                        ) {
-                            Text("Willst du " + inv.name + " wirklich löschen?", Modifier.align(Alignment.Center))
-                        }
-
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .height(50.dp)
-                        ) {
-                            Button(
-                                onClick = {
-                                    println("deleting inv " + inv.getName())
-                                    inventories.remove(inv)
-                                    inventoryMutableList = inventories
-                                    Write.removeInv(inv)
-                                    showDelete = false
-                                },
-                                content = {
-                                    Text("Löschen")
-                                },
-                                modifier = Modifier.weight(1f)
-                            )
-
-                            Button(
-                                onClick = {
-                                    showDelete = false
-                                },
-                                content = {
-                                    Text("Abbrechen")
-                                },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
                 }
             }
         }
