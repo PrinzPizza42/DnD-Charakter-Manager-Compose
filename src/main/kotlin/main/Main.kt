@@ -186,8 +186,8 @@ fun App(window: ComposeWindow) {
                     section(
                         showCharDetailsTab,
                         showEquippedItemsTab,
-                        {},
-                        {},
+                        { CharacterDisplay.displayCharInfo() },
+                        { CharacterDisplay.displayCharEquipment() },
                         { displayTabSelector(
                             showInventoryTab,
                             showScrollTab,
