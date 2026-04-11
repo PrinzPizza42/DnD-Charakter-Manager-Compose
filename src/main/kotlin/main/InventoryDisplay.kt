@@ -1,7 +1,6 @@
 package main
 
 import data.ImageLoader
-import main.Inventory
 import main.ItemClasses.*
 import main.ItemClasses.Weapons.LongRangeWeapon
 import main.ItemClasses.Weapons.ShortRangeWeapon
