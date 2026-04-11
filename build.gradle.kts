@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 kotlin {
@@ -26,10 +27,8 @@ dependencies {
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
     implementation("androidx.graphics:graphics-shapes:1.0.1")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
-    implementation("com.fasterxml.jackson.core:jackson-core:2.17.0")
-    implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.0")
     implementation("com.drewnoakes:metadata-extractor:2.19.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
     implementation(compose.components.resources)
 }
 

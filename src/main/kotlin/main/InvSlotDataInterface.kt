@@ -1,6 +1,6 @@
 package main
 
-import Main.ItemClasses.Item
+import main.ItemClasses.Item
 import androidx.compose.ui.graphics.Color
 
 data class InvSlotDataInterface(

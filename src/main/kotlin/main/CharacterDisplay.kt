@@ -1,7 +1,7 @@
 package main
 
-import Main.ItemClasses.EmptySlot
-import Main.ItemClasses.Item
+import main.ItemClasses.EmptySlot
+import main.ItemClasses.Item
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween

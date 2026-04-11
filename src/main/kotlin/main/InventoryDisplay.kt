@@ -1,11 +1,11 @@
 package main
 
-import Data.ImageLoader
-import Main.Inventory
-import Main.ItemClasses.*
-import Main.ItemClasses.Weapons.LongRangeWeapon
-import Main.ItemClasses.Weapons.ShortRangeWeapon
-import Main.ItemClasses.Weapons.Weapon
+import data.ImageLoader
+import main.Inventory
+import main.ItemClasses.*
+import main.ItemClasses.Weapons.LongRangeWeapon
+import main.ItemClasses.Weapons.ShortRangeWeapon
+import main.ItemClasses.Weapons.Weapon
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -65,6 +65,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.window.PopupProperties
+import main.Overlay.closeOverlay
+import main.Overlay.showOverlay
 
 object InventoryDisplay {
     @Composable
@@ -75,21 +77,17 @@ object InventoryDisplay {
         items: List<Item?>,
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
-        showOverlay: (@Composable (() -> Unit)) -> Unit,
-        closeOverlay: () -> Unit,
         window: ComposeWindow,
         updateInventory: (Item) -> Unit,
     ) {
         val slotSize = remember { mutableStateOf(100.dp) }
 
-        val showItemDisplay = remember { mutableStateOf(false) }
-
         Box(
             modifier = modifier
         ) {
             Column{
-                sceneryAndBackPackTop(showSortedInv, items, inv, slotSize, showOverlay, closeOverlay, window, updateInventory)
-                backPack(showItemDisplay, showSortedInv, items, removeItem, addItemAtIndex, slotSize, showOverlay, window, updateInventory)
+                sceneryAndBackPackTop(showSortedInv, items, inv, slotSize, window, updateInventory)
+                backPack(showSortedInv, items, removeItem, addItemAtIndex, slotSize, window, updateInventory)
             }
         }
     }
@@ -609,8 +607,6 @@ object InventoryDisplay {
         items: List<Item?>,
         inv: MutableState<Inventory?>,
         slotSize: MutableState<Dp>,
-        showOverlay: (@Composable (() -> Unit)) -> Unit,
-        closeOverlay: () -> Unit,
         window: ComposeWindow,
         updateInventory: (Item) -> Unit,
     ) {
@@ -868,13 +864,11 @@ object InventoryDisplay {
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
     fun backPack(
-        showItemDisplay: MutableState<Boolean>,
         showSortedInv: MutableState<Boolean>,
         items: List<Item?>,
         removeItem: (Item) -> Unit,
         addItemAtIndex: (Item, Item) -> Unit,
         slotSize: MutableState<Dp>,
-        showOverlay: (@Composable (() -> Unit)) -> Unit,
         window: ComposeWindow,
         updateInventory: (Item) -> Unit
     ) {
@@ -946,7 +940,6 @@ object InventoryDisplay {
                                 addItemAtIndex,
                                 slotSize,
                                 dragMode,
-                                showOverlay,
                                 window,
                                 updateInventory
                             )
@@ -1071,7 +1064,6 @@ object InventoryDisplay {
         addItemAtIndex: (Item, Item) -> Unit,
         slotSize: MutableState<Dp>,
         dragMode: MutableState<Boolean>,
-        showOverlay: (@Composable (() -> Unit)) -> Unit,
         window: ComposeWindow,
         updateInventory: (Item) -> Unit
     ) {

@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.io.File
-import Data.ImageLoader
+import data.ImageLoader
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.toPainter
 import javax.swing.ImageIcon

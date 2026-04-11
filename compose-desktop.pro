@@ -20,5 +20,5 @@
 }
 
 # Keep data model classes used by Jackson for JSON serialization
--keep class Main.** { *; }
--keep class Data.** { *; }
+-keep class main.** { *; }
+-keep class data.** { *; }

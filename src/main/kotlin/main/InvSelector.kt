@@ -1,8 +1,8 @@
 package main
 
-import Data.ImageLoader
-import Data.Write
-import Main.Inventory
+import data.ImageLoader
+import data.Write
+import main.Inventory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,14 +38,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
+import main.CharacterManager.inventories
+import main.CharacterManager.selectedInventory
 
 object InvSelector {
-    lateinit var inventoryMutableList: SnapshotStateList<Inventory>
-
     @Composable
-    fun inventorySelector(selectedInventory: MutableState<Inventory?>) {
-        val inventories = remember { inventoryMutableList }
-
+    fun inventorySelector() {
         Box(Modifier
             .fillMaxSize()
             .background(Color.Black)
@@ -56,20 +54,20 @@ object InvSelector {
                     .fillMaxHeight()
                     .align(Alignment.Center)
             ) {
-                createInv(inventories)
+                createInv()
 
                 Column(
                     Modifier
                         .weight(1f)
                 ) {
-                    inventoryElementsColumn(inventories, selectedInventory)
+                    inventoryElementsColumn()
                 }
             }
         }
     }
 
     @Composable
-    fun createInv(inventories: SnapshotStateList<Inventory>) {
+    fun createInv() {
         val focusManager = LocalFocusManager.current
 
         Column(
@@ -96,9 +94,7 @@ object InvSelector {
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(onDone = {
-                    println("entered:" + input.value.text)
                     inventories.add(Inventory(input.value.text))
-                    inventoryMutableList = inventories
                     focusManager.clearFocus()
                     input.value = TextFieldValue("")
                 })
@@ -107,7 +103,7 @@ object InvSelector {
     }
 
     @Composable
-    fun inventoryElementsColumn(inventories: SnapshotStateList<Inventory>, selectedInventory: MutableState<Inventory?>) {
+    fun inventoryElementsColumn() {
         LazyColumn(
             Modifier
                 .width(300.dp)
@@ -120,7 +116,7 @@ object InvSelector {
                         .height(8.dp)
                 )
 
-                invElement(inv, inventories, selectedInventory)
+                invElement(inv, selectedInventory)
             }
         }
     }
@@ -128,7 +124,6 @@ object InvSelector {
     @Composable
     fun invElement(
         inv: Inventory,
-        inventories: SnapshotStateList<Inventory>,
         selectedInventory: MutableState<Inventory?>
     ) {
         var showDelete by remember { mutableStateOf(false) }
@@ -169,7 +164,6 @@ object InvSelector {
                                 IconButton(
                                     onClick = {
                                         inventories.remove(inv)
-                                        inventoryMutableList = inventories
                                         Write.removeInv(inv)
                                         showDelete = false
                                     },

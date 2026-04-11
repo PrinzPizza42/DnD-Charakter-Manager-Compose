@@ -1,9 +1,9 @@
 package main
 
-import Data.ImageLoader
-import Data.Read
-import Data.Write
-import Main.Inventory
+import data.ImageLoader
+import data.Read
+import data.Write
+import main.Inventory
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween

@@ -1,11 +1,11 @@
 package main
 
-import Data.ImageLoader
-import Data.Read
-import Main.Inventory
-import Main.ItemClasses.*
-import Main.ItemClasses.Weapons.LongRangeWeapon
-import Main.ItemClasses.Weapons.ShortRangeWeapon
+import data.ImageLoader
+import data.Read
+import main.Inventory
+import main.ItemClasses.*
+import main.ItemClasses.Weapons.LongRangeWeapon
+import main.ItemClasses.Weapons.ShortRangeWeapon
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.desktop.ui.tooling.preview.Preview
@@ -36,22 +36,18 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import main.CharacterManager.selectedInventory
 import main.InventoryDisplay.displayInv
 import main.ScrollDisplay.scrollDisplay
 import main.InvSelector.inventorySelector
+import main.Overlay.activeOverlay
+import main.Overlay.closeOverlay
+import main.Overlay.showOverlay
 import main.TabSelector.displayTabSelector
 
 @Composable
 @Preview
 fun App(window: ComposeWindow) {
-    val activeOverlay = remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
-    val closeOverlay: () -> Unit = { activeOverlay.value = null }
-    val showOverlay: (@Composable () -> Unit) -> Unit = { content ->
-        activeOverlay.value = content
-    }
-
-    val selectedInventory = remember { mutableStateOf<Inventory?>(null) }
-
     val showInventoryTab = remember { mutableStateOf(true) }
     val showScrollTab = remember { mutableStateOf(true) }
     val showCharDetailsTab = remember { mutableStateOf(true) }
@@ -134,9 +130,8 @@ fun App(window: ComposeWindow) {
         }
     }
 
-    if(showInvSelector.value) inventorySelector(selectedInventory)
-
-    if(!showInvSelector.value) {
+    if(showInvSelector.value) inventorySelector()
+    else {
         val sectionSwitch = remember { mutableStateOf(true) } // true = inv & spells; false = char details
         val modifier = if(activeOverlay.value != null) Modifier.fillMaxSize().blur(3.dp) else Modifier.fillMaxSize()
 
@@ -159,8 +154,6 @@ fun App(window: ComposeWindow) {
                                 items,
                                 removeItem,
                                 addItemAtIndex,
-                                showOverlay,
-                                closeOverlay,
                                 window,
                                 updateInventory
                             )

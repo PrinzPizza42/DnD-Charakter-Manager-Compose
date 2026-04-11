@@ -1,8 +1,8 @@
 package main
 
-import Data.ImageLoader
-import Main.Inventory
-import Main.Spell
+import data.ImageLoader
+import main.Inventory
+import main.Spell
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -552,7 +552,7 @@ object ScrollDisplay {
                 couldNotCast.value = sliderValueRounded
             } else {
                 spellLevels[sliderValueRounded - 1] = newPair
-                inv.spellLevels[sliderValueRounded - 1] = newPair
+                inv.getSpellLevels()[sliderValueRounded - 1] = newPair
                 println("Cast spell " + spell.name)
             }
         }
@@ -703,7 +703,7 @@ object ScrollDisplay {
                                 val newUsed = if (used == max) used - 1 else used
 
                                 spellLevels[level - 1] = Pair(newUsed, max - 1)
-                                inv.spellLevels[level - 1] = Pair(newUsed, max - 1)
+                                inv.getSpellLevels()[level - 1] = Pair(newUsed, max - 1)
                             }
                         }
                         .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
@@ -772,7 +772,7 @@ object ScrollDisplay {
                                 .clickable {
                                     if (level - 1 >= 0) {
                                         spellLevels[level - 1] = Pair(index + 1, max)
-                                        inv.spellLevels[level - 1] = Pair(index + 1, max)
+                                        inv.getSpellLevels()[level - 1] = Pair(index + 1, max)
                                     }
                                 }
                                 .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
@@ -786,7 +786,7 @@ object ScrollDisplay {
                         .clickable {
                             println("Added one slot to Level $level")
                             spellLevels[level - 1] = Pair(used, max + 1)
-                            inv.spellLevels[level - 1] = Pair(used, max + 1)
+                            inv.getSpellLevels()[level - 1] = Pair(used, max + 1)
                         }
                         .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
                 ) {

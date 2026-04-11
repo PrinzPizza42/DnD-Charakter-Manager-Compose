@@ -19,16 +19,10 @@ This is a desktop application for managing Dungeons & Dragons characters, built 
 
 The project is organized into the following main components:
 
-*   **`src/main/kotlin`**: Contains the Jetpack Compose UI code.
-    *   `Main.kt`: The main entry point of the application.
-    *   `InvSelector.kt`: UI for selecting a character's inventory.
-    *   `InventoryDisplay.kt`: UI for displaying and managing the inventory.
-    *   `ScrollDisplay.kt`: UI for displaying and managing spells.
-    *   `TabSelector.kt`: UI for switching between the inventory and spell displays.
-*   **`src/main/java`**: Contains the data models and file I/O logic.
-    *   `Data` package: Handles JSON serialization/deserialization and file operations.
-    *   `Main` package: Contains the core data models for characters, inventories, and spells.
-    *   `ItemClasses` package: Defines the different types of items that can be in an inventory.
+*   **`src/main/kotlin`**: Contains the Jetpack Compose UI code and data models.
+    *   `main` package: The main application code and core data models for characters, inventories, and spells.
+    *   `data` package: Handles JSON serialization/deserialization and file operations.
+    *   `main/ItemClasses` package: Defines the different types of items that can be in an inventory.
 
 ## How to Run
 
