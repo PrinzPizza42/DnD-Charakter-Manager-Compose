@@ -37,6 +37,23 @@ import main.ui.Overlay.closeOverlay
 import main.ui.TabSelector.displayTabSelector
 import main.ui.CharacterDisplay
 
+fun main() = application {
+    val icon = remember { ImageLoader.loadImageFromResources("icon.png").get().toPainter() }
+
+    Read.readData()
+
+    Window(
+        onCloseRequest = ::exitApplication,
+        state = rememberWindowState(
+            size = DpSize(1920.dp, 1200.dp)
+        ),
+        title = "DnD-Charakter-Manager",
+        icon = icon
+    ) {
+        App(window)
+    }
+}
+
 @Composable
 @Preview
 fun App(window: ComposeWindow) {
@@ -182,23 +199,6 @@ fun section(
         Box(Modifier.weight(tab2Weight)) {
             contentTab2()
         }
-    }
-}
-
-fun main() = application {
-    val icon = remember { ImageLoader.loadImageFromResources("icon.png").get().toPainter() }
-
-    Read.readData()
-
-    Window(
-        onCloseRequest = ::exitApplication,
-        state = rememberWindowState(
-            size = DpSize(1920.dp, 1200.dp)
-        ),
-        title = "DnD-Charakter-Manager",
-        icon = icon
-    ) {
-        App(window)
     }
 }
 
