@@ -1,7 +1,5 @@
-package main
+package main.ui
 
-import main.ItemClasses.EmptySlot
-import main.ItemClasses.Item
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -12,19 +10,16 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.onClick
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -51,7 +46,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
+import main.ItemClasses.EmptySlot
+import main.ItemClasses.Item
 import org.jetbrains.skiko.Cursor
 
 object CharacterDisplay {
@@ -101,13 +97,13 @@ object CharacterDisplay {
         var isExtended by remember { mutableStateOf(false) }
 
         Row(
-            Modifier
+            Modifier.Companion
                 .background(background)
                 .fillMaxHeight()
         ) {
-            if(isLeft) {
+            if (isLeft) {
                 Box(
-                    Modifier
+                    Modifier.Companion
                         .onClick { isExtended = !isExtended }
                         .fillMaxHeight(),
                     contentAlignment = Alignment.Center
@@ -115,7 +111,7 @@ object CharacterDisplay {
                     Icon(Icons.AutoMirrored.Default.ArrowForward, "Toggle", Modifier.padding(10.dp))
                 }
             }
-            if(isExtended) {
+            if (isExtended) {
                 Column {
                     for (i in 1..5) {
                         invSlot(
@@ -125,9 +121,9 @@ object CharacterDisplay {
                     }
                 }
             }
-            if(!isLeft) {
+            if (!isLeft) {
                 Box(
-                    Modifier
+                    Modifier.Companion
                         .onClick { isExtended = !isExtended }
                         .fillMaxHeight(),
                     contentAlignment = Alignment.Center
@@ -144,7 +140,15 @@ object CharacterDisplay {
         item: Item?,
         slotSize: MutableState<Dp>
     ) {
-        val backGroundColor = remember { mutableStateOf(if(item !is EmptySlot) lerp(Color.Transparent, Color.Black, 0.1f) else Color.LightGray.copy(alpha = 0.2f)) }
+        val backGroundColor = remember {
+            mutableStateOf(
+                if (item !is EmptySlot) lerp(
+                    Color.Transparent,
+                    Color.Black,
+                    0.1f
+                ) else Color.LightGray.copy(alpha = 0.2f)
+            )
+        }
 
         if (item != null) {
             val boxShape = remember(item.equipped) {
@@ -162,7 +166,8 @@ object CharacterDisplay {
                             alpha = 0.3f
                         )
                     } else Color.Yellow.copy(alpha = 0.7f)
-                )}
+                )
+            }
 
             val scale by animateFloatAsState(
                 targetValue = if (isHovered && item !is EmptySlot) 1.08f else 1f,
@@ -175,7 +180,7 @@ object CharacterDisplay {
             )
 
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .padding(4.dp)
                     .size(slotSize.value)
                     .onPointerEvent(PointerEventType.Enter) { isHovered = true }
@@ -184,7 +189,7 @@ object CharacterDisplay {
                         this.scaleX = scale
                         this.scaleY = scale
                     }
-                    .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
+                    .shadow(elevation, shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp), clip = false)
                     .background(backGroundColor.value, shape = boxShape.value)
                     .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
                     .onClick {
@@ -192,7 +197,7 @@ object CharacterDisplay {
                     }
                     .pointerHoverIcon(
                         if (item !is EmptySlot) PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)) else PointerIcon(
-                            Cursor(Cursor.DEFAULT_CURSOR)
+                            org.jetbrains.skiko.Cursor(Cursor.DEFAULT_CURSOR)
                         )
                     )
             ) {
@@ -204,34 +209,34 @@ object CharacterDisplay {
                         Image(
                             icon,
                             item.iconName,
-                            Modifier
+                            Modifier.Companion
                                 .fillMaxSize()
                         )
                         //Name
                         Text(
                             item.name,
-                            Modifier
+                            Modifier.Companion
                                 .padding(5.dp, 0.dp)
                                 .background(
                                     color = lerp(Color.Transparent, Color.White, 0.8f),
-                                    shape = RoundedCornerShape(15.dp)
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(15.dp)
                                 )
                                 .padding(10.dp, 0.dp)
                         )
                         Row(
-                            Modifier
+                            Modifier.Companion
                                 .align(Alignment.BottomEnd)
                                 .fillMaxWidth()
                         ) {
                             //Filler
                             Box(
-                                Modifier
+                                Modifier.Companion
                                     .weight(4f)
                             )
                             //Amount
                             Text(
                                 item.amount.toString(),
-                                Modifier
+                                Modifier.Companion
                                     .padding(5.dp, 0.dp)
                                     .background(
                                         color = lerp(Color.Transparent, Color.White, 0.8f),
@@ -245,9 +250,12 @@ object CharacterDisplay {
             }
         } else {
             Box(
-                Modifier
+                Modifier.Companion
                     .size(100.dp)
-                    .background(backGroundColor.value.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+                    .background(
+                        backGroundColor.value.copy(alpha = 0.5f),
+                        androidx.compose.foundation.shape.RoundedCornerShape(10.dp)
+                    )
             )
         }
     }

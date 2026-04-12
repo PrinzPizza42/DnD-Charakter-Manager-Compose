@@ -1,13 +1,17 @@
-package main
+package main.ui
 
-import data.ImageLoader
-import data.Write
-import main.Inventory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,9 +26,12 @@ import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -36,17 +43,19 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
-import main.CharacterManager.inventories
-import main.CharacterManager.selectedInventory
+import data.ImageLoader
+import data.Write
+import main.CharacterManager
+import main.Inventory
 
 object InvSelector {
     @Composable
     fun inventorySelector() {
-        Box(Modifier
-            .fillMaxSize()
-            .background(Color.Black)
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black)
         ) {
             Column(
                 Modifier
@@ -94,7 +103,7 @@ object InvSelector {
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(onDone = {
-                    inventories.add(Inventory(input.value.text))
+                    CharacterManager.inventories.add(Inventory(input.value.text))
                     focusManager.clearFocus()
                     input.value = TextFieldValue("")
                 })
@@ -109,14 +118,14 @@ object InvSelector {
                 .width(300.dp)
                 .fillMaxHeight()
         ) {
-            items(inventories) { inv ->
+            items(CharacterManager.inventories) { inv ->
                 Divider(
                     Modifier
                         .fillMaxWidth()
                         .height(8.dp)
                 )
 
-                invElement(inv, selectedInventory)
+                invElement(inv, CharacterManager.selectedInventory)
             }
         }
     }
@@ -132,7 +141,7 @@ object InvSelector {
             Modifier
                 .fillMaxWidth()
         ) {
-            if(showDelete) {
+            if (showDelete) {
                 Popup(
                     onDismissRequest = { showDelete = false },
                     alignment = Alignment.Center
@@ -141,7 +150,10 @@ object InvSelector {
                         Modifier
                             .width(250.dp)
                             .shadow(10.dp, RoundedCornerShape(10.dp))
-                            .background(Color.White, RoundedCornerShape(10.dp))
+                            .background(
+                                Color.White,
+                                androidx.compose.foundation.shape.RoundedCornerShape(10.dp)
+                            )
                     ) {
                         Column {
                             Box(
@@ -150,7 +162,10 @@ object InvSelector {
                                     .height(50.dp)
                                     .fillMaxWidth()
                             ) {
-                                Text("Willst du " + inv.name + " wirklich löschen?", Modifier.align(Alignment.Center))
+                                Text(
+                                    "Willst du " + inv.name + " wirklich löschen?",
+                                    Modifier.align(Alignment.Center)
+                                )
                             }
 
                             Row(
@@ -163,7 +178,7 @@ object InvSelector {
                             ) {
                                 IconButton(
                                     onClick = {
-                                        inventories.remove(inv)
+                                        CharacterManager.inventories.remove(inv)
                                         Write.removeInv(inv)
                                         showDelete = false
                                     },
@@ -195,7 +210,7 @@ object InvSelector {
                     onClick = {
                         println("opening inv " + inv.name)
                         selectedInventory.value = Inventory(inv)
-                        inv.items.forEach { item -> println(item.name + " : " + item.uuid) }
+                        inv.getItems().forEach { item -> println(item.name + " : " + item.uuid) }
                     },
                     content = {
                         Text(inv.name)
@@ -206,13 +221,15 @@ object InvSelector {
             }
 
             // Delete Button
-            Row(Modifier
-                .fillMaxSize()
-                .zIndex(1f)
+            Row(
+                Modifier
+                    .fillMaxSize()
+                    .zIndex(1f)
             ) {
-                Box(Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .weight(1f)
                 )
                 Box(
                     Modifier

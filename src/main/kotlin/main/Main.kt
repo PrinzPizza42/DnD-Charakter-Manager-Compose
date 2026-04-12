@@ -37,13 +37,14 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import main.CharacterManager.selectedInventory
-import main.InventoryDisplay.displayInv
-import main.ScrollDisplay.scrollDisplay
-import main.InvSelector.inventorySelector
-import main.Overlay.activeOverlay
-import main.Overlay.closeOverlay
-import main.Overlay.showOverlay
-import main.TabSelector.displayTabSelector
+import main.ui.InventoryDisplay.displayInv
+import main.ui.ScrollDisplay.scrollDisplay
+import main.ui.InvSelector.inventorySelector
+import main.ui.Overlay.activeOverlay
+import main.ui.Overlay.closeOverlay
+import main.ui.Overlay.showOverlay
+import main.ui.TabSelector.displayTabSelector
+import main.ui.CharacterDisplay
 
 @Composable
 @Preview
@@ -53,82 +54,7 @@ fun App(window: ComposeWindow) {
     val showCharDetailsTab = remember { mutableStateOf(true) }
     val showEquippedItemsTab = remember { mutableStateOf(true) }
 
-    val showSortedInv = remember { mutableStateOf(false) }
-
     val showInvSelector = remember(selectedInventory.value) { mutableStateOf(selectedInventory.value == null) }
-
-    val totalSlots = 50
-
-    val typePriority = mapOf(
-        ShortRangeWeapon::class to 0,
-        LongRangeWeapon::class to 1,
-        Armor::class to 2,
-        Potion::class to 3,
-        Consumable::class to 4,
-        Miscellaneous::class to 5
-    )
-
-    val items by remember(selectedInventory.value?.uuid, selectedInventory.value, showSortedInv.value) {
-        derivedStateOf {
-            val currentItems = selectedInventory.value?.items ?: ArrayList<Item?>()
-            val processedItems = if (showSortedInv.value) {
-                currentItems.sortedWith(compareBy { item -> typePriority[item::class] ?: Int.MAX_VALUE })
-            } else {
-                currentItems
-            }
-            processedItems.take(totalSlots) + List(totalSlots - processedItems.size) { EmptySlot() }
-        }
-    }
-
-    //if index -1 add first
-    val updateInventory: (Item) -> Unit = { updatedItem ->
-        selectedInventory.value?.let { inv ->
-            val newItems = ArrayList(inv.items)
-            val index = newItems.indexOfFirst { it.uuid == updatedItem.uuid }
-            val newInv = Inventory(inv)
-            if (index != -1) {
-                newItems[index] = updatedItem
-            } else {
-                newItems.add(0, updatedItem)
-            }
-            newInv.items.clear()
-            newInv.items.addAll(newItems)
-            selectedInventory.value = newInv
-        }
-    }
-
-    val removeItem: (Item) -> Unit = { item ->
-        selectedInventory.value?.let { inv ->
-            val newItems = ArrayList(inv.items)
-            val newInv = Inventory(inv)
-            newItems.remove(item)
-            newInv.items.clear()
-            newInv.items.addAll(newItems)
-            selectedInventory.value = newInv
-        }
-    }
-
-    //if index is -1 add last
-    val addItemAtIndex: (Item, Item) -> Unit = { item, hoveredItem ->
-        selectedInventory.value?.let { inv ->
-            val newItems = ArrayList(inv.items)
-            val newInv = Inventory(inv)
-            if(hoveredItem is EmptySlot) {
-                newItems.addLast(item)
-            }
-            else {
-                val dropIndex = newItems.indexOf(hoveredItem)
-                if (dropIndex != -1) {
-                    newItems.add(dropIndex, item)
-                } else {
-                    newItems.addLast(item)
-                }
-            }
-            newInv.items.clear()
-            newInv.items.addAll(newItems)
-            selectedInventory.value = newInv
-        }
-    }
 
     if(showInvSelector.value) inventorySelector()
     else {
@@ -150,12 +76,7 @@ fun App(window: ComposeWindow) {
                             displayInv(
                                 selectedInventory,
                                 Modifier.fillMaxSize(),
-                                showSortedInv,
-                                items,
-                                removeItem,
-                                addItemAtIndex,
-                                window,
-                                updateInventory
+                                window
                             )
                         },
                         {

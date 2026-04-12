@@ -1,9 +1,5 @@
-package main
+package main.ui
 
-import data.ImageLoader
-import data.Read
-import data.Write
-import main.Inventory
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -13,18 +9,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.onClick
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.RadioButton
 import androidx.compose.material.RadioButtonDefaults
-import androidx.compose.material.Slider
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -34,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -45,6 +36,10 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import data.ImageLoader
+import data.Read
+import data.Write
+import main.Inventory
 
 object TabSelector {
     val width = 50.dp
@@ -59,19 +54,23 @@ object TabSelector {
         selectedInventory: MutableState<Inventory?>,
         sectionSwitch: MutableState<Boolean>
     ) {
-        Column(Modifier
-            .fillMaxHeight()
-            .width(width)
-            .background(Color.DarkGray)
+        Column(
+            Modifier.Companion
+                .fillMaxHeight()
+                .width(width)
+                .background(Color.Companion.DarkGray)
         ) {
             returnToHomeButton(selectedInventory)
 
             // Inventory and Spells Section
             Column(
-                Modifier
+                Modifier.Companion
                     .padding(5.dp)
                     .fillMaxWidth()
-                    .background(lerp(Color.LightGray, Color.DarkGray, 0.6f), RoundedCornerShape(5.dp))
+                    .background(
+                        lerp(Color.Companion.LightGray, Color.Companion.DarkGray, 0.6f),
+                        RoundedCornerShape(5.dp)
+                    )
             ) {
                 RadioButton(
                     selected = sectionSwitch.value,
@@ -79,8 +78,8 @@ object TabSelector {
                         sectionSwitch.value = true
                     },
                     colors = RadioButtonDefaults.colors(
-                        selectedColor = Color.LightGray,
-                        unselectedColor = Color.White
+                        selectedColor = Color.Companion.LightGray,
+                        unselectedColor = Color.Companion.White
                     )
                 )
 
@@ -101,10 +100,13 @@ object TabSelector {
 
             // Character details and equipped items
             Column(
-                Modifier
+                Modifier.Companion
                     .padding(5.dp)
                     .fillMaxWidth()
-                    .background(lerp(Color.LightGray, Color.DarkGray, 0.6f), RoundedCornerShape(5.dp))
+                    .background(
+                        lerp(Color.Companion.LightGray, Color.Companion.DarkGray, 0.6f),
+                        androidx.compose.foundation.shape.RoundedCornerShape(5.dp)
+                    )
             ) {
                 RadioButton(
                     selected = !sectionSwitch.value,
@@ -112,8 +114,8 @@ object TabSelector {
                         sectionSwitch.value = false
                     },
                     colors = RadioButtonDefaults.colors(
-                        selectedColor = Color.LightGray,
-                        unselectedColor = Color.White
+                        selectedColor = Color.Companion.LightGray,
+                        unselectedColor = Color.Companion.White
                     )
                 )
 
@@ -137,23 +139,26 @@ object TabSelector {
         var hoveredOver by remember { mutableStateOf(false) }
 
         val shadow by animateFloatAsState(
-            if(hoveredOver) 10f else 1f
+            if (hoveredOver) 10f else 1f
         )
 
         val scale by animateFloatAsState(
-            if(hoveredOver) 1.1f else 1f
+            if (hoveredOver) 1.1f else 1f
         )
 
         Box(
-            Modifier
+            Modifier.Companion
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .padding(5.dp, 5.dp, 5.dp, 15.dp)
                 .fillMaxWidth()
                 .shadow(shadow.dp)
-                .background(lerp(Color.LightGray, Color.DarkGray, 0.6f), RoundedCornerShape(5.dp))
+                .background(
+                    lerp(Color.Companion.LightGray, Color.Companion.DarkGray, 0.6f),
+                    androidx.compose.foundation.shape.RoundedCornerShape(5.dp)
+                )
         ) {
             Box(
-                Modifier
+                Modifier.Companion
                     .fillMaxWidth()
                     .onClick(enabled = true, onClick = {
                         if (selectedInventory.value != null) {
@@ -162,21 +167,21 @@ object TabSelector {
                             Read.readData()
                         }
                     })
-                    .onPointerEvent(PointerEventType.Enter) {
+                    .onPointerEvent(PointerEventType.Companion.Enter) {
                         hoveredOver = true
                     }
-                    .onPointerEvent(PointerEventType.Exit) {
+                    .onPointerEvent(PointerEventType.Companion.Exit) {
                         hoveredOver = false
                     }
             ) {
                 val home = remember { ImageLoader.loadImageFromResources("home.png").get().toPainter() }
                 Image(
                     painter = home,
-                    contentScale = ContentScale.FillWidth,
+                    contentScale = ContentScale.Companion.FillWidth,
                     contentDescription = "home",
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .padding(2.dp)
-                        .align(Alignment.Center)
+                        .align(Alignment.Companion.Center)
                 )
             }
         }
@@ -192,22 +197,26 @@ object TabSelector {
         var hoveredOverSpells by remember { mutableStateOf(false) }
 
         val backgroundColor by animateColorAsState(
-            if(showPanel.value) lerp(Color.LightGray, Color.DarkGray, 0.2f) else lerp(Color.LightGray, Color.DarkGray, 0.6f),
-            animationSpec = tween (300)
+            if (showPanel.value) lerp(
+                Color.Companion.LightGray,
+                Color.Companion.DarkGray,
+                0.2f
+            ) else lerp(Color.Companion.LightGray, Color.Companion.DarkGray, 0.6f),
+            animationSpec = tween(300)
         )
 
         val shadow by animateFloatAsState(
-            if(hoveredOverSpells) 10f else 1f,
-            animationSpec = tween (300)
+            if (hoveredOverSpells) 10f else 1f,
+            animationSpec = tween(300)
         )
 
         val scale by animateFloatAsState(
-            if(hoveredOverSpells) 1.1f else 1f,
-            animationSpec = tween (300)
+            if (hoveredOverSpells) 1.1f else 1f,
+            animationSpec = tween(300)
         )
 
         Box(
-            Modifier
+            Modifier.Companion
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .fillMaxWidth()
                 .padding(0.dp, 10.dp, 0.dp, 10.dp)
@@ -216,21 +225,21 @@ object TabSelector {
                     onClick()
                 })
                 .shadow(shadow.dp)
-                .background(backgroundColor, RoundedCornerShape(5.dp))
-                .onPointerEvent(PointerEventType.Enter) {
+                .background(backgroundColor, androidx.compose.foundation.shape.RoundedCornerShape(5.dp))
+                .onPointerEvent(PointerEventType.Companion.Enter) {
                     hoveredOverSpells = true
                 }
-                .onPointerEvent(PointerEventType.Exit) {
+                .onPointerEvent(PointerEventType.Companion.Exit) {
                     hoveredOverSpells = false
                 }
         ) {
             Image(
                 painter = icon,
-                contentScale = ContentScale.FillWidth,
+                contentScale = ContentScale.Companion.FillWidth,
                 contentDescription = "icon",
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .padding(2.dp)
-                    .align(Alignment.Center)
+                    .align(Alignment.Companion.Center)
             )
         }
     }
