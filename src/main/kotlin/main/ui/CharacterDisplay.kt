@@ -46,8 +46,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import main.ItemClasses.EmptySlot
-import main.ItemClasses.Item
+import main.itemClasses.EmptySlot
+import main.itemClasses.Item
 import org.jetbrains.skiko.Cursor
 
 object CharacterDisplay {

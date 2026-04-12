@@ -1,12 +1,11 @@
-package main.ItemClasses.Weapons
+package main.itemClasses.weapons
 
+import main.itemClasses.Item
 import kotlinx.serialization.Serializable
 
 @Serializable
-class ShortRangeWeapon() : Weapon() {
-    init {
-        standardIconName = "Longsword.png"
-    }
+open class Weapon() : Item() {
+    var damage: String = ""
 
     constructor(name: String, description: String, weight: Int, valueInGold: Int, amount: Int, damage: String) : this() {
         this.name = name

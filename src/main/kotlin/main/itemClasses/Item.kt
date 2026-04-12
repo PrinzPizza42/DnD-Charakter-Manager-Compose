@@ -1,5 +1,8 @@
-package main.ItemClasses
+package main.itemClasses
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import data.ImageLoader
 import data.JsonUtil
 import kotlinx.serialization.*
@@ -27,6 +30,8 @@ abstract class Item() {
     val uuid: String = UUID.randomUUID().toString()
 
     @Transient
+    var mutationCount by mutableStateOf(0)
+
     val icon: BufferedImage
         get() {
             userIconName?.let { uName ->

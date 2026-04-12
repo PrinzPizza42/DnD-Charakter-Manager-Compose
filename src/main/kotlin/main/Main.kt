@@ -2,27 +2,19 @@ package main
 
 import data.ImageLoader
 import data.Read
-import main.Inventory
-import main.ItemClasses.*
-import main.ItemClasses.Weapons.LongRangeWeapon
-import main.ItemClasses.Weapons.ShortRangeWeapon
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPainter
@@ -42,7 +34,6 @@ import main.ui.ScrollDisplay.scrollDisplay
 import main.ui.InvSelector.inventorySelector
 import main.ui.Overlay.activeOverlay
 import main.ui.Overlay.closeOverlay
-import main.ui.Overlay.showOverlay
 import main.ui.TabSelector.displayTabSelector
 import main.ui.CharacterDisplay
 

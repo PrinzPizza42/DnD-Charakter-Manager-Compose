@@ -1,12 +1,13 @@
 package data
 
-import main.ItemClasses.Armor
-import main.ItemClasses.Consumable
-import main.ItemClasses.Item
-import main.ItemClasses.Miscellaneous
-import main.ItemClasses.Potion
-import main.ItemClasses.Weapons.LongRangeWeapon
-import main.ItemClasses.Weapons.ShortRangeWeapon
+import main.itemClasses.Armor
+import main.itemClasses.Consumable
+import main.itemClasses.EmptySlot
+import main.itemClasses.Item
+import main.itemClasses.Miscellaneous
+import main.itemClasses.Potion
+import main.itemClasses.weapons.LongRangeWeapon
+import main.itemClasses.weapons.ShortRangeWeapon
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -31,6 +32,7 @@ object JsonUtil {
                 subclass(Potion::class)
                 subclass(Miscellaneous::class)
                 subclass(Armor::class)
+                subclass(EmptySlot::class)
             }
         }
     }

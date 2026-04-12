@@ -1,25 +1,25 @@
 package main
 
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import main.ItemClasses.Item
+import main.itemClasses.Item
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Transient
-import main.CharacterManager.selectedInventory
-import main.ItemClasses.Armor
-import main.ItemClasses.Consumable
-import main.ItemClasses.EmptySlot
-import main.ItemClasses.Miscellaneous
-import main.ItemClasses.Potion
-import main.ItemClasses.Weapons.LongRangeWeapon
-import main.ItemClasses.Weapons.ShortRangeWeapon
+import main.itemClasses.Armor
+import main.itemClasses.Consumable
+import main.itemClasses.EmptySlot
+import main.itemClasses.Miscellaneous
+import main.itemClasses.Potion
+import main.itemClasses.weapons.LongRangeWeapon
+import main.itemClasses.weapons.ShortRangeWeapon
 import java.util.*
 import kotlin.collections.ArrayList
 
 @Serializable
 class Inventory(
     var name: String = "Inventory",
-    private var items: MutableList<Item> = mutableListOf(),
+    @SerialName("items")
+    private var _serializedItems: MutableList<Item> = mutableListOf(),
     val spells: ArrayList<Spell> = ArrayList(),
     var spellSlotsUsed: ArrayList<Int> = ArrayList(),
     var spellSlotsMax: ArrayList<Int> = ArrayList(),
@@ -29,6 +29,9 @@ class Inventory(
     val totalSlots = 50
 
     @Transient
+    val items = mutableStateListOf<Item>()
+
+    @Transient
     private var loadedLevels = false
     
     @Transient
@@ -36,14 +39,29 @@ class Inventory(
 
     init {
         // If this is a truly new inventory (not being deserialized)
-        if (spellSlotsUsed.isEmpty() && spellSlotsMax.isEmpty() && items.isEmpty() && spells.isEmpty()) {
+        if (spellSlotsUsed.isEmpty() && spellSlotsMax.isEmpty() && _serializedItems.isEmpty() && spells.isEmpty()) {
             addLastSpellLevel(3 to 3)
         }
+
+        // Initialize SnapshotStateList from serialized items
+        items.addAll(_serializedItems)
+        
+        // Ensure the list always has 50 slots
+        while (items.size < totalSlots) {
+            items.add(EmptySlot())
+        }
+    }
+
+    // Call this before serializing to JSON
+    fun prepareForSaving() {
+        // Only save non-empty slots to keep JSON clean, or save all if you want to preserve positions
+        // Given it's slot-based, we should save all to preserve positions, including EmptySlots
+        _serializedItems = items.toMutableList()
     }
 
     constructor(other: Inventory) : this(
         name = other.name,
-        items = ArrayList(other.items),
+        _serializedItems = ArrayList(other.items),
         spells = ArrayList(other.spells),
         spellSlotsUsed = ArrayList(other.spellSlotsUsed),
         spellSlotsMax = ArrayList(other.spellSlotsMax),
@@ -93,6 +111,7 @@ class Inventory(
         }
     }
 
+    @Transient
     val typePriority = mapOf(
         ShortRangeWeapon::class to 0,
         LongRangeWeapon::class to 1,
@@ -102,35 +121,67 @@ class Inventory(
         Miscellaneous::class to 5
     )
 
-    fun getItems(): MutableList<Item> {
-        return (items.take(totalSlots).toMutableList() + List(totalSlots - items.size) { EmptySlot() }.toMutableList()) as MutableList<Item>
+    fun getItemsSortedByClass(): List<Item> {
+        return items.sortedWith(compareBy { item -> typePriority[item::class] ?: Int.MAX_VALUE })
     }
 
-    fun getItemsSortedByClass(): MutableList<Item> {
-        val processedItems = items.sortedWith(compareBy { item -> typePriority[item::class] ?: Int.MAX_VALUE })
-        return (processedItems.take(totalSlots).toMutableList() + List(totalSlots - processedItems.size) { EmptySlot() }.toMutableList()) as MutableList<Item>
+    /**
+     * Triggers a list update for the given item to notify Compose that its properties might have changed.
+     * Increments the mutationCount inside the item which is observed by Compose.
+     */
+    fun notifyItemChanged(item: Item) {
+        item.mutationCount++
+        val index = items.indexOf(item)
+        if (index != -1) {
+            items[index] = item
+        }
     }
 
+    /**
+     * Adds an item to the first available empty slot, or at the end if no empty slot is found.
+     */
     fun addItem(item: Item) {
-        items.add(item)
+        val firstEmpty = items.indexOfFirst { it is EmptySlot }
+        if (firstEmpty != -1) {
+            items[firstEmpty] = item
+        } else if (items.size < totalSlots) {
+            items.add(item)
+        }
     }
 
     fun removeItem(item: Item) {
-        items.remove(item)
+        val index = items.indexOf(item)
+        if (index != -1) {
+            items[index] = EmptySlot()
+        }
     }
 
-    //if index is -1 add last
+    /**
+     * Places an item at a specific slot (the slot where hoveredItem is).
+     */
     fun addItemAtIndex(item: Item, hoveredItem: Item) {
-        if(hoveredItem is EmptySlot) {
-            items.addLast(item)
-        }
-        else {
-            val dropIndex = items.indexOf(hoveredItem)
-            if (dropIndex != -1) {
-                items.add(dropIndex, item)
+        val dropIndex = items.indexOf(hoveredItem)
+        if (dropIndex != -1) {
+            // If the target slot is empty, just place it there
+            if (hoveredItem is EmptySlot) {
+                items[dropIndex] = item
             } else {
-                items.addLast(item)
+                // If it's not empty, we shift items or just swap?
+                // Let's swap for now or insert if that's the preferred behavior
+                items.add(dropIndex, item)
+                // Remove the last item if we exceeded totalSlots
+                if (items.size > totalSlots) {
+                    // Try to remove an empty slot from the end
+                    val lastEmpty = items.findLast { it is EmptySlot }
+                    if (lastEmpty != null) {
+                        items.remove(lastEmpty)
+                    } else {
+                        items.removeAt(items.size - 1)
+                    }
+                }
             }
+        } else {
+            addItem(item)
         }
     }
 

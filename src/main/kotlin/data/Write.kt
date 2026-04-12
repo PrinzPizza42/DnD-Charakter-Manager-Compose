@@ -21,6 +21,7 @@ object Write {
                 println("Deleted: $deleted")
             }
             
+            inv.prepareForSaving()
             val jsonString = JsonUtil.json.encodeToString(Inventory.serializer(), inv)
             Files.writeString(path, jsonString)
             

@@ -95,17 +95,16 @@ import data.ImageLoader
 import main.CharacterManager
 import main.DropdownString
 import main.Inventory
-import main.ItemClasses.Armor
-import main.ItemClasses.ArmorClasses
-import main.ItemClasses.Consumable
-import main.ItemClasses.EmptySlot
-import main.ItemClasses.Item
-import main.ItemClasses.Miscellaneous
-import main.ItemClasses.Potion
-import main.ItemClasses.Weapons.LongRangeWeapon
-import main.ItemClasses.Weapons.ShortRangeWeapon
-import main.ItemClasses.Weapons.Weapon
-import main.ui.Overlay
+import main.itemClasses.Armor
+import main.itemClasses.ArmorClasses
+import main.itemClasses.Consumable
+import main.itemClasses.EmptySlot
+import main.itemClasses.Item
+import main.itemClasses.Miscellaneous
+import main.itemClasses.Potion
+import main.itemClasses.weapons.LongRangeWeapon
+import main.itemClasses.weapons.ShortRangeWeapon
+import main.itemClasses.weapons.Weapon
 import main.StepShifterIntBig
 import main.StepShifterIntSmall
 import main.getFloatInputOverlay
@@ -284,6 +283,7 @@ object InventoryDisplay {
                     onValueChange = {
                         nameInput.value = it
                         itemDisplayItem.value!!.name = it.text
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                     },
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -300,6 +300,7 @@ object InventoryDisplay {
                     onValueChange = {
                         descInput.value = it
                         itemDisplayItem.value!!.description = it.text
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                     },
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -318,6 +319,7 @@ object InventoryDisplay {
                         onValueChange = {
                             dmgInput.value = it
                             weapon.damage = it.text
+                            CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                         },
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -341,9 +343,13 @@ object InventoryDisplay {
                         armorValue,
                         {
                             armor.armorValue += 1
+                            CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                             println("Increased 1 to ${armor.armorValue}")
                         },
-                        { armor.armorValue -= 1 }
+                        { 
+                            armor.armorValue -= 1 
+                            CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                        }
                     )
 
                     //Armor Class
@@ -362,9 +368,11 @@ object InventoryDisplay {
                                 mutableStateOf(armor.armorClass.toString()),
                                 { newClass ->
                                     armor.armorClass = ArmorClasses.valueOf(newClass)
+                                    CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                                     println("Armor class value changed to ${armor.armorClass}")
                                 }
                             )
+
                         }
                     }
                 }
@@ -377,8 +385,14 @@ object InventoryDisplay {
                     "Gewicht:",
                     weightRange,
                     weightValue,
-                    { increase -> itemDisplayItem.value!!.weight += increase },
-                    { decrease -> itemDisplayItem.value!!.weight -= decrease }
+                    { increase -> 
+                        itemDisplayItem.value!!.weight += increase 
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                    },
+                    { decrease -> 
+                        itemDisplayItem.value!!.weight -= decrease 
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                    }
                 )
 
                 //Value
@@ -389,8 +403,14 @@ object InventoryDisplay {
                     "Wert in Gold:",
                     valueRange,
                     valueValue,
-                    { increase -> itemDisplayItem.value!!.valueInGold += increase },
-                    { decrease -> itemDisplayItem.value!!.valueInGold -= decrease }
+                    { increase -> 
+                        itemDisplayItem.value!!.valueInGold += increase 
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                    },
+                    { decrease -> 
+                        itemDisplayItem.value!!.valueInGold -= decrease 
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                    }
                 )
 
                 //Amount
@@ -401,8 +421,14 @@ object InventoryDisplay {
                     "Menge:",
                     amountRange,
                     amountValue,
-                    { increase -> itemDisplayItem.value!!.amount += increase },
-                    { decrease -> itemDisplayItem.value!!.amount -= decrease }
+                    { increase -> 
+                        itemDisplayItem.value!!.amount += increase 
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                    },
+                    { decrease -> 
+                        itemDisplayItem.value!!.amount -= decrease 
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                    }
                 )
 
                 //Equipped
@@ -424,6 +450,7 @@ object InventoryDisplay {
                             onCheckedChange = {
                                 itemDisplayItem.value!!.equipped = it
                                 equipped.value = it
+                                CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                             },
                             modifier = Modifier
                                 .width(30.dp)
@@ -792,7 +819,7 @@ object InventoryDisplay {
                             //BackPack weight
                             val modifier = Modifier.padding(10.dp, 0.dp)
 
-                            val items = CharacterManager.selectedInventory.value!!.getItems()
+                            val items = CharacterManager.selectedInventory.value!!.items
                             val backPackWeight = remember(items) {
                                 mutableStateOf(items.toMutableList().sumOf { it.weight * it.amount }.toFloat())
                             }
@@ -982,13 +1009,11 @@ object InventoryDisplay {
                         }
                     }
             ) {
-                val items = remember { CharacterManager.selectedInventory.value!!.getItemsSortedByClass() }
-                val sortedItems = remember(items, showSortedInv.value) {
-                    if (showSortedInv.value) {
-                        items.sortedBy { item -> typePriority[item::class] ?: Int.MAX_VALUE }
-                    } else {
-                        items
-                    }
+                val inv = CharacterManager.selectedInventory.value!!
+                val displayItems = if (showSortedInv.value) {
+                    inv.getItemsSortedByClass()
+                } else {
+                    inv.items
                 }
 
                 val slotPadding = remember { 4.dp }
@@ -998,9 +1023,9 @@ object InventoryDisplay {
                     contentPadding = PaddingValues(10.dp)
                 ) {
                     items(
-                        items = sortedItems,
-                        key = { item -> item?.uuid ?: UUID.randomUUID() }
-                    ) { item: Item? ->
+                        items = displayItems,
+                        key = { item -> item.uuid }
+                    ) { item ->
                         Box(
                             Modifier
                                 .animateItem()
@@ -1171,9 +1196,11 @@ object InventoryDisplay {
     ) {
         val inv = CharacterManager.selectedInventory
 
-        val backGroundColor = remember {
+        val mutation = item?.mutationCount ?: 0
+
+        val backGroundColor = remember(item, mutation) {
             mutableStateOf(
-                if (item !is EmptySlot) lerp(
+                if (item != null && item !is EmptySlot) lerp(
                     Color.Transparent,
                     Color.Black,
                     0.1f
@@ -1182,7 +1209,7 @@ object InventoryDisplay {
         }
 
         if (item != null) {
-            val boxShape = remember(item.equipped) {
+            val boxShape = remember(item, mutation, item.equipped) {
                 mutableStateOf(
                     if (!item.equipped) androidx.compose.foundation.shape.RoundedCornerShape(10.dp) else androidx.compose.foundation.shape.CutCornerShape(
                         10.dp
@@ -1190,7 +1217,7 @@ object InventoryDisplay {
                 )
             }
             var isHovered by remember { mutableStateOf(false) }
-            val borderColor = remember(item.equipped, dragMode.value, isHovered) {
+            val borderColor = remember(item, mutation, item.equipped, dragMode.value, isHovered) {
                 mutableStateOf(
                     if (dragMode.value && isHovered) {
                         Color.Red
@@ -1261,7 +1288,7 @@ object InventoryDisplay {
                     Box(Modifier.padding(3.dp))
                     {
                         //BackgroundIcon
-                        val icon = remember(item.icon) { item.icon.toPainter() }
+                        val icon = remember(item, mutation, item.icon) { item.icon.toPainter() }
                         Image(
                             icon,
                             item.iconName,
@@ -1304,7 +1331,8 @@ object InventoryDisplay {
                     }
                 }
             }
-        } else {
+        }
+ else {
             Box(
                 Modifier
                     .size(100.dp)

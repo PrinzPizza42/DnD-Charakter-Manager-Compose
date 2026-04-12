@@ -210,7 +210,7 @@ object InvSelector {
                     onClick = {
                         println("opening inv " + inv.name)
                         selectedInventory.value = Inventory(inv)
-                        inv.getItems().forEach { item -> println(item.name + " : " + item.uuid) }
+                        inv.items.forEach { item -> println(item.name + " : " + item.uuid) }
                     },
                     content = {
                         Text(inv.name)

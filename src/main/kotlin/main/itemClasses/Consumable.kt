@@ -1,11 +1,11 @@
-package main.ItemClasses
+package main.itemClasses
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-class Miscellaneous() : Item() {
+open class Consumable() : Item() {
     init {
-        standardIconName = "Log of Wood.png"
+        standardIconName = "Loaf of Bread.png"
     }
 
     constructor(name: String, description: String, weight: Int, valueInGold: Int, amount: Int) : this() {
