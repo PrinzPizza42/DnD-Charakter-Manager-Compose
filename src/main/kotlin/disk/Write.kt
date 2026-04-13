@@ -1,10 +1,7 @@
-package data
+package disk
 
-import main.Inventory
-import main.CharacterManager
-import java.io.File
+import data.Inventory
 import java.nio.file.Files
-import java.nio.file.Path
 
 object Write {
     fun safe(inv: Inventory) {

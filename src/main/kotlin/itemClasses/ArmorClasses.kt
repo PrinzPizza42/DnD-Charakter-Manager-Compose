@@ -1,4 +1,4 @@
-package main.itemClasses
+package itemClasses
 
 import kotlinx.serialization.Serializable
 

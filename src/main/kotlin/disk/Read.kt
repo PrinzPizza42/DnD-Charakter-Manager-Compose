@@ -1,10 +1,9 @@
-package data
+package disk
 
-import main.Inventory
+import data.Inventory
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import main.CharacterManager
+import data.CharacterManager
 import java.nio.file.Files
-import kotlin.io.path.extension
 import kotlin.io.path.isRegularFile
 
 object Read {

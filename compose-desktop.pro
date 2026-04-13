@@ -19,6 +19,6 @@
     public static ** valueOf(java.lang.String);
 }
 
-# Keep data model classes used by Jackson for JSON serialization
+# Keep disk model classes used by Jackson for JSON serialization
 -keep class main.** { *; }
--keep class data.** { *; }
+-keep class disk.** { *; }

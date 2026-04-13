@@ -1,4 +1,4 @@
-package main.ui
+package ui
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseOutSine
@@ -78,10 +78,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import data.ImageLoader
+import disk.ImageLoader
 import kotlinx.coroutines.launch
-import main.Inventory
-import main.Spell
+import data.Inventory
+import data.Spell
 import org.jetbrains.skiko.Cursor
 import kotlin.math.roundToInt
 

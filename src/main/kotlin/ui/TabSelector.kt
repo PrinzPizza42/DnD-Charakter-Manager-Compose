@@ -1,4 +1,4 @@
-package main.ui
+package ui
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -36,10 +36,10 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import data.ImageLoader
-import data.Read
-import data.Write
-import main.Inventory
+import data.Inventory
+import disk.ImageLoader
+import disk.Read
+import disk.Write
 
 object TabSelector {
     val width = 50.dp

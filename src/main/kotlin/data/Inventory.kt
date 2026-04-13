@@ -1,17 +1,17 @@
-package main
+package data
 
 import androidx.compose.runtime.mutableStateListOf
-import main.itemClasses.Item
+import itemClasses.Item
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Transient
-import main.itemClasses.Armor
-import main.itemClasses.Consumable
-import main.itemClasses.EmptySlot
-import main.itemClasses.Miscellaneous
-import main.itemClasses.Potion
-import main.itemClasses.weapons.LongRangeWeapon
-import main.itemClasses.weapons.ShortRangeWeapon
+import itemClasses.Armor
+import itemClasses.Consumable
+import itemClasses.EmptySlot
+import itemClasses.Miscellaneous
+import itemClasses.Potion
+import itemClasses.weapons.LongRangeWeapon
+import itemClasses.weapons.ShortRangeWeapon
 import java.util.*
 import kotlin.collections.ArrayList
 

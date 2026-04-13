@@ -1,6 +1,5 @@
-package main
+package data
 
-import main.Inventory
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 

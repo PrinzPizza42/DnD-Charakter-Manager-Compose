@@ -1,4 +1,4 @@
-package data
+package disk
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory

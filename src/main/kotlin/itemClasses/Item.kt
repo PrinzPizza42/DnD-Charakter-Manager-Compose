@@ -1,10 +1,10 @@
-package main.itemClasses
+package itemClasses
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import data.ImageLoader
-import data.JsonUtil
+import disk.ImageLoader
+import disk.JsonUtil
 import kotlinx.serialization.*
 import java.awt.image.BufferedImage
 import java.util.*

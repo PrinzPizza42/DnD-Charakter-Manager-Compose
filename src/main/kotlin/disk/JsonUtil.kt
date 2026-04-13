@@ -1,13 +1,13 @@
-package data
+package disk
 
-import main.itemClasses.Armor
-import main.itemClasses.Consumable
-import main.itemClasses.EmptySlot
-import main.itemClasses.Item
-import main.itemClasses.Miscellaneous
-import main.itemClasses.Potion
-import main.itemClasses.weapons.LongRangeWeapon
-import main.itemClasses.weapons.ShortRangeWeapon
+import itemClasses.Armor
+import itemClasses.Consumable
+import itemClasses.EmptySlot
+import itemClasses.Item
+import itemClasses.Miscellaneous
+import itemClasses.Potion
+import itemClasses.weapons.LongRangeWeapon
+import itemClasses.weapons.ShortRangeWeapon
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic

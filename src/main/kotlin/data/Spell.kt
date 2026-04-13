@@ -1,7 +1,6 @@
-package main
+package data
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import java.util.UUID
 
 @Serializable

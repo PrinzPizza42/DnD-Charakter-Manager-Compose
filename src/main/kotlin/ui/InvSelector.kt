@@ -1,4 +1,4 @@
-package main.ui
+package ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -44,10 +44,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.zIndex
-import data.ImageLoader
-import data.Write
-import main.CharacterManager
-import main.Inventory
+import disk.ImageLoader
+import disk.Write
+import data.CharacterManager
+import data.Inventory
 
 object InvSelector {
     @Composable

@@ -1,12 +1,12 @@
 package main
 
-import data.ImageLoader
-import data.Read
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import disk.ImageLoader
+import disk.Read
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -28,14 +28,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import main.CharacterManager.selectedInventory
-import main.ui.InventoryDisplay.displayInv
-import main.ui.ScrollDisplay.scrollDisplay
-import main.ui.InvSelector.inventorySelector
-import main.ui.Overlay.activeOverlay
-import main.ui.Overlay.closeOverlay
-import main.ui.TabSelector.displayTabSelector
-import main.ui.CharacterDisplay
+import data.CharacterManager.selectedInventory
+import ui.CharacterDisplay
+import ui.InvSelector.inventorySelector
+import ui.InventoryDisplay.displayInv
+import ui.Overlay.activeOverlay
+import ui.Overlay.closeOverlay
+import ui.ScrollDisplay.scrollDisplay
+import ui.TabSelector.displayTabSelector
 
 fun main() = application {
     val icon = remember { ImageLoader.loadImageFromResources("icon.png").get().toPainter() }
@@ -53,7 +53,6 @@ fun main() = application {
         App(window)
     }
 }
-
 @Composable
 @Preview
 fun App(window: ComposeWindow) {

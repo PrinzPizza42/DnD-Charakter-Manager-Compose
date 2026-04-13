@@ -1,4 +1,4 @@
-package main.itemClasses.weapons
+package itemClasses.weapons
 
 import kotlinx.serialization.Serializable
 

@@ -1,4 +1,4 @@
-package main.ui
+package ui
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -46,8 +46,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import main.itemClasses.EmptySlot
-import main.itemClasses.Item
+import itemClasses.EmptySlot
+import itemClasses.Item
 import org.jetbrains.skiko.Cursor
 
 object CharacterDisplay {
@@ -97,13 +97,13 @@ object CharacterDisplay {
         var isExtended by remember { mutableStateOf(false) }
 
         Row(
-            Modifier.Companion
+            Modifier
                 .background(background)
                 .fillMaxHeight()
         ) {
             if (isLeft) {
                 Box(
-                    Modifier.Companion
+                    Modifier
                         .onClick { isExtended = !isExtended }
                         .fillMaxHeight(),
                     contentAlignment = Alignment.Center
@@ -123,7 +123,7 @@ object CharacterDisplay {
             }
             if (!isLeft) {
                 Box(
-                    Modifier.Companion
+                    Modifier
                         .onClick { isExtended = !isExtended }
                         .fillMaxHeight(),
                     contentAlignment = Alignment.Center
@@ -180,7 +180,7 @@ object CharacterDisplay {
             )
 
             Box(
-                modifier = Modifier.Companion
+                modifier = Modifier
                     .padding(4.dp)
                     .size(slotSize.value)
                     .onPointerEvent(PointerEventType.Enter) { isHovered = true }
@@ -209,13 +209,13 @@ object CharacterDisplay {
                         Image(
                             icon,
                             item.iconName,
-                            Modifier.Companion
+                            Modifier
                                 .fillMaxSize()
                         )
                         //Name
                         Text(
                             item.name,
-                            Modifier.Companion
+                            Modifier
                                 .padding(5.dp, 0.dp)
                                 .background(
                                     color = lerp(Color.Transparent, Color.White, 0.8f),
@@ -224,19 +224,19 @@ object CharacterDisplay {
                                 .padding(10.dp, 0.dp)
                         )
                         Row(
-                            Modifier.Companion
+                            Modifier
                                 .align(Alignment.BottomEnd)
                                 .fillMaxWidth()
                         ) {
                             //Filler
                             Box(
-                                Modifier.Companion
+                                Modifier
                                     .weight(4f)
                             )
                             //Amount
                             Text(
                                 item.amount.toString(),
-                                Modifier.Companion
+                                Modifier
                                     .padding(5.dp, 0.dp)
                                     .background(
                                         color = lerp(Color.Transparent, Color.White, 0.8f),
@@ -250,7 +250,7 @@ object CharacterDisplay {
             }
         } else {
             Box(
-                Modifier.Companion
+                Modifier
                     .size(100.dp)
                     .background(
                         backGroundColor.value.copy(alpha = 0.5f),
