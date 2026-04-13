@@ -48,6 +48,7 @@ import disk.ImageLoader
 import disk.Write
 import data.CharacterManager
 import data.Inventory
+import itemClasses.EmptySlot
 
 object InvSelector {
     @Composable
@@ -210,7 +211,7 @@ object InvSelector {
                     onClick = {
                         println("opening inv " + inv.name)
                         selectedInventory.value = Inventory(inv)
-                        inv.items.forEach { item -> println(item.name + " : " + item.uuid) }
+                        inv.items.forEach { item -> if(item !is EmptySlot) println("${inv.items.indexOf(item)} : ${item.name} : ${item.uuid}") }
                     },
                     content = {
                         Text(inv.name)

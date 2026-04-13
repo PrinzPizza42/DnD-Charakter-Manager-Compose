@@ -1,5 +1,6 @@
 package data
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import itemClasses.Item
 import kotlinx.serialization.Serializable
@@ -159,19 +160,15 @@ class Inventory(
     /**
      * Places an item at a specific slot (the slot where hoveredItem is).
      */
-    fun addItemAtIndex(item: Item, hoveredItem: Item) {
+    fun swapItemIndex(item: Item, hoveredItem: Item, draggedItemIndexBuffer: MutableState<Int?>) {
         val dropIndex = items.indexOf(hoveredItem)
-        if (dropIndex != -1) {
-            // If the target slot is empty, just place it there
+        if (dropIndex != -1 && draggedItemIndexBuffer.value != null) {
             if (hoveredItem is EmptySlot) {
                 items[dropIndex] = item
             } else {
-                // If it's not empty, we shift items or just swap?
-                // Let's swap for now or insert if that's the preferred behavior
-                items.add(dropIndex, item)
-                // Remove the last item if we exceeded totalSlots
+                items[dropIndex] = item
+                items[draggedItemIndexBuffer.value!!] = hoveredItem
                 if (items.size > totalSlots) {
-                    // Try to remove an empty slot from the end
                     val lastEmpty = items.findLast { it is EmptySlot }
                     if (lastEmpty != null) {
                         items.remove(lastEmpty)

@@ -967,21 +967,12 @@ object InventoryDisplay {
     ) {
         val dragMode = remember { mutableStateOf(false) }
         val draggedItem = remember { mutableStateOf<Item?>(null) }
+        val draggedItemIndexBuffer = remember { mutableStateOf<Int?>(null) }
         val draggedItemOffset = remember { mutableStateOf(Offset.Zero) }
-
-        val typePriority = mapOf(
-            ShortRangeWeapon::class to 0,
-            LongRangeWeapon::class to 1,
-            Armor::class to 2,
-            Potion::class to 3,
-            Consumable::class to 4,
-            Miscellaneous::class to 5
-        )
 
         Box(Modifier.fillMaxSize()) {
             //Background
-            val backPackBackgroundOpen =
-                remember { ImageLoader.loadImageFromResources("backPackBackgroundOpen.jpg").get().toPainter() }
+            val backPackBackgroundOpen = remember { ImageLoader.loadImageFromResources("backPackBackgroundOpen.jpg").get().toPainter() }
             Image(
                 backPackBackgroundOpen,
                 "Backpack background",
@@ -1031,7 +1022,8 @@ object InventoryDisplay {
                                 draggedItem,
                                 slotSize,
                                 dragMode,
-                                window
+                                window,
+                                draggedItemIndexBuffer
                             )
                         }
                     }
@@ -1075,6 +1067,7 @@ object InventoryDisplay {
                                     .height(50.dp)
                                     .clickable {
                                         println("deleted item " + draggedItem.value!!.name)
+                                        draggedItemIndexBuffer.value = null
                                         draggedItem.value = null
                                         dragMode.value = false
                                     }
@@ -1189,6 +1182,7 @@ object InventoryDisplay {
         slotSize: MutableState<Dp>,
         dragMode: MutableState<Boolean>,
         window: ComposeWindow,
+        draggedItemIndexBuffer: MutableState<Int?>
     ) {
         val inv = CharacterManager.selectedInventory
 
@@ -1253,10 +1247,9 @@ object InventoryDisplay {
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onTap = {
-                                println("clicked item " + item.name)
-                                if (dragMode.value) {
-                                    println("drop item before " + item.name)
-                                    inv.value!!.addItemAtIndex(draggedItem.value!!, item)
+                                if (dragMode.value && !inv.value!!.items.contains(draggedItem.value)) {
+                                    inv.value!!.swapItemIndex(draggedItem.value!!, item, draggedItemIndexBuffer)
+                                    draggedItemIndexBuffer.value = null
                                     draggedItem.value = null
                                     dragMode.value = false
                                 } else if (item !is EmptySlot) {
@@ -1268,8 +1261,9 @@ object InventoryDisplay {
                             onLongPress = {
                                 if (item !is EmptySlot && draggedItem.value == null) {
                                     draggedItem.value = item
+                                    draggedItemIndexBuffer.value = inv.value!!.items.indexOf(item)
+                                    inv.value!!.items[draggedItemIndexBuffer.value!!] = EmptySlot()
                                     dragMode.value = true
-                                    inv.value!!.removeItem(item)
                                 }
                             }
                         )
