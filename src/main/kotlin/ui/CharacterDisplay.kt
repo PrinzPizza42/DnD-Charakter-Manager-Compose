@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -46,9 +47,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import data.CharacterManager
 import itemClasses.EmptySlot
 import itemClasses.Item
 import org.jetbrains.skiko.Cursor
+import java.util.stream.Collector
 
 object CharacterDisplay {
     @Composable
@@ -66,9 +69,9 @@ object CharacterDisplay {
             Box {
                 getRandomCharacterImage()
                 Row(Modifier.fillMaxSize()) {
-                    equippedElementTab(background, slotSize, true)
+                    equippedElementTab(background, slotSize, true, null)
                     Box(Modifier.weight(1f))
-                    equippedElementTab(background, slotSize, false)
+                    equippedElementTab(background, slotSize, false, null)
                 }
             }
 
@@ -92,7 +95,8 @@ object CharacterDisplay {
     fun equippedElementTab(
         background: Color,
         slotSize: MutableState<Dp>,
-        isLeft: Boolean
+        isLeft: Boolean,
+        specialSlots: SnapshotStateList<Item>?
     ) {
         var isExtended by remember { mutableStateOf(false) }
 
@@ -113,11 +117,21 @@ object CharacterDisplay {
             }
             if (isExtended) {
                 Column {
-                    for (i in 1..5) {
-                        invSlot(
-                            EmptySlot(),
-                            slotSize
-                        )
+                    if(specialSlots != null) {
+                        for (slot in specialSlots) {
+                            invSpecialItemSlot(
+                                slot,
+                                slotSize
+                            )
+                        }
+                    }
+                    else {
+                        for(slot in CharacterManager.selectedInventory.value!!.equippedSpecialItems) {
+                            invSlot(
+                                slot,
+                                slotSize
+                            )
+                        }
                     }
                 }
             }
@@ -137,6 +151,132 @@ object CharacterDisplay {
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
     fun invSlot(
+        item: Item?,
+        slotSize: MutableState<Dp>
+    ) {
+        val backGroundColor = remember {
+            mutableStateOf(
+                if (item !is EmptySlot) lerp(
+                    Color.Transparent,
+                    Color.Black,
+                    0.1f
+                ) else Color.LightGray.copy(alpha = 0.2f)
+            )
+        }
+
+        if (item != null) {
+            val boxShape = remember(item.equipped) {
+                mutableStateOf(
+                    if (!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)
+                )
+            }
+            var isHovered by remember { mutableStateOf(false) }
+            val borderColor = remember(item.equipped, isHovered) {
+                mutableStateOf(
+                    if (item is EmptySlot) {
+                        Color.Black.copy(alpha = 0.1f)
+                    } else if (!item.equipped) {
+                        Color.Black.copy(
+                            alpha = 0.3f
+                        )
+                    } else Color.Yellow.copy(alpha = 0.7f)
+                )
+            }
+
+            val scale by animateFloatAsState(
+                targetValue = if (isHovered && item !is EmptySlot) 1.08f else 1f,
+                animationSpec = tween(durationMillis = 150)
+            )
+
+            val elevation by animateDpAsState(
+                targetValue = if (isHovered && item !is EmptySlot) 6.dp else if (item !is EmptySlot) 2.dp else 0.dp,
+                animationSpec = tween(durationMillis = 150)
+            )
+
+            Box(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(slotSize.value)
+                    .onPointerEvent(PointerEventType.Enter) { isHovered = true }
+                    .onPointerEvent(PointerEventType.Exit) { isHovered = false }
+                    .graphicsLayer {
+                        this.scaleX = scale
+                        this.scaleY = scale
+                    }
+                    .shadow(elevation, shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp), clip = false)
+                    .background(backGroundColor.value, shape = boxShape.value)
+                    .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
+                    .onClick {
+                        println("Clicked ${item.name}")
+                    }
+                    .pointerHoverIcon(
+                        if (item !is EmptySlot) PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)) else PointerIcon(
+                            org.jetbrains.skiko.Cursor(Cursor.DEFAULT_CURSOR)
+                        )
+                    )
+            ) {
+                if (item !is EmptySlot) {
+                    Box(Modifier.padding(3.dp))
+                    {
+                        //BackgroundIcon
+                        val icon = remember(item.icon) { item.icon.toPainter() }
+                        Image(
+                            icon,
+                            item.iconName,
+                            Modifier
+                                .fillMaxSize()
+                        )
+                        //Name
+                        Text(
+                            item.name,
+                            Modifier
+                                .padding(5.dp, 0.dp)
+                                .background(
+                                    color = lerp(Color.Transparent, Color.White, 0.8f),
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(15.dp)
+                                )
+                                .padding(10.dp, 0.dp)
+                        )
+                        Row(
+                            Modifier
+                                .align(Alignment.BottomEnd)
+                                .fillMaxWidth()
+                        ) {
+                            //Filler
+                            Box(
+                                Modifier
+                                    .weight(4f)
+                            )
+                            //Amount
+                            Text(
+                                item.amount.toString(),
+                                Modifier
+                                    .padding(5.dp, 0.dp)
+                                    .background(
+                                        color = lerp(Color.Transparent, Color.White, 0.8f),
+                                        shape = CircleShape
+                                    )
+                                    .padding(10.dp, 0.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            Box(
+                Modifier
+                    .size(100.dp)
+                    .background(
+                        backGroundColor.value.copy(alpha = 0.5f),
+                        androidx.compose.foundation.shape.RoundedCornerShape(10.dp)
+                    )
+            )
+        }
+    }
+
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+    @Composable
+    fun invSpecialItemSlot(
         item: Item?,
         slotSize: MutableState<Dp>
     ) {

@@ -21,16 +21,28 @@ class Inventory(
     var name: String = "Inventory",
     @SerialName("items")
     private var _serializedItems: MutableList<Item> = mutableListOf(),
-    val spells: ArrayList<Spell> = ArrayList(),
-    var spellSlotsUsed: ArrayList<Int> = ArrayList(),
-    var spellSlotsMax: ArrayList<Int> = ArrayList(),
-    var maxCarryingCapacity: Float = 100f
+    val spells: MutableList<Spell> = ArrayList(),
+    var spellSlotsUsed: MutableList<Int> = ArrayList(),
+    var spellSlotsMax: MutableList<Int> = ArrayList(),
+    var maxCarryingCapacity: Float = 100f,
+    @SerialName("equippedItems")
+    private var _equippedSpecialItems: MutableList<Item> = mutableListOf(),
+    var specialItemsSlots: MutableList<Item> = mutableListOf(
+        Armor(),
+        ShortRangeWeapon(),
+        LongRangeWeapon(),
+        Potion(),
+        Consumable()
+    )
 ) {
     val uuid: String = UUID.randomUUID().toString()
     val totalSlots = 50
 
     @Transient
     val items = mutableStateListOf<Item>()
+
+    @Transient
+    val equippedSpecialItems = mutableStateListOf<Item>()
 
     @Transient
     private var loadedLevels = false
@@ -55,14 +67,15 @@ class Inventory(
 
     // Call this before serializing to JSON
     fun prepareForSaving() {
-        // Only save non-empty slots to keep JSON clean, or save all if you want to preserve positions
-        // Given it's slot-based, we should save all to preserve positions, including EmptySlots
         _serializedItems = items.toMutableList()
+
+        _equippedSpecialItems = equippedSpecialItems.toMutableList()
     }
 
     constructor(other: Inventory) : this(
         name = other.name,
         _serializedItems = ArrayList(other.items),
+        _equippedSpecialItems = ArrayList(other.equippedSpecialItems),
         spells = ArrayList(other.spells),
         spellSlotsUsed = ArrayList(other.spellSlotsUsed),
         spellSlotsMax = ArrayList(other.spellSlotsMax),
