@@ -93,6 +93,7 @@ import androidx.compose.ui.zIndex
 import disk.ImageLoader
 import data.CharacterManager
 import data.CharacterManager.selectedInventory
+import data.CustomWindow
 import data.WindowManager.LocalWindow
 import itemClasses.Armor
 import itemClasses.ArmorClasses
@@ -104,7 +105,6 @@ import itemClasses.Potion
 import itemClasses.weapons.LongRangeWeapon
 import itemClasses.weapons.ShortRangeWeapon
 import itemClasses.weapons.Weapon
-import main.getFloatInputOverlay
 import org.jetbrains.skiko.Cursor
 import java.awt.FileDialog
 import java.io.File
@@ -139,10 +139,7 @@ object InventoryDisplay {
         val focusManager = LocalFocusManager.current
 
         //InvDisplay overlay
-        BoxWithConstraints(
-            Modifier
-                .fillMaxSize()
-        ) {
+        BoxWithConstraints(Modifier.fillMaxSize()) {
             val itemDisplayWith: Dp by remember(this.maxWidth) { mutableStateOf(if (this.maxWidth > 1000.dp) 1000.dp else this.maxWidth) }
             //ItemDisplay
             Box(
@@ -162,8 +159,7 @@ object InventoryDisplay {
                         })
                     }
             ) {
-                val itemDisplayBackGround =
-                    remember { ImageLoader.loadImageFromResources("itemDisplayBackGround.png").get().toPainter() }
+                val itemDisplayBackGround = remember { ImageLoader.loadImageFromResources("itemDisplayBackGround.png").get().toPainter() }
                 Image(
                     itemDisplayBackGround,
                     "itemDisplayBackGround",
@@ -204,10 +200,7 @@ object InventoryDisplay {
         selectedClass: MutableState<String>,
         reloadKey: MutableState<Int>
     ) {
-        Row(
-            Modifier
-                .fillMaxSize()
-        ) {
+        Row(Modifier.fillMaxSize()) {
             //Item Create
             if (itemDisplayItem.value == null && !hasSelected.value) {
                 itemDisplayStatsCreateDisplay(classes, selectedClass, hasSelected, itemDisplayItem)
@@ -251,7 +244,7 @@ object InventoryDisplay {
                                     "Verschiedenes" -> itemDisplayItem.value = Miscellaneous("", "", 1, 1, 1)
                                 }
                                 println("Created ${itemDisplayItem.value}")
-                                CharacterManager.selectedInventory.value!!.addItem(itemDisplayItem.value!!)
+                                selectedInventory.value!!.addItem(itemDisplayItem.value!!)
                             }
                         )
                         Text(option)
@@ -264,19 +257,15 @@ object InventoryDisplay {
     @Composable
     fun itemDisplayStatsNormalDisplay(itemDisplayItem: MutableState<Item?>, reloadKey: MutableState<Int>) {
         key(itemDisplayItem.value) {
-            Column(
-                Modifier
-                    .fillMaxSize()
-            ) {
+            Column(Modifier.fillMaxSize()) {
                 //Name
-                val nameInput =
-                    remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.name)) }
+                val nameInput = remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.name)) }
                 TextField(
                     value = nameInput.value,
                     onValueChange = {
                         nameInput.value = it
                         itemDisplayItem.value!!.name = it.text
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                     },
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -293,7 +282,7 @@ object InventoryDisplay {
                     onValueChange = {
                         descInput.value = it
                         itemDisplayItem.value!!.description = it.text
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                     },
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -312,7 +301,7 @@ object InventoryDisplay {
                         onValueChange = {
                             dmgInput.value = it
                             weapon.damage = it.text
-                            CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                            selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                         },
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -336,12 +325,12 @@ object InventoryDisplay {
                         armorValue,
                         {
                             armor.armorValue += 1
-                            CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                            selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                             println("Increased 1 to ${armor.armorValue}")
                         },
                         { 
                             armor.armorValue -= 1 
-                            CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                            selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                         }
                     )
 
@@ -361,7 +350,7 @@ object InventoryDisplay {
                                 mutableStateOf(armor.armorClass.toString()),
                                 { newClass ->
                                     armor.armorClass = ArmorClasses.valueOf(newClass)
-                                    CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                                    selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                                     println("Armor class value changed to ${armor.armorClass}")
                                 }
                             )
@@ -380,11 +369,11 @@ object InventoryDisplay {
                     weightValue,
                     { increase -> 
                         itemDisplayItem.value!!.weight += increase 
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                     },
                     { decrease -> 
                         itemDisplayItem.value!!.weight -= decrease 
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                     }
                 )
 
@@ -398,11 +387,11 @@ object InventoryDisplay {
                     valueValue,
                     { increase -> 
                         itemDisplayItem.value!!.valueInGold += increase 
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                     },
                     { decrease -> 
                         itemDisplayItem.value!!.valueInGold -= decrease 
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                     }
                 )
 
@@ -416,11 +405,11 @@ object InventoryDisplay {
                     amountValue,
                     { increase -> 
                         itemDisplayItem.value!!.amount += increase 
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                     },
                     { decrease -> 
                         itemDisplayItem.value!!.amount -= decrease 
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                     }
                 )
 
@@ -443,7 +432,7 @@ object InventoryDisplay {
                             onCheckedChange = {
                                 itemDisplayItem.value!!.equipped = it
                                 equipped.value = it
-                                CharacterManager.selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
+                                selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
                             },
                             modifier = Modifier
                                 .width(30.dp)
@@ -503,7 +492,7 @@ object InventoryDisplay {
                                     .shadow(10.dp, RoundedCornerShape(10.dp))
                                     .background(
                                         Color.White,
-                                        androidx.compose.foundation.shape.RoundedCornerShape(10.dp)
+                                        RoundedCornerShape(10.dp)
                                     )
                                     .width(600.dp)
                                     .height(100.dp)
@@ -770,8 +759,7 @@ object InventoryDisplay {
                                 modifier = Modifier.width(150.dp),
                             )
 
-                            val backGroundColor =
-                                remember { lerp(Color.Transparent, Color.Black, 0.2f) }
+                            val backGroundColor = remember { lerp(Color.Transparent, Color.Black, 0.2f) }
 
                             Column(
                                 Modifier
@@ -817,41 +805,50 @@ object InventoryDisplay {
                             }
                             var backPackWeightUIValue by remember { mutableStateOf(selectedInventory.value!!.maxCarryingCapacity) }
 
+                            var showPopup by remember { mutableStateOf(false) }
+                            if(showPopup) {
+                                Popup(
+                                    onDismissRequest = { showPopup = false },
+                                    properties = PopupProperties(focusable = true)
+                                ) {
+                                    Column(
+                                        Modifier
+                                            .shadow(10.dp)
+                                            .background(Color.White, RoundedCornerShape(10.dp))
+                                            .padding(5.dp)
+                                    ) {
+                                        val weightChangerColor = remember {
+                                            lerp(
+                                                Color.Transparent,
+                                                Color.White,
+                                                0.9f
+                                            )
+                                        }
+
+                                        getFloatInputOverlay(
+                                            Modifier
+                                                .background(
+                                                    weightChangerColor,
+                                                    RoundedCornerShape(5.dp)
+                                                )
+                                                .clip(RoundedCornerShape(5.dp)),
+                                            selectedInventory.value!!.maxCarryingCapacity,
+                                            "Maximalgewicht",
+                                            onConfirm = { value ->
+                                                selectedInventory.value!!.maxCarryingCapacity = value
+                                                backPackWeightUIValue = value
+                                                showPopup = false
+                                            },
+                                            onDismiss = {
+                                                showPopup = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
                             Box(
                                 Modifier
-                                    .onClick {
-                                        Overlay.showOverlay({
-                                            val weightChangerColor = remember {
-                                                lerp(
-                                                    Color.Transparent,
-                                                    Color.White,
-                                                    0.9f
-                                                )
-                                            }
-
-                                            getFloatInputOverlay(
-                                                Modifier
-                                                    .background(
-                                                        weightChangerColor,
-                                                        androidx.compose.foundation.shape.RoundedCornerShape(5.dp)
-                                                    )
-                                                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(5.dp)),
-                                                selectedInventory.value!!.maxCarryingCapacity,
-                                                "Maximalgewicht",
-                                                onConfirm = { value ->
-                                                    println(value.toString())
-                                                    Overlay.closeOverlay()
-                                                    selectedInventory.value!!.maxCarryingCapacity = value
-                                                    backPackWeightUIValue = value
-                                                    println("confirmed")
-                                                },
-                                                onDismiss = {
-                                                    Overlay.closeOverlay()
-                                                    println("dismissed")
-                                                }
-                                            )
-                                        })
-                                    }
+                                    .onClick { showPopup = true }
                             ) {
                                 backPackTopValue(modifier, backPackWeight, backPackWeightUIValue, "Gewicht")
                             }
@@ -866,7 +863,6 @@ object InventoryDisplay {
 
                             Button(
                                 onClick = {
-                                    println("adding item")
                                     Overlay.showOverlay({
                                         showItemDisplayStructure(
                                             mutableStateOf(null)
@@ -911,8 +907,8 @@ object InventoryDisplay {
 
         Column(
             modifier
-                .background(backGroundColor, androidx.compose.foundation.shape.RoundedCornerShape(5.dp))
-                .clip(androidx.compose.foundation.shape.RoundedCornerShape(5.dp))
+                .background(backGroundColor, RoundedCornerShape(5.dp))
+                .clip(RoundedCornerShape(5.dp))
                 .width(100.dp)
                 .height(75.dp)
         ) {
@@ -947,7 +943,7 @@ object InventoryDisplay {
                         .zIndex(0f)
                         .padding(5.dp)
                         .fillMaxSize()
-                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(5.dp))
+                        .clip(RoundedCornerShape(5.dp))
                         .shadow(0.dp, ambientColor = Color.White, spotColor = Color.Black)
                 )
             }
@@ -990,7 +986,7 @@ object InventoryDisplay {
                         }
                     }
             ) {
-                val inv = CharacterManager.selectedInventory.value!!
+                val inv = selectedInventory.value!!
                 val displayItems = if (showSortedInv.value) {
                     inv.getItemsSortedByClass()
                 } else {
@@ -1079,7 +1075,7 @@ object InventoryDisplay {
 
                 val boxShape = remember(draggedItem.value?.equipped) {
                     mutableStateOf(
-                        if (!draggedItem.value!!.equipped) androidx.compose.foundation.shape.RoundedCornerShape(10.dp) else CutCornerShape(
+                        if (!draggedItem.value!!.equipped) RoundedCornerShape(10.dp) else CutCornerShape(
                             10.dp
                         )
                     )
@@ -1193,7 +1189,7 @@ object InventoryDisplay {
         if (item != null) {
             val boxShape = remember(item, mutation, item.equipped) {
                 mutableStateOf(
-                    if (!item.equipped) androidx.compose.foundation.shape.RoundedCornerShape(10.dp) else androidx.compose.foundation.shape.CutCornerShape(
+                    if (!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(
                         10.dp
                     )
                 )
@@ -1233,7 +1229,7 @@ object InventoryDisplay {
                         this.scaleX = scale
                         this.scaleY = scale
                     }
-                    .shadow(elevation, shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp), clip = false)
+                    .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
                     .background(backGroundColor.value, shape = boxShape.value)
                     .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
                     .pointerInput(Unit) {
@@ -1284,7 +1280,7 @@ object InventoryDisplay {
                                 .padding(5.dp, 0.dp)
                                 .background(
                                     color = lerp(Color.Transparent, Color.White, 0.8f),
-                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(15.dp)
+                                    shape = RoundedCornerShape(15.dp)
                                 )
                                 .padding(10.dp, 0.dp)
                         )
@@ -1320,7 +1316,7 @@ object InventoryDisplay {
                     .size(100.dp)
                     .background(
                         backGroundColor.value.copy(alpha = 0.5f),
-                        androidx.compose.foundation.shape.RoundedCornerShape(10.dp)
+                        RoundedCornerShape(10.dp)
                     )
             )
         }

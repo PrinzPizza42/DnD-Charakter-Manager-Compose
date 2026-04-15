@@ -1,17 +1,22 @@
 package ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.Button
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
@@ -36,6 +41,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import disk.ImageLoader
 import androidx.compose.ui.graphics.toPainter
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.text.input.TextFieldValue
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -233,4 +244,80 @@ fun openAsWindowIconButton(onClick: () -> Unit) {
             )
         }
     )
+}
+
+@Composable
+fun getFloatInputOverlay(
+    modifier: Modifier,
+    startValue: Float,
+    text: String,
+    onConfirm: (Float) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Box(
+        modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        val input = remember { mutableStateOf(TextFieldValue(startValue.toString())) }
+        var isError by remember { mutableStateOf(false) }
+
+        Column(
+            modifier = Modifier
+                .width(IntrinsicSize.Min),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            TextField(
+                value = input.value,
+                onValueChange = {
+                    input.value = it
+                    isError = it.text.toFloatOrNull() == null
+                },
+                modifier = Modifier
+                    .onPreviewKeyEvent { event ->
+                        if (event.type == KeyEventType.KeyDown) {
+                            when (event.key) {
+                                Key.Enter -> {
+                                    if (!isError) onConfirm(input.value.text.toFloat())
+                                    true
+                                }
+
+                                Key.Escape -> {
+                                    onDismiss()
+                                    true
+                                }
+
+                                else -> false
+                            }
+                        } else {
+                            false
+                        }
+                    },
+                label = {
+                    Text(text)
+                },
+                singleLine = true,
+                isError = isError
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+            ) {
+                Button(
+                    onClick = {
+                        val number = input.value.text.toFloatOrNull()
+                        if (number != null) onConfirm(number)
+                    },
+                    content = {
+                        Text("Bestätigen")
+                    }
+                )
+                Button(
+                    onClick = { onDismiss() },
+                    content = {
+                        Text("Abbrechen")
+                    }
+                )
+            }
+        }
+    }
 }
