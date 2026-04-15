@@ -61,7 +61,6 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
@@ -94,7 +93,7 @@ import androidx.compose.ui.zIndex
 import disk.ImageLoader
 import data.CharacterManager
 import data.CharacterManager.selectedInventory
-import data.Inventory
+import data.WindowManager.LocalWindow
 import itemClasses.Armor
 import itemClasses.ArmorClasses
 import itemClasses.Consumable
@@ -117,7 +116,6 @@ object InventoryDisplay {
     @Composable
     fun displayInv(
         modifier: Modifier,
-        window: ComposeWindow
     ) {
         val slotSize = remember { mutableStateOf(100.dp) }
 
@@ -125,16 +123,15 @@ object InventoryDisplay {
             modifier = modifier
         ) {
             Column {
-                sceneryAndBackPackTop(slotSize, window)
-                backPack(slotSize, window)
+                sceneryAndBackPackTop(slotSize)
+                backPack(slotSize)
             }
         }
     }
 
     @Composable
     fun showItemDisplayStructure(
-        item: MutableState<Item?>,
-        window: ComposeWindow
+        item: MutableState<Item?>
     ) {
         val classes = listOf("Nahkampf-Waffe", "Fernkampf-Waffe", "Verbrauchsgegenstände", "Rüstung", "Trank", "Verschiedenes")
         val selectedClass = remember { mutableStateOf(classes[0]) }
@@ -192,7 +189,7 @@ object InventoryDisplay {
 
                     //Item image
                     Box(Modifier.weight(1f)) {
-                        itemDisplayImage(item, window, reloadKey)
+                        itemDisplayImage(item, reloadKey)
                     }
                 }
             }
@@ -479,9 +476,10 @@ object InventoryDisplay {
     @Composable
     fun itemDisplayImage(
         item: MutableState<Item?>,
-        window: ComposeWindow,
         reloadKey: MutableState<Int>
     ) {
+        val window = LocalWindow.current
+
         Box(
             Modifier
                 .fillMaxSize()
@@ -680,8 +678,7 @@ object InventoryDisplay {
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     fun sceneryAndBackPackTop(
-        slotSize: MutableState<Dp>,
-        window: ComposeWindow
+        slotSize: MutableState<Dp>
     ) {
         Box(
             Modifier
@@ -872,8 +869,7 @@ object InventoryDisplay {
                                     println("adding item")
                                     Overlay.showOverlay({
                                         showItemDisplayStructure(
-                                            mutableStateOf(null),
-                                            window
+                                            mutableStateOf(null)
                                         )
                                     })
                                 },
@@ -961,8 +957,7 @@ object InventoryDisplay {
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
     fun backPack(
-        slotSize: MutableState<Dp>,
-        window: ComposeWindow
+        slotSize: MutableState<Dp>
     ) {
         val dragMode = remember { mutableStateOf(false) }
         val draggedItem = remember { mutableStateOf<Item?>(null) }
@@ -1021,7 +1016,6 @@ object InventoryDisplay {
                                 draggedItem,
                                 slotSize,
                                 dragMode,
-                                window,
                                 draggedItemIndexBuffer
                             )
                         }
@@ -1180,10 +1174,9 @@ object InventoryDisplay {
         draggedItem: MutableState<Item?>,
         slotSize: MutableState<Dp>,
         dragMode: MutableState<Boolean>,
-        window: ComposeWindow,
         draggedItemIndexBuffer: MutableState<Int?>
     ) {
-        val inv = CharacterManager.selectedInventory
+        val inv = selectedInventory
 
         val mutation = item?.mutationCount ?: 0
 
@@ -1253,7 +1246,7 @@ object InventoryDisplay {
                                     dragMode.value = false
                                 } else if (item !is EmptySlot) {
                                     Overlay.showOverlay({
-                                        showItemDisplayStructure(mutableStateOf(item), window)
+                                        showItemDisplayStructure(mutableStateOf(item))
                                     })
                                 }
                             },

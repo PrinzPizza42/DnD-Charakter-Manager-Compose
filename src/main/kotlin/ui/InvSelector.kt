@@ -126,16 +126,13 @@ object InvSelector {
                         .height(8.dp)
                 )
 
-                invElement(inv, CharacterManager.selectedInventory)
+                invElement(inv)
             }
         }
     }
 
     @Composable
-    fun invElement(
-        inv: Inventory,
-        selectedInventory: MutableState<Inventory?>
-    ) {
+    fun invElement(inv: Inventory) {
         var showDelete by remember { mutableStateOf(false) }
 
         Box(
@@ -153,7 +150,7 @@ object InvSelector {
                             .shadow(10.dp, RoundedCornerShape(10.dp))
                             .background(
                                 Color.White,
-                                androidx.compose.foundation.shape.RoundedCornerShape(10.dp)
+                                RoundedCornerShape(10.dp)
                             )
                     ) {
                         Column {
@@ -210,7 +207,7 @@ object InvSelector {
                 Button(
                     onClick = {
                         println("opening inv " + inv.name)
-                        selectedInventory.value = Inventory(inv)
+                        CharacterManager.selectedInventory.value = Inventory(inv)
                         inv.items.forEach { item -> if(item !is EmptySlot) println("${inv.items.indexOf(item)} : ${item.name} : ${item.uuid}") }
                     },
                     content = {

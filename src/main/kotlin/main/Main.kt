@@ -35,6 +35,8 @@ import data.TabManager.showEquippedItemsTab
 import data.TabManager.showInvSelector
 import data.TabManager.showInventoryTab
 import data.TabManager.showScrollTab
+import data.WindowManager
+import data.WindowManager.LocalWindow
 import ui.CharacterDisplay
 import ui.InvSelector.inventorySelector
 import ui.InventoryDisplay.displayInv
@@ -42,6 +44,7 @@ import ui.Overlay.activeOverlay
 import ui.Overlay.closeOverlay
 import ui.ScrollDisplay.scrollDisplay
 import ui.TabSelector.displayTabSelector
+import kotlin.uuid.ExperimentalUuidApi
 
 fun main() = application {
     val icon = remember { ImageLoader.loadImageFromResources("icon.png").get().toPainter() }
@@ -56,13 +59,22 @@ fun main() = application {
         title = "DnD-Charakter-Manager",
         icon = icon
     ) {
-        App(window)
+        CompositionLocalProvider(LocalWindow provides window) {
+            App()
+        }
     }
 }
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 @Preview
-fun App(window: ComposeWindow) {
-    if(showInvSelector.value) inventorySelector()
+fun App() {
+    for(window in WindowManager.windowList) {
+        key(window.uuid) {
+            window.draw()
+        }
+    }
+
+    if(selectedInventory.value == null) inventorySelector()
     else {
         val modifier = if(activeOverlay.value != null) Modifier.fillMaxSize().blur(3.dp) else Modifier.fillMaxSize()
 
@@ -77,17 +89,8 @@ fun App(window: ComposeWindow) {
                     section(
                         showInventoryTab,
                         showScrollTab,
-                        {
-                            displayInv(
-                                Modifier.fillMaxSize(),
-                                window
-                            )
-                        },
-                        {
-                            scrollDisplay(
-                                Modifier.fillMaxSize()
-                            )
-                        },
+                        { displayInv(Modifier.fillMaxSize()) },
+                        { scrollDisplay(Modifier.fillMaxSize()) },
                         { displayTabSelector() }
                     )
                 }

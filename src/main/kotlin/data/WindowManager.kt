@@ -4,10 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toPainter
 import disk.ImageLoader
-import data.CustomWindow
 import kotlin.uuid.ExperimentalUuidApi
 
 object WindowManager {
@@ -20,12 +21,14 @@ object WindowManager {
         onCloseRequest: () -> Unit,
         content: @Composable (() -> Unit)? = null,
         icon: Painter = iconRessource,
-        title: MutableState<String> = mainWindowTitle
+        title: MutableState<String> = mainWindowTitle,
+        openTabState: MutableState<Boolean> = mutableStateOf(false),
     ): CustomWindow {
         val newWindow = CustomWindow(
             onCloseRequest = onCloseRequest,
             icon = icon,
             title = title,
+            openTab = openTabState
         )
         if(content != null) newWindow.content = content
 
@@ -36,5 +39,9 @@ object WindowManager {
 
     fun removeWindow(window: CustomWindow) {
         windowList.remove(window)
+    }
+
+    val LocalWindow = staticCompositionLocalOf<ComposeWindow> {
+        error("Kein ComposeWindow bereitgestellt")
     }
 }

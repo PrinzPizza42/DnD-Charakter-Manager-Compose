@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.RadioButton
 import androidx.compose.material.RadioButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +39,7 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import data.CharacterManager.selectedInventory
+import data.CustomWindow
 import data.Inventory
 import data.TabManager.sectionSwitch
 import data.TabManager.showCharDetailsTab
@@ -49,6 +50,7 @@ import data.WindowManager
 import disk.ImageLoader
 import disk.Read
 import disk.Write
+import kotlin.uuid.ExperimentalUuidApi
 
 object TabSelector {
     val width = 50.dp
@@ -90,7 +92,7 @@ object TabSelector {
                     {},
                     showInventoryTab,
                     ImageLoader.loadImageFromResources("backPackIcon.png").get().toPainter(),
-                    { ScrollDisplay.scrollDisplay(Modifier.fillMaxSize()) }
+                    { InventoryDisplay.displayInv(Modifier.fillMaxSize()) }
                 )
 
                 // Show scrollPanel button
@@ -98,7 +100,7 @@ object TabSelector {
                     {},
                     showScrollTab,
                     ImageLoader.loadImageFromResources("scrollIcon.png").get().toPainter(),
-                    { InventoryDisplay.displayInv(Modifier.fillMaxSize()) }
+                    { ScrollDisplay.scrollDisplay(Modifier.fillMaxSize()) }
                 )
             }
 
@@ -193,7 +195,7 @@ object TabSelector {
         }
     }
 
-    @OptIn(ExperimentalComposeUiApi::class)
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalUuidApi::class)
     @Composable
     fun tabElement(
         onClick: () -> Unit,
@@ -222,12 +224,14 @@ object TabSelector {
             animationSpec = tween(300)
         )
 
-        Row {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(0.dp, 10.dp, 0.dp, 10.dp)
+        ) {
             Box(
                 Modifier
                     .graphicsLayer(scaleX = scale, scaleY = scale)
-                    .fillMaxWidth()
-                    .padding(0.dp, 10.dp, 0.dp, 10.dp)
                     .clickable(enabled = true, onClick = {
                         showPanel.value = !showPanel.value
                         onClick()
@@ -251,16 +255,31 @@ object TabSelector {
                 )
             }
 
-            openAsWindowIconButton(onClick = {
-                showPanel.value = false
+            val window: MutableState<CustomWindow?> = remember { mutableStateOf(null) }
 
-                WindowManager.openNewWindow(
-                    onCloseRequest = {
+            LaunchedEffect(showPanel.value) {
+                if(showPanel.value) {
+                    window.value?.close()
+                }
+            }
+
+            openAsWindowIconButton(
+                onClick = {
+                    if(window.value == null) {
+                        window.value = WindowManager.openNewWindow(
+                            onCloseRequest = {},
+                            content = windowContent,
+                            openTabState = showPanel
+                        )
+                        showPanel.value = false
+                    }
+                    else {
+                        window.value?.close()
+                        window.value = null
                         showPanel.value = true
-                    },
-                    content = windowContent
-                )
-            })
+                    }
+                }
+            )
         }
     }
 }

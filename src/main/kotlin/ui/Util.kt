@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -227,7 +228,7 @@ fun openAsWindowIconButton(onClick: () -> Unit) {
         },
         content = {
             Icon(
-                imageVector = Icons.Default.Share,
+                imageVector = Icons.Default.Menu,
                 contentDescription = "Open as window"
             )
         }
