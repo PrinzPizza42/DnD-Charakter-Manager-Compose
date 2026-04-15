@@ -42,12 +42,12 @@ import data.CharacterManager
 import data.CharacterManager.selectedInventory
 import data.CustomWindow
 import data.Inventory
+import data.TabManager
 import data.TabManager.sectionSwitch
 import data.TabManager.showCharDetailsTab
 import data.TabManager.showEquippedItemsTab
 import data.TabManager.showInventoryTab
 import data.TabManager.showScrollTab
-import data.TabSelectorData
 import data.WindowManager
 import disk.ImageLoader
 import disk.Read
@@ -95,7 +95,7 @@ object TabSelector {
                     showInventoryTab,
                     ImageLoader.loadImageFromResources("backPackIcon.png").get().toPainter(),
                     { InventoryDisplay.displayInv(Modifier.fillMaxSize()) },
-                    windowState = TabSelectorData.inventoryWindow
+                    windowState = TabManager.inventoryWindow
                 )
 
                 // Show scrollPanel button
@@ -104,7 +104,7 @@ object TabSelector {
                     showScrollTab,
                     ImageLoader.loadImageFromResources("scrollIcon.png").get().toPainter(),
                     { ScrollDisplay.scrollDisplay(Modifier.fillMaxSize()) },
-                    windowState = TabSelectorData.spellsWindow
+                    windowState = TabManager.spellsWindow
                 )
             }
 
@@ -115,7 +115,7 @@ object TabSelector {
                     .fillMaxWidth()
                     .background(
                         lerp(Color.LightGray, Color.DarkGray, 0.6f),
-                        androidx.compose.foundation.shape.RoundedCornerShape(5.dp)
+                        RoundedCornerShape(5.dp)
                     )
             ) {
                 RadioButton(
@@ -134,14 +134,14 @@ object TabSelector {
                     showCharDetailsTab,
                     ImageLoader.loadImageFromResources("icon.png").get().toPainter(),
                     { CharacterDisplay.displayCharInfo() },
-                    windowState = TabSelectorData.charInfoWindow
+                    windowState = TabManager.charInfoWindow
                 )
                 tabElement(
                     {},
                     showEquippedItemsTab,
                     ImageLoader.loadImageFromResources("icon.png").get().toPainter(),
                     { CharacterDisplay.displayCharEquipment() },
-                    windowState = TabSelectorData.equippedItemsWindow
+                    windowState = TabManager.equippedItemsWindow
                 )
             }
         }

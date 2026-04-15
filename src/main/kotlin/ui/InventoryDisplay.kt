@@ -74,6 +74,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import disk.ImageLoader
 import data.CharacterManager.selectedInventory
+import data.TabManager
 import itemClasses.EmptySlot
 import itemClasses.Item
 import org.jetbrains.skiko.Cursor
@@ -247,14 +248,16 @@ object InventoryDisplay {
                         var selectedOption by remember { mutableStateOf(options[0]) }
                         val range = remember { 50f.rangeTo(150f) }
                         Row {
-                            Slider(
-                                value = slotSize.value.value,
-                                valueRange = range,
-                                onValueChange = {
-                                    slotSize.value = it.dp
-                                },
-                                modifier = Modifier.width(150.dp),
-                            )
+                            if(TabManager.showInventoryTab.value) {
+                                Slider(
+                                    value = slotSize.value.value,
+                                    valueRange = range,
+                                    onValueChange = {
+                                        slotSize.value = it.dp
+                                    },
+                                    modifier = Modifier.width(150.dp),
+                                )
+                            }
 
                             val backGroundColor = remember { lerp(Color.Transparent, Color.Black, 0.2f) }
 

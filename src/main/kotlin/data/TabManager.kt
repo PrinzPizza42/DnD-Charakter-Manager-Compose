@@ -10,4 +10,9 @@ object TabManager {
     val showEquippedItemsTab = mutableStateOf(true)
 
     val sectionSwitch = mutableStateOf(true)
+
+    val inventoryWindow = mutableStateOf<CustomWindow?>(null)
+    val spellsWindow = mutableStateOf<CustomWindow?>(null)
+    val charInfoWindow = mutableStateOf<CustomWindow?>(null)
+    val equippedItemsWindow = mutableStateOf<CustomWindow?>(null)
 }
