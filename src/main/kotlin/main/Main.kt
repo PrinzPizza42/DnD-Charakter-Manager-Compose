@@ -8,19 +8,14 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import disk.ImageLoader
 import disk.Read
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPainter
-import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -32,7 +27,6 @@ import data.CharacterManager.selectedInventory
 import data.TabManager.sectionSwitch
 import data.TabManager.showCharDetailsTab
 import data.TabManager.showEquippedItemsTab
-import data.TabManager.showInvSelector
 import data.TabManager.showInventoryTab
 import data.TabManager.showScrollTab
 import data.WindowManager
@@ -40,6 +34,7 @@ import data.WindowManager.LocalWindow
 import ui.CharacterDisplay
 import ui.InvSelector.inventorySelector
 import ui.InventoryDisplay.displayInv
+import ui.ItemDisplay
 import ui.Overlay.activeOverlay
 import ui.Overlay.closeOverlay
 import ui.ScrollDisplay.scrollDisplay
@@ -114,6 +109,7 @@ fun App() {
                             detectTapGestures(
                                 onTap = {
                                     closeOverlay()
+                                    ItemDisplay.show = false
                                 }
                             )
                         },
@@ -125,6 +121,10 @@ fun App() {
                 }
             }
         }
+    }
+
+    LaunchedEffect(ItemDisplay.show, ItemDisplay.window, ItemDisplay.showItemDisplayOverlayAsWindow.value) {
+        if (ItemDisplay.show) ItemDisplay.draw()
     }
 }
 

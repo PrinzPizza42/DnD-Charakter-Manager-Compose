@@ -48,6 +48,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import data.CharacterManager
+import data.CharacterManager.selectedInventory
 import itemClasses.EmptySlot
 import itemClasses.Item
 import org.jetbrains.skiko.Cursor
@@ -57,25 +58,34 @@ object CharacterDisplay {
     @Composable
     fun displayCharInfo() {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Character Info")
+            if(selectedInventory.value != null) {
+                Text("Character Info")
+            }
+            else {
+                Text("Kein Inventar ausgewählt")
+            }
         }
     }
 
     @Composable
     fun displayCharEquipment() {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            val background = remember { lerp(Color.Gray, Color.Transparent, 0.5f) }
-            val slotSize = remember { mutableStateOf(130.dp) }
-            Box {
-                getRandomCharacterImage()
-                Row(Modifier.fillMaxSize()) {
-                    equippedElementTab(background, slotSize, true, null)
-                    Box(Modifier.weight(1f))
-                    equippedElementTab(background, slotSize, false, null)
+            if(selectedInventory.value != null) {
+                val background = remember { lerp(Color.Gray, Color.Transparent, 0.5f) }
+                val slotSize = remember { mutableStateOf(130.dp) }
+                Box {
+                    getRandomCharacterImage()
+                    Row(Modifier.fillMaxSize()) {
+                        equippedElementTab(background, slotSize, true, null)
+                        Box(Modifier.weight(1f))
+                        equippedElementTab(background, slotSize, false, null)
+                    }
                 }
-            }
 
-            Text("Character Equipment")
+            }
+            else {
+                Text("Kein Inventar ausgewählt")
+            }
         }
     }
 

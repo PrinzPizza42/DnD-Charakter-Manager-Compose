@@ -89,43 +89,47 @@ import kotlin.math.roundToInt
 object ScrollDisplay {
     @Composable
     fun scrollDisplay(modifier: Modifier) {
-        val spells = remember {
-            mutableStateListOf<Spell>().apply {
-                println("loading spells from source")
-                clear()
-                addAll(selectedInventory.value!!.spells)
-                println(selectedInventory.value!!.spells.toString())
-            }
-        }
-
-        val spellLevels = remember { mutableStateListOf<Pair<Int, Int>>() }
-        val spellLevelsCount = remember(spellLevels.size) { mutableStateOf(spellLevels.size) }
-
-        //null when no spell was tried to cast but could not be cast
-        val couldNotCast = remember { mutableStateOf<Int?>(null) }
-
         Row(
             modifier
                 .fillMaxHeight()
                 .wrapContentSize(Alignment.Center)
         ) {
-            // SpellDisplay
-            Box(
-                Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .background(Color.Green)
-            ) {
-                spellDisplay(spells, spellLevels, spellLevelsCount, couldNotCast)
-            }
+            if(selectedInventory.value != null) {
+                val spells = remember {
+                    mutableStateListOf<Spell>().apply {
+                        println("loading spells from source")
+                        clear()
+                        addAll(selectedInventory.value!!.spells)
+                        println(selectedInventory.value!!.spells.toString())
+                    }
+                }
+                val spellLevels = remember { mutableStateListOf<Pair<Int, Int>>() }
+                val spellLevelsCount = remember(spellLevels.size) { mutableStateOf(spellLevels.size) }
 
-            // ManaSideBar
-            Box(
-                Modifier
-                    .fillMaxHeight()
-                    .width(50.dp)
-            ) {
-                manaSideBar(spellLevels, spellLevelsCount, couldNotCast)
+                //null when no spell was tried to cast but could not be cast
+                val couldNotCast = remember { mutableStateOf<Int?>(null) }
+
+                // SpellDisplay
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .weight(1f)
+                        .background(Color.Green)
+                ) {
+                    spellDisplay(spells, spellLevels, spellLevelsCount, couldNotCast)
+                }
+
+                // ManaSideBar
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .width(50.dp)
+                ) {
+                    manaSideBar(spellLevels, spellLevelsCount, couldNotCast)
+                }
+            }
+            else {
+                Text("Kein Inventar ausgewählt")
             }
         }
     }

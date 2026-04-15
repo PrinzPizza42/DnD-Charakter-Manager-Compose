@@ -9,7 +9,5 @@ object TabManager {
     val showCharDetailsTab = mutableStateOf(true)
     val showEquippedItemsTab = mutableStateOf(true)
 
-    val showInvSelector = mutableStateOf(selectedInventory.value == null)
-
     val sectionSwitch = mutableStateOf(true)
 }

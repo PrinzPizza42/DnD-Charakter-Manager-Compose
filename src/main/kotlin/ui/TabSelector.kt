@@ -38,6 +38,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import data.CharacterManager
 import data.CharacterManager.selectedInventory
 import data.CustomWindow
 import data.Inventory
@@ -46,6 +47,7 @@ import data.TabManager.showCharDetailsTab
 import data.TabManager.showEquippedItemsTab
 import data.TabManager.showInventoryTab
 import data.TabManager.showScrollTab
+import data.TabSelectorData
 import data.WindowManager
 import disk.ImageLoader
 import disk.Read
@@ -92,7 +94,8 @@ object TabSelector {
                     {},
                     showInventoryTab,
                     ImageLoader.loadImageFromResources("backPackIcon.png").get().toPainter(),
-                    { InventoryDisplay.displayInv(Modifier.fillMaxSize()) }
+                    { InventoryDisplay.displayInv(Modifier.fillMaxSize()) },
+                    windowState = TabSelectorData.inventoryWindow
                 )
 
                 // Show scrollPanel button
@@ -100,7 +103,8 @@ object TabSelector {
                     {},
                     showScrollTab,
                     ImageLoader.loadImageFromResources("scrollIcon.png").get().toPainter(),
-                    { ScrollDisplay.scrollDisplay(Modifier.fillMaxSize()) }
+                    { ScrollDisplay.scrollDisplay(Modifier.fillMaxSize()) },
+                    windowState = TabSelectorData.spellsWindow
                 )
             }
 
@@ -129,13 +133,15 @@ object TabSelector {
                     {},
                     showCharDetailsTab,
                     ImageLoader.loadImageFromResources("icon.png").get().toPainter(),
-                    { CharacterDisplay.displayCharInfo() }
+                    { CharacterDisplay.displayCharInfo() },
+                    windowState = TabSelectorData.charInfoWindow
                 )
                 tabElement(
                     {},
                     showEquippedItemsTab,
                     ImageLoader.loadImageFromResources("icon.png").get().toPainter(),
-                    { CharacterDisplay.displayCharEquipment() }
+                    { CharacterDisplay.displayCharEquipment() },
+                    windowState = TabSelectorData.equippedItemsWindow
                 )
             }
         }
@@ -202,6 +208,7 @@ object TabSelector {
         showPanel: MutableState<Boolean>,
         icon: Painter,
         windowContent: @Composable () -> Unit,
+        windowState: MutableState<CustomWindow?>
     ) {
         var hoveredOver by remember { mutableStateOf(false) }
 
@@ -255,18 +262,16 @@ object TabSelector {
                 )
             }
 
-            val window: MutableState<CustomWindow?> = remember { mutableStateOf(null) }
-
             LaunchedEffect(showPanel.value) {
                 if(showPanel.value) {
-                    window.value?.close()
+                    windowState.value?.close()
                 }
             }
 
             openAsWindowIconButton(
                 onClick = {
-                    if(window.value == null) {
-                        window.value = WindowManager.openNewWindow(
+                    if(windowState.value == null) {
+                        windowState.value = WindowManager.openNewWindow(
                             onCloseRequest = {},
                             content = windowContent,
                             openTabState = showPanel
@@ -274,8 +279,8 @@ object TabSelector {
                         showPanel.value = false
                     }
                     else {
-                        window.value?.close()
-                        window.value = null
+                        windowState.value?.close()
+                        windowState.value = null
                         showPanel.value = true
                     }
                 }

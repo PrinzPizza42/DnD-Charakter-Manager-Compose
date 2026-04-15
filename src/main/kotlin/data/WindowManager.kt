@@ -22,7 +22,7 @@ object WindowManager {
         content: @Composable (() -> Unit)? = null,
         icon: Painter = iconRessource,
         title: MutableState<String> = mainWindowTitle,
-        openTabState: MutableState<Boolean> = mutableStateOf(false),
+        openTabState: MutableState<Boolean> = mutableStateOf(false)
     ): CustomWindow {
         val newWindow = CustomWindow(
             onCloseRequest = onCloseRequest,
@@ -39,6 +39,10 @@ object WindowManager {
 
     fun removeWindow(window: CustomWindow) {
         windowList.remove(window)
+    }
+
+    fun clearWindows() {
+        windowList.clear()
     }
 
     val LocalWindow = staticCompositionLocalOf<ComposeWindow> {

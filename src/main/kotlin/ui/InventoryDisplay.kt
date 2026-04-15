@@ -10,7 +10,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -31,33 +30,23 @@ import androidx.compose.foundation.onClick
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Checkbox
-import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.Icon
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.RadioButton
 import androidx.compose.material.RadioButtonDefaults
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -68,11 +57,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toPainter
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -80,10 +65,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -91,22 +73,10 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import disk.ImageLoader
-import data.CharacterManager
 import data.CharacterManager.selectedInventory
-import data.CustomWindow
-import data.WindowManager.LocalWindow
-import itemClasses.Armor
-import itemClasses.ArmorClasses
-import itemClasses.Consumable
 import itemClasses.EmptySlot
 import itemClasses.Item
-import itemClasses.Miscellaneous
-import itemClasses.Potion
-import itemClasses.weapons.LongRangeWeapon
-import itemClasses.weapons.ShortRangeWeapon
-import itemClasses.weapons.Weapon
 import org.jetbrains.skiko.Cursor
-import java.awt.FileDialog
 import java.io.File
 import java.util.UUID
 
@@ -120,489 +90,16 @@ object InventoryDisplay {
         val slotSize = remember { mutableStateOf(100.dp) }
 
         Box(
-            modifier = modifier
+            modifier = modifier.wrapContentSize(Alignment.Center)
         ) {
-            Column {
-                sceneryAndBackPackTop(slotSize)
-                backPack(slotSize)
-            }
-        }
-    }
-
-    @Composable
-    fun showItemDisplayStructure(
-        item: MutableState<Item?>
-    ) {
-        val classes = listOf("Nahkampf-Waffe", "Fernkampf-Waffe", "Verbrauchsgegenstände", "Rüstung", "Trank", "Verschiedenes")
-        val selectedClass = remember { mutableStateOf(classes[0]) }
-        val hasSelected = remember { mutableStateOf(false) }
-        val focusManager = LocalFocusManager.current
-
-        //InvDisplay overlay
-        BoxWithConstraints(Modifier.fillMaxSize()) {
-            val itemDisplayWith: Dp by remember(this.maxWidth) { mutableStateOf(if (this.maxWidth > 1000.dp) 1000.dp else this.maxWidth) }
-            //ItemDisplay
-            Box(
-                Modifier
-                    .align(Alignment.Center)
-                    .zIndex(11f)
-                    .size(itemDisplayWith, 700.dp)
-                    .onKeyEvent { keyEvent ->
-                        if (keyEvent.key == Key.Escape || keyEvent.key == Key.Enter) {
-                            focusManager.clearFocus()
-                            true
-                        } else false
-                    }
-                    .pointerInput(Unit) {
-                        detectTapGestures(onTap = {
-                            focusManager.clearFocus()
-                        })
-                    }
-            ) {
-                val itemDisplayBackGround = remember { ImageLoader.loadImageFromResources("itemDisplayBackGround.png").get().toPainter() }
-                Image(
-                    itemDisplayBackGround,
-                    "itemDisplayBackGround",
-                    Modifier
-                        .zIndex(11f)
-                        .fillMaxSize(),
-                    contentScale = ContentScale.FillBounds
-                )
-
-                //Foreground
-                Row(
-                    Modifier
-                        .zIndex(12f)
-                        .fillMaxSize()
-                        .padding(62.dp, 15.dp)
-                ) {
-                    val reloadKey = remember { mutableStateOf(0) }
-
-                    //Item stats
-                    Box(Modifier.weight(1f)) {
-                        itemDisplayStats(item, hasSelected, classes, selectedClass, reloadKey)
-                    }
-
-                    //Item image
-                    Box(Modifier.weight(1f)) {
-                        itemDisplayImage(item, reloadKey)
-                    }
+            if(selectedInventory.value != null) {
+                Column {
+                    sceneryAndBackPackTop(slotSize)
+                    backPack(slotSize)
                 }
             }
-        }
-    }
-
-    @Composable
-    fun itemDisplayStats(
-        itemDisplayItem: MutableState<Item?>,
-        hasSelected: MutableState<Boolean>,
-        classes: List<String>,
-        selectedClass: MutableState<String>,
-        reloadKey: MutableState<Int>
-    ) {
-        Row(Modifier.fillMaxSize()) {
-            //Item Create
-            if (itemDisplayItem.value == null && !hasSelected.value) {
-                itemDisplayStatsCreateDisplay(classes, selectedClass, hasSelected, itemDisplayItem)
-            }
-            //Normal Display
-            else if (itemDisplayItem.value != null) {
-                itemDisplayStatsNormalDisplay(itemDisplayItem, reloadKey)
-            } else println("Something went wrong")
-        }
-    }
-
-    @Composable
-    fun itemDisplayStatsCreateDisplay(
-        classes: List<String>,
-        selectedClass: MutableState<String>,
-        hasSelected: MutableState<Boolean>,
-        itemDisplayItem: MutableState<Item?>
-    ) {
-        Column(
-            Modifier
-                .pointerInput(Unit) {
-                    detectTapGestures {}
-                }
-        ) {
-            Text("Wähle eine Klasse für dein neues Item aus")
-            Column {
-                classes.forEach { option ->
-                    Row {
-                        RadioButton(
-                            selected = (option == selectedClass.value),
-                            onClick = {
-                                selectedClass.value = option
-                                hasSelected.value = true
-                                //create an empty item
-                                when (selectedClass.value) {
-                                    "Nahkampf-Waffe" -> itemDisplayItem.value = ShortRangeWeapon("", "", 1, 1, 1, "")
-                                    "Fernkampf-Waffe" -> itemDisplayItem.value = LongRangeWeapon("", "", 1, 1, 1, "")
-                                    "Verbrauchsgegenstände" -> itemDisplayItem.value = Consumable("", "", 1, 1, 1)
-                                    "Rüstung" -> itemDisplayItem.value = Armor("", "", 1, 1, 1, 10, ArmorClasses.MEDIUM)
-                                    "Trank" -> itemDisplayItem.value = Potion("", "", 1, 1, 1)
-                                    "Verschiedenes" -> itemDisplayItem.value = Miscellaneous("", "", 1, 1, 1)
-                                }
-                                println("Created ${itemDisplayItem.value}")
-                                selectedInventory.value!!.addItem(itemDisplayItem.value!!)
-                            }
-                        )
-                        Text(option)
-                    }
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun itemDisplayStatsNormalDisplay(itemDisplayItem: MutableState<Item?>, reloadKey: MutableState<Int>) {
-        key(itemDisplayItem.value) {
-            Column(Modifier.fillMaxSize()) {
-                //Name
-                val nameInput = remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.name)) }
-                TextField(
-                    value = nameInput.value,
-                    onValueChange = {
-                        nameInput.value = it
-                        itemDisplayItem.value!!.name = it.text
-                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    label = {
-                        Text("Name")
-                    },
-                    singleLine = true,
-                )
-
-                //Description
-                val descInput = remember { mutableStateOf(TextFieldValue(itemDisplayItem.value!!.description)) }
-                TextField(
-                    value = descInput.value,
-                    onValueChange = {
-                        descInput.value = it
-                        itemDisplayItem.value!!.description = it.text
-                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    label = {
-                        Text("Beschreibung")
-                    },
-                    singleLine = true,
-                )
-
-                if (itemDisplayItem.value is Weapon) {
-                    //Damage
-                    val weapon: Weapon = itemDisplayItem.value as Weapon
-                    val dmgInput = remember { mutableStateOf(TextFieldValue(weapon.damage)) }
-                    TextField(
-                        value = dmgInput.value,
-                        onValueChange = {
-                            dmgInput.value = it
-                            weapon.damage = it.text
-                            selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        label = {
-                            Text("Schaden")
-                        },
-                        singleLine = true,
-                    )
-                    itemDisplayItem.value = weapon
-                }
-
-                if (itemDisplayItem.value is Armor) {
-                    //Armor Value
-                    val armor: Armor = itemDisplayItem.value as Armor
-                    val armorValue = remember { mutableStateOf(armor.armorValue) }
-                    val armorValueRange = IntRange(0, 20)
-
-                    StepShifterIntSmall(
-                        "Rüstungswert:",
-                        armorValueRange,
-                        armorValue,
-                        {
-                            armor.armorValue += 1
-                            selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                            println("Increased 1 to ${armor.armorValue}")
-                        },
-                        { 
-                            armor.armorValue -= 1 
-                            selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                        }
-                    )
-
-                    //Armor Class
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(4.dp)
-                    ) {
-                        Text("Rüstungsklasse:", modifier = Modifier.width(150.dp))
-                        Box(
-                            Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            DropdownString(
-                                null,
-                                ArmorClasses.entries.map { it.name },
-                                mutableStateOf(armor.armorClass.toString()),
-                                { newClass ->
-                                    armor.armorClass = ArmorClasses.valueOf(newClass)
-                                    selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                                    println("Armor class value changed to ${armor.armorClass}")
-                                }
-                            )
-
-                        }
-                    }
-                }
-
-                //Weight
-                val weightValue = remember { mutableStateOf(itemDisplayItem.value!!.weight) }
-                val weightRange = IntRange(0, 500)
-
-                StepShifterIntBig(
-                    "Gewicht:",
-                    weightRange,
-                    weightValue,
-                    { increase -> 
-                        itemDisplayItem.value!!.weight += increase 
-                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                    },
-                    { decrease -> 
-                        itemDisplayItem.value!!.weight -= decrease 
-                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                    }
-                )
-
-                //Value
-                val valueValue = remember { mutableStateOf(itemDisplayItem.value!!.valueInGold) }
-                val valueRange = IntRange(0, 1000)
-
-                StepShifterIntBig(
-                    "Wert in Gold:",
-                    valueRange,
-                    valueValue,
-                    { increase -> 
-                        itemDisplayItem.value!!.valueInGold += increase 
-                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                    },
-                    { decrease -> 
-                        itemDisplayItem.value!!.valueInGold -= decrease 
-                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                    }
-                )
-
-                //Amount
-                val amountValue = remember { mutableStateOf(itemDisplayItem.value!!.amount) }
-                val amountRange = IntRange(0, 500)
-
-                StepShifterIntBig(
-                    "Menge:",
-                    amountRange,
-                    amountValue,
-                    { increase -> 
-                        itemDisplayItem.value!!.amount += increase 
-                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                    },
-                    { decrease -> 
-                        itemDisplayItem.value!!.amount -= decrease 
-                        selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                    }
-                )
-
-                //Equipped
-                val equipped = remember(
-                    itemDisplayItem.value,
-                    itemDisplayItem.value!!.equipped
-                ) { mutableStateOf(itemDisplayItem.value!!.equipped) }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(4.dp)
-                ) {
-                    Text("Ausgerüstet", Modifier.width(150.dp))
-                    Box(
-                        Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Checkbox(
-                            checked = equipped.value,
-                            onCheckedChange = {
-                                itemDisplayItem.value!!.equipped = it
-                                equipped.value = it
-                                selectedInventory.value?.notifyItemChanged(itemDisplayItem.value!!)
-                            },
-                            modifier = Modifier
-                                .width(30.dp)
-                                .padding(horizontal = 10.dp),
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = Color.Yellow,
-                                uncheckedColor = Color.Black,
-                                checkmarkColor = Color.Black
-                            )
-                        )
-                    }
-                }
-
-                //Image reset
-                Text(
-                    "Bild zurücksetzen",
-                    Modifier.clickable(
-                        onClick = {
-                            itemDisplayItem.value!!.userIconName = null
-                            reloadKey.value++
-                            println("Reset userIconName of item ${itemDisplayItem.value!!.name}")
-                        }
-                    )
-                )
-            }
-        }
-    }
-
-    @OptIn(ExperimentalMaterialApi::class)
-    @Composable
-    fun itemDisplayImage(
-        item: MutableState<Item?>,
-        reloadKey: MutableState<Int>
-    ) {
-        val window = LocalWindow.current
-
-        Box(
-            Modifier
-                .fillMaxSize()
-        ) {
-            if (item.value == null) {
-                Text("No image for this item found")
-            } else {
-                key(reloadKey.value) {
-                    val painter: Painter = remember(item.value!!.icon) { item.value!!.icon.toPainter() }
-                    var showPopUp by remember { mutableStateOf(false) }
-                    var path by remember { mutableStateOf("") }
-                    val selectedFile: MutableState<File?> = remember { mutableStateOf(null) }
-                    if (showPopUp) {
-                        Popup(
-                            onDismissRequest = { showPopUp = false },
-                            alignment = Alignment.Center,
-                            properties = PopupProperties(focusable = true)
-                        ) {
-                            Column(
-                                Modifier
-                                    .shadow(10.dp, RoundedCornerShape(10.dp))
-                                    .background(
-                                        Color.White,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .width(600.dp)
-                                    .height(100.dp)
-                            ) {
-                                Row {
-                                    val availableFiles: SnapshotStateList<File?> = remember { mutableStateListOf(null) }
-
-                                    TextField(
-                                        value = path,
-                                        onValueChange = {
-                                            path = it
-                                        },
-                                        modifier = Modifier
-                                            .weight(3f),
-                                        label = {
-                                            Text("Pfad zum Ordner der Datei")
-                                        },
-                                        placeholder = {
-                                            Text("Pfad")
-                                        },
-                                        singleLine = true,
-                                        keyboardOptions = KeyboardOptions.Default.copy(
-                                            imeAction = ImeAction.Done
-                                        ),
-                                    )
-
-                                    val expanded = remember { mutableStateOf(false) }
-                                    ExposedDropdownMenuBox(
-                                        expanded = expanded.value,
-                                        onExpandedChange = {
-                                            expanded.value = !expanded.value
-                                        }
-                                    ) {
-                                        Button(
-                                            content = { Text(if (selectedFile.value != null) selectedFile.value!!.name else "/") },
-                                            onClick = {
-                                                availableFiles.clear()
-                                                availableFiles.addAll(getFilesInDirectory(path).toMutableStateList())
-                                            }
-                                        )
-                                        ExposedDropdownMenu(
-                                            modifier = Modifier.width(450.dp),
-                                            expanded = expanded.value,
-                                            onDismissRequest = {
-                                                expanded.value = false
-                                            }
-                                        ) {
-                                            for (availableFile in availableFiles) {
-                                                if (availableFile != null) availableFilesDropDownMenuItem(
-                                                    availableFile,
-                                                    expanded,
-                                                    selectedFile
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                                Row(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.Center,
-                                ) {
-                                    Button(
-                                        onClick = {
-                                            setImage(path, selectedFile.value!!.name, item, reloadKey)
-                                            showPopUp = false
-                                        }
-                                    ) {
-                                        Text("Übernehmen")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Image(
-                        painter = painter,
-                        contentDescription = "item icon",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .pointerHoverIcon(PointerIcon.Hand)
-                            .clickable(
-                                onClick = {
-                                    var directory = ""
-                                    var preFile = ""
-
-                                    val isWindows = System.getProperty("os.name").contains("Windows", ignoreCase = true)
-
-                                    if (isWindows) {
-                                        val dialog = FileDialog(window, "Wähle eine Datei", FileDialog.LOAD)
-                                        dialog.isVisible = true
-
-                                        directory = dialog.directory
-                                        preFile = dialog.file
-                                    } else {
-                                        showPopUp = true
-                                    }
-
-                                    if (isWindows) {
-                                        try {
-                                            setImage(directory, preFile, item, reloadKey)
-                                        } catch (e: NullPointerException) {
-                                            println("Could not get image from filepicker")
-                                            e.printStackTrace()
-                                        }
-                                    } else showPopUp = true
-                                    showPopUp = true
-                                }
-                            ),
-                        contentScale = ContentScale.Fit
-                    )
-                }
+            else {
+                Text("Kein Inventar ausgewählt")
             }
         }
     }
@@ -617,13 +114,13 @@ object InventoryDisplay {
         return directory.listFiles()?.filter { it.isFile && (it.extension.contains("png") || it.extension.contains("jpg") || it.extension.contains("svg")) } ?: emptyList()
     }
 
-    fun setImage(directory: String, preFile: String, item: MutableState<Item?>, reloadKey: MutableState<Int>) {
+    fun setImage(directory: String, preFile: String, item: Item?, reloadKey: MutableState<Int>) {
         if (directory != null && preFile != null) {
             val file = File(directory, preFile)
             val uuid = UUID.randomUUID().toString()
             val finalFileName = "${file.nameWithoutExtension}_${uuid}.${file.extension}"
             ImageLoader.copyImageToUserImagesFolder(file, finalFileName)
-            item.value!!.userIconName = finalFileName
+            item!!.userIconName = finalFileName
             reloadKey.value++
         }
     }
@@ -666,7 +163,7 @@ object InventoryDisplay {
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun sceneryAndBackPackTop(
+    private fun sceneryAndBackPackTop(
         slotSize: MutableState<Dp>
     ) {
         Box(
@@ -856,18 +353,14 @@ object InventoryDisplay {
                             //BackPack value
                             val backPackValue = remember(items) {
                                 mutableStateOf(
-                                    items.toMutableList().sumOf { it!!.valueInGold * it.amount }.toFloat()
+                                    items.toMutableList().sumOf { it.valueInGold * it.amount }.toFloat()
                                 )
                             }
                             backPackTopValue(modifier, backPackValue, null, "Wert in Gold")
 
                             Button(
                                 onClick = {
-                                    Overlay.showOverlay({
-                                        showItemDisplayStructure(
-                                            mutableStateOf(null)
-                                        )
-                                    })
+                                    ItemDisplay.showItemDisplayStructure()
                                 },
                                 content = {
                                     Text("+")
@@ -894,7 +387,7 @@ object InventoryDisplay {
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun backPackTopValue(modifier: Modifier, value: MutableState<Float>, maxValue: Float?, title: String) {
+    private fun backPackTopValue(modifier: Modifier, value: MutableState<Float>, maxValue: Float?, title: String) {
         val valueCorrelatingColor by remember(value, maxValue) {
             mutableStateOf(
                 if (maxValue == null) Color.DarkGray
@@ -952,7 +445,7 @@ object InventoryDisplay {
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
-    fun backPack(
+    private fun backPack(
         slotSize: MutableState<Dp>
     ) {
         val dragMode = remember { mutableStateOf(false) }
@@ -1041,10 +534,7 @@ object InventoryDisplay {
                         Box(Modifier.weight(1f))
 
                         //Delete Button
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                        ) {
+                        Box(Modifier.fillMaxWidth()) {
                             val deleteIconRed =
                                 remember { ImageLoader.loadImageFromResources("deleteIconRed.png").get().toPainter() }
                             Image(
@@ -1056,6 +546,7 @@ object InventoryDisplay {
                                     .height(50.dp)
                                     .clickable {
                                         println("deleted item " + draggedItem.value!!.name)
+                                        if(ItemDisplay.item == draggedItem.value) ItemDisplay.close()
                                         draggedItemIndexBuffer.value = null
                                         draggedItem.value = null
                                         dragMode.value = false
@@ -1165,7 +656,7 @@ object InventoryDisplay {
 
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    fun invSlot(
+    private fun invSlot(
         item: Item?,
         draggedItem: MutableState<Item?>,
         slotSize: MutableState<Dp>,
@@ -1240,11 +731,8 @@ object InventoryDisplay {
                                     draggedItemIndexBuffer.value = null
                                     draggedItem.value = null
                                     dragMode.value = false
-                                } else if (item !is EmptySlot) {
-                                    Overlay.showOverlay({
-                                        showItemDisplayStructure(mutableStateOf(item))
-                                    })
                                 }
+                                else if (item !is EmptySlot) ItemDisplay.showItemDisplayStructure(item)
                             },
                             onLongPress = {
                                 if (item !is EmptySlot && draggedItem.value == null) {
@@ -1323,7 +811,7 @@ object InventoryDisplay {
     }
 
     @Composable
-    fun getRandomSceneryImage() {
+    private fun getRandomSceneryImage() {
         val imagePath = remember { "sceneryImages/" + (1..7).random() + ".jpeg" }
         return Image(
             painterResource(imagePath),
