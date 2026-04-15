@@ -78,6 +78,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import data.CharacterManager.selectedInventory
 import disk.ImageLoader
 import kotlinx.coroutines.launch
 import data.Inventory
@@ -87,13 +88,13 @@ import kotlin.math.roundToInt
 
 object ScrollDisplay {
     @Composable
-    fun scrollDisplay(modifier: Modifier, inv: Inventory, showScrollPanel: MutableState<Boolean>) {
+    fun scrollDisplay(modifier: Modifier) {
         val spells = remember {
             mutableStateListOf<Spell>().apply {
                 println("loading spells from source")
                 clear()
-                addAll(inv.spells)
-                println(inv.spells.toString())
+                addAll(selectedInventory.value!!.spells)
+                println(selectedInventory.value!!.spells.toString())
             }
         }
 
@@ -115,7 +116,7 @@ object ScrollDisplay {
                     .weight(1f)
                     .background(Color.Green)
             ) {
-                spellDisplay(inv, showScrollPanel, spells, spellLevels, spellLevelsCount, couldNotCast)
+                spellDisplay(spells, spellLevels, spellLevelsCount, couldNotCast)
             }
 
             // ManaSideBar
@@ -124,7 +125,7 @@ object ScrollDisplay {
                     .fillMaxHeight()
                     .width(50.dp)
             ) {
-                manaSideBar(inv, spellLevels, spellLevelsCount, couldNotCast)
+                manaSideBar(spellLevels, spellLevelsCount, couldNotCast)
             }
         }
     }
@@ -132,8 +133,6 @@ object ScrollDisplay {
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
     fun spellDisplay(
-        inv: Inventory,
-        showScrollPanel: MutableState<Boolean>,
         spells: SnapshotStateList<Spell>,
         spellLevels: MutableList<Pair<Int, Int>>,
         spellLevelsCount: MutableState<Int>,
@@ -202,7 +201,7 @@ object ScrollDisplay {
                             .clickable {
                                 val newSpell = Spell("Neuer Zauber (Vorlage)", "Beschreibung (Vorlage)", 1)
                                 spells.add(0, newSpell)
-                                inv.spells.add(0, newSpell)
+                                selectedInventory.value!!.spells.add(0, newSpell)
                                 coroutineScope.launch {
                                     listState.animateScrollToItem(index = 0)
                                 }
@@ -273,7 +272,6 @@ object ScrollDisplay {
                                 spellLevelsCount,
                                 spellLevels,
                                 couldNotCast,
-                                inv,
                                 spells,
                                 selectedSpellSliderValue
                             )
@@ -292,7 +290,6 @@ object ScrollDisplay {
         spellLevelsCount: MutableState<Int>,
         spellLevels: MutableList<Pair<Int, Int>>,
         couldNotCast: MutableState<Int?>,
-        inv: Inventory,
         spells: SnapshotStateList<Spell>,
         selectedSpellSliderValue: MutableState<Float>
     ) {
@@ -403,7 +400,7 @@ object ScrollDisplay {
                         if (spellLevels.isEmpty() || (sliderValue.roundToInt() - 1 >= 0 && spellLevelsCount.value > 0 && spellLevels[sliderValue.roundToInt() - 1].first <= 0)) {
                             IconButton(
                                 onClick = {
-                                    onClickFirstButton(spellLevels, couldNotCast, inv, spell, sliderValue)
+                                    onClickFirstButton(spellLevels, couldNotCast, selectedInventory.value!!, spell, sliderValue)
                                 },
                                 content = {
                                     Icon(
@@ -417,7 +414,7 @@ object ScrollDisplay {
                         } else {
                             IconButton(
                                 onClick = {
-                                    onClickFirstButton(spellLevels, couldNotCast, inv, spell, sliderValue)
+                                    onClickFirstButton(spellLevels, couldNotCast, selectedInventory.value!!, spell, sliderValue)
                                 },
                                 content = {
                                     Text("Use")
@@ -438,11 +435,11 @@ object ScrollDisplay {
                         IconButton(
                             onClick = {
                                 spells.remove(spell)
-                                inv.spells.remove(spell)
+                                selectedInventory.value!!.spells.remove(spell)
                                 println(
                                     "removed spell " + spell.name + " internal: " + spells.contains(
                                         spell
-                                    ) + " external: " + inv.spells.contains(spell)
+                                    ) + " external: " + selectedInventory.value!!.spells.contains(spell)
                                 )
                             },
                             content = {
@@ -596,7 +593,6 @@ object ScrollDisplay {
 
     @Composable
     fun manaSideBar(
-        inv: Inventory,
         spellLevels: MutableList<Pair<Int, Int>>,
         levels: MutableState<Int>,
         couldNotCast: MutableState<Int?>
@@ -605,7 +601,7 @@ object ScrollDisplay {
 
         LaunchedEffect(Unit) {
             spellLevels.clear()
-            spellLevels.addAll(inv.getSpellLevels())
+            spellLevels.addAll(selectedInventory.value!!.getSpellLevels())
             println("loaded levels")
         }
 
@@ -620,7 +616,7 @@ object ScrollDisplay {
                     .verticalScroll(scrollState)
             ) {
                 spellLevels.forEachIndexed { level, (used, max) ->
-                    levelElement(level = level + 1, used = used, max = max, spellLevels, inv, couldNotCast)
+                    levelElement(level = level + 1, used = used, max = max, spellLevels, couldNotCast)
                 }
             }
             Column(
@@ -634,7 +630,7 @@ object ScrollDisplay {
                         .clickable {
                             val newLevel = Pair(5, 5)
                             spellLevels.addLast(newLevel)
-                            inv.addLastSpellLevel(newLevel)
+                            selectedInventory.value!!.addLastSpellLevel(newLevel)
                             println("added level")
                         }
                         .weight(1f)
@@ -662,7 +658,7 @@ object ScrollDisplay {
                         .clickable {
                             if (spellLevels.isNotEmpty()) {
                                 spellLevels.removeLast()
-                                inv.removeSpellLevel(spellLevels.size)
+                                selectedInventory.value!!.removeSpellLevel(spellLevels.size)
                                 println("removed level")
                             }
                         }
@@ -677,7 +673,7 @@ object ScrollDisplay {
                 IconButton(
                     onClick = {
                         resetUsedSpellSlots(spellLevels)
-                        inv.resetUsedSpellSlots()
+                        selectedInventory.value!!.resetUsedSpellSlots()
                     },
                     content = {
                         Icon(
@@ -702,7 +698,6 @@ object ScrollDisplay {
         used: Int,
         max: Int,
         spellLevels: MutableList<Pair<Int, Int>>,
-        inv: Inventory,
         couldNotCast: MutableState<Int?>
     ) {
         val levelColor =
@@ -739,7 +734,7 @@ object ScrollDisplay {
                                 val newUsed = if (used == max) used - 1 else used
 
                                 spellLevels[level - 1] = Pair(newUsed, max - 1)
-                                inv.getSpellLevels()[level - 1] = Pair(newUsed, max - 1)
+                                selectedInventory.value!!.getSpellLevels()[level - 1] = Pair(newUsed, max - 1)
                             }
                         }
                         .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
@@ -813,7 +808,7 @@ object ScrollDisplay {
                                 .clickable {
                                     if (level - 1 >= 0) {
                                         spellLevels[level - 1] = Pair(index + 1, max)
-                                        inv.getSpellLevels()[level - 1] = Pair(index + 1, max)
+                                        selectedInventory.value!!.getSpellLevels()[level - 1] = Pair(index + 1, max)
                                     }
                                 }
                                 .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
@@ -827,7 +822,7 @@ object ScrollDisplay {
                         .clickable {
                             println("Added one slot to Level $level")
                             spellLevels[level - 1] = Pair(used, max + 1)
-                            inv.getSpellLevels()[level - 1] = Pair(used, max + 1)
+                            selectedInventory.value!!.getSpellLevels()[level - 1] = Pair(used, max + 1)
                         }
                         .pointerHoverIcon(PointerIcon(_root_ide_package_.org.jetbrains.skiko.Cursor(Cursor.HAND_CURSOR)))
                 ) {

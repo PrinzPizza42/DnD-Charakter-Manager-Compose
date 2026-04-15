@@ -29,6 +29,12 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import data.CharacterManager.selectedInventory
+import data.TabManager.sectionSwitch
+import data.TabManager.showCharDetailsTab
+import data.TabManager.showEquippedItemsTab
+import data.TabManager.showInvSelector
+import data.TabManager.showInventoryTab
+import data.TabManager.showScrollTab
 import ui.CharacterDisplay
 import ui.InvSelector.inventorySelector
 import ui.InventoryDisplay.displayInv
@@ -56,16 +62,8 @@ fun main() = application {
 @Composable
 @Preview
 fun App(window: ComposeWindow) {
-    val showInventoryTab = remember { mutableStateOf(true) }
-    val showScrollTab = remember { mutableStateOf(true) }
-    val showCharDetailsTab = remember { mutableStateOf(true) }
-    val showEquippedItemsTab = remember { mutableStateOf(true) }
-
-    val showInvSelector = remember(selectedInventory.value) { mutableStateOf(selectedInventory.value == null) }
-
     if(showInvSelector.value) inventorySelector()
     else {
-        val sectionSwitch = remember { mutableStateOf(true) } // true = inv & spells; false = char details
         val modifier = if(activeOverlay.value != null) Modifier.fillMaxSize().blur(3.dp) else Modifier.fillMaxSize()
 
         Box(
@@ -81,26 +79,16 @@ fun App(window: ComposeWindow) {
                         showScrollTab,
                         {
                             displayInv(
-                                selectedInventory,
                                 Modifier.fillMaxSize(),
                                 window
                             )
                         },
                         {
                             scrollDisplay(
-                                Modifier.fillMaxSize(),
-                                selectedInventory.value!!,
-                                showScrollTab
+                                Modifier.fillMaxSize()
                             )
                         },
-                        { displayTabSelector(
-                            showInventoryTab,
-                            showScrollTab,
-                            showCharDetailsTab,
-                            showEquippedItemsTab,
-                            selectedInventory,
-                            sectionSwitch
-                        ) }
+                        { displayTabSelector() }
                     )
                 }
                 else {
@@ -109,14 +97,7 @@ fun App(window: ComposeWindow) {
                         showEquippedItemsTab,
                         { CharacterDisplay.displayCharInfo() },
                         { CharacterDisplay.displayCharEquipment() },
-                        { displayTabSelector(
-                            showInventoryTab,
-                            showScrollTab,
-                            showCharDetailsTab,
-                            showEquippedItemsTab,
-                            selectedInventory,
-                            sectionSwitch
-                        ) }
+                        { displayTabSelector() }
                     )
                 }
             }

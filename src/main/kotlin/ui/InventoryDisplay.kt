@@ -93,6 +93,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import disk.ImageLoader
 import data.CharacterManager
+import data.CharacterManager.selectedInventory
 import data.Inventory
 import itemClasses.Armor
 import itemClasses.ArmorClasses
@@ -115,7 +116,6 @@ object InventoryDisplay {
 
     @Composable
     fun displayInv(
-        inv: MutableState<Inventory?>,
         modifier: Modifier,
         window: ComposeWindow
     ) {
@@ -125,7 +125,7 @@ object InventoryDisplay {
             modifier = modifier
         ) {
             Column {
-                sceneryAndBackPackTop(inv, slotSize, window)
+                sceneryAndBackPackTop(slotSize, window)
                 backPack(slotSize, window)
             }
         }
@@ -680,7 +680,6 @@ object InventoryDisplay {
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     fun sceneryAndBackPackTop(
-        inv: MutableState<Inventory?>,
         slotSize: MutableState<Dp>,
         window: ComposeWindow
     ) {
@@ -782,9 +781,9 @@ object InventoryDisplay {
                                     .size(150.dp, 100.dp)
                                     .background(
                                         backGroundColor,
-                                        androidx.compose.foundation.shape.RoundedCornerShape(5.dp)
+                                        RoundedCornerShape(5.dp)
                                     )
-                                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(5.dp))
+                                    .clip(RoundedCornerShape(5.dp))
                             ) {
                                 Text(
                                     text = "Sortierung:",
@@ -815,11 +814,11 @@ object InventoryDisplay {
                             //BackPack weight
                             val modifier = Modifier.padding(10.dp, 0.dp)
 
-                            val items = CharacterManager.selectedInventory.value!!.items
+                            val items = selectedInventory.value!!.items
                             val backPackWeight = remember(items) {
                                 mutableStateOf(items.toMutableList().sumOf { it.weight * it.amount }.toFloat())
                             }
-                            var backPackWeightUIValue by remember { mutableStateOf(inv.value!!.maxCarryingCapacity) }
+                            var backPackWeightUIValue by remember { mutableStateOf(selectedInventory.value!!.maxCarryingCapacity) }
 
                             Box(
                                 Modifier
@@ -840,12 +839,12 @@ object InventoryDisplay {
                                                         androidx.compose.foundation.shape.RoundedCornerShape(5.dp)
                                                     )
                                                     .clip(androidx.compose.foundation.shape.RoundedCornerShape(5.dp)),
-                                                inv.value!!.maxCarryingCapacity,
+                                                selectedInventory.value!!.maxCarryingCapacity,
                                                 "Maximalgewicht",
                                                 onConfirm = { value ->
                                                     println(value.toString())
                                                     Overlay.closeOverlay()
-                                                    inv.value!!.maxCarryingCapacity = value
+                                                    selectedInventory.value!!.maxCarryingCapacity = value
                                                     backPackWeightUIValue = value
                                                     println("confirmed")
                                                 },

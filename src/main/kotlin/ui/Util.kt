@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -216,4 +217,19 @@ private fun StepShifterInt(
 
 fun loadPainterFromFile(path: String): Painter? {
     return ImageLoader.loadImageFromFile(path).map { it.toPainter() }.orElse(null)
+}
+
+@Composable
+fun openAsWindowIconButton(onClick: () -> Unit) {
+    IconButton(
+        onClick = {
+            onClick()
+        },
+        content = {
+            Icon(
+                imageVector = Icons.Default.Share,
+                contentDescription = "Open as window"
+            )
+        }
+    )
 }

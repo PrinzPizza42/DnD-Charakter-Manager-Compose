@@ -9,7 +9,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -36,7 +38,14 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import data.CharacterManager.selectedInventory
 import data.Inventory
+import data.TabManager.sectionSwitch
+import data.TabManager.showCharDetailsTab
+import data.TabManager.showEquippedItemsTab
+import data.TabManager.showInventoryTab
+import data.TabManager.showScrollTab
+import data.WindowManager
 import disk.ImageLoader
 import disk.Read
 import disk.Write
@@ -46,29 +55,22 @@ object TabSelector {
 
     @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
     @Composable
-    fun displayTabSelector(
-        showInventory: MutableState<Boolean>,
-        showScrollPanel: MutableState<Boolean>,
-        showCharDetailsTab: MutableState<Boolean>,
-        showEquippedItemsTab: MutableState<Boolean>,
-        selectedInventory: MutableState<Inventory?>,
-        sectionSwitch: MutableState<Boolean>
-    ) {
+    fun displayTabSelector() {
         Column(
-            Modifier.Companion
+            Modifier
                 .fillMaxHeight()
                 .width(width)
-                .background(Color.Companion.DarkGray)
+                .background(Color.DarkGray)
         ) {
             returnToHomeButton(selectedInventory)
 
             // Inventory and Spells Section
             Column(
-                Modifier.Companion
+                Modifier
                     .padding(5.dp)
                     .fillMaxWidth()
                     .background(
-                        lerp(Color.Companion.LightGray, Color.Companion.DarkGray, 0.6f),
+                        lerp(Color.LightGray, Color.DarkGray, 0.6f),
                         RoundedCornerShape(5.dp)
                     )
             ) {
@@ -78,33 +80,35 @@ object TabSelector {
                         sectionSwitch.value = true
                     },
                     colors = RadioButtonDefaults.colors(
-                        selectedColor = Color.Companion.LightGray,
-                        unselectedColor = Color.Companion.White
+                        selectedColor = Color.LightGray,
+                        unselectedColor = Color.White
                     )
                 )
 
                 // Show inv button
                 tabElement(
                     {},
-                    showInventory,
-                    ImageLoader.loadImageFromResources("backPackIcon.png").get().toPainter()
+                    showInventoryTab,
+                    ImageLoader.loadImageFromResources("backPackIcon.png").get().toPainter(),
+                    { ScrollDisplay.scrollDisplay(Modifier.fillMaxSize()) }
                 )
 
                 // Show scrollPanel button
                 tabElement(
                     {},
-                    showScrollPanel,
-                    ImageLoader.loadImageFromResources("scrollIcon.png").get().toPainter()
+                    showScrollTab,
+                    ImageLoader.loadImageFromResources("scrollIcon.png").get().toPainter(),
+                    { InventoryDisplay.displayInv(Modifier.fillMaxSize()) }
                 )
             }
 
             // Character details and equipped items
             Column(
-                Modifier.Companion
+                Modifier
                     .padding(5.dp)
                     .fillMaxWidth()
                     .background(
-                        lerp(Color.Companion.LightGray, Color.Companion.DarkGray, 0.6f),
+                        lerp(Color.LightGray, Color.DarkGray, 0.6f),
                         androidx.compose.foundation.shape.RoundedCornerShape(5.dp)
                     )
             ) {
@@ -114,20 +118,22 @@ object TabSelector {
                         sectionSwitch.value = false
                     },
                     colors = RadioButtonDefaults.colors(
-                        selectedColor = Color.Companion.LightGray,
-                        unselectedColor = Color.Companion.White
+                        selectedColor = Color.LightGray,
+                        unselectedColor = Color.White
                     )
                 )
 
                 tabElement(
                     {},
                     showCharDetailsTab,
-                    ImageLoader.loadImageFromResources("icon.png").get().toPainter()
+                    ImageLoader.loadImageFromResources("icon.png").get().toPainter(),
+                    { CharacterDisplay.displayCharInfo() }
                 )
                 tabElement(
                     {},
                     showEquippedItemsTab,
-                    ImageLoader.loadImageFromResources("icon.png").get().toPainter()
+                    ImageLoader.loadImageFromResources("icon.png").get().toPainter(),
+                    { CharacterDisplay.displayCharEquipment() }
                 )
             }
         }
@@ -147,18 +153,18 @@ object TabSelector {
         )
 
         Box(
-            Modifier.Companion
+            Modifier
                 .graphicsLayer(scaleX = scale, scaleY = scale)
                 .padding(5.dp, 5.dp, 5.dp, 15.dp)
                 .fillMaxWidth()
                 .shadow(shadow.dp)
                 .background(
-                    lerp(Color.Companion.LightGray, Color.Companion.DarkGray, 0.6f),
+                    lerp(Color.LightGray, Color.DarkGray, 0.6f),
                     androidx.compose.foundation.shape.RoundedCornerShape(5.dp)
                 )
         ) {
             Box(
-                Modifier.Companion
+                Modifier
                     .fillMaxWidth()
                     .onClick(enabled = true, onClick = {
                         if (selectedInventory.value != null) {
@@ -167,21 +173,21 @@ object TabSelector {
                             Read.readData()
                         }
                     })
-                    .onPointerEvent(PointerEventType.Companion.Enter) {
+                    .onPointerEvent(PointerEventType.Enter) {
                         hoveredOver = true
                     }
-                    .onPointerEvent(PointerEventType.Companion.Exit) {
+                    .onPointerEvent(PointerEventType.Exit) {
                         hoveredOver = false
                     }
             ) {
                 val home = remember { ImageLoader.loadImageFromResources("home.png").get().toPainter() }
                 Image(
                     painter = home,
-                    contentScale = ContentScale.Companion.FillWidth,
+                    contentScale = ContentScale.FillWidth,
                     contentDescription = "home",
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .padding(2.dp)
-                        .align(Alignment.Companion.Center)
+                        .align(Alignment.Center)
                 )
             }
         }
@@ -192,55 +198,69 @@ object TabSelector {
     fun tabElement(
         onClick: () -> Unit,
         showPanel: MutableState<Boolean>,
-        icon: Painter
+        icon: Painter,
+        windowContent: @Composable () -> Unit,
     ) {
-        var hoveredOverSpells by remember { mutableStateOf(false) }
+        var hoveredOver by remember { mutableStateOf(false) }
 
         val backgroundColor by animateColorAsState(
             if (showPanel.value) lerp(
-                Color.Companion.LightGray,
-                Color.Companion.DarkGray,
+                Color.LightGray,
+                Color.DarkGray,
                 0.2f
-            ) else lerp(Color.Companion.LightGray, Color.Companion.DarkGray, 0.6f),
+            ) else lerp(Color.LightGray, Color.DarkGray, 0.6f),
             animationSpec = tween(300)
         )
 
         val shadow by animateFloatAsState(
-            if (hoveredOverSpells) 10f else 1f,
+            if (hoveredOver) 10f else 1f,
             animationSpec = tween(300)
         )
 
         val scale by animateFloatAsState(
-            if (hoveredOverSpells) 1.1f else 1f,
+            if (hoveredOver) 1.1f else 1f,
             animationSpec = tween(300)
         )
 
-        Box(
-            Modifier.Companion
-                .graphicsLayer(scaleX = scale, scaleY = scale)
-                .fillMaxWidth()
-                .padding(0.dp, 10.dp, 0.dp, 10.dp)
-                .clickable(enabled = true, onClick = {
-                    showPanel.value = !showPanel.value
-                    onClick()
-                })
-                .shadow(shadow.dp)
-                .background(backgroundColor, androidx.compose.foundation.shape.RoundedCornerShape(5.dp))
-                .onPointerEvent(PointerEventType.Companion.Enter) {
-                    hoveredOverSpells = true
-                }
-                .onPointerEvent(PointerEventType.Companion.Exit) {
-                    hoveredOverSpells = false
-                }
-        ) {
-            Image(
-                painter = icon,
-                contentScale = ContentScale.Companion.FillWidth,
-                contentDescription = "icon",
-                modifier = Modifier.Companion
-                    .padding(2.dp)
-                    .align(Alignment.Companion.Center)
-            )
+        Row {
+            Box(
+                Modifier
+                    .graphicsLayer(scaleX = scale, scaleY = scale)
+                    .fillMaxWidth()
+                    .padding(0.dp, 10.dp, 0.dp, 10.dp)
+                    .clickable(enabled = true, onClick = {
+                        showPanel.value = !showPanel.value
+                        onClick()
+                    })
+                    .shadow(shadow.dp)
+                    .background(backgroundColor, RoundedCornerShape(5.dp))
+                    .onPointerEvent(PointerEventType.Enter) {
+                        hoveredOver = true
+                    }
+                    .onPointerEvent(PointerEventType.Exit) {
+                        hoveredOver = false
+                    }
+            ) {
+                Image(
+                    painter = icon,
+                    contentScale = ContentScale.FillWidth,
+                    contentDescription = "icon",
+                    modifier = Modifier
+                        .padding(2.dp)
+                        .align(Alignment.Center)
+                )
+            }
+
+            openAsWindowIconButton(onClick = {
+                showPanel.value = false
+
+                WindowManager.openNewWindow(
+                    onCloseRequest = {
+                        showPanel.value = true
+                    },
+                    content = windowContent
+                )
+            })
         }
     }
 }
