@@ -60,12 +60,12 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import data.CharacterManager
 import data.CustomWindow
+import data.ItemDisplayManager
 import data.WindowManager
 import disk.ImageLoader
 import itemClasses.Armor
 import itemClasses.ArmorClasses
 import itemClasses.Consumable
-import itemClasses.EmptySlot
 import itemClasses.Item
 import itemClasses.Miscellaneous
 import itemClasses.Potion
@@ -75,45 +75,31 @@ import itemClasses.weapons.Weapon
 import java.awt.FileDialog
 import java.io.File
 
-object ItemDisplay {
+class ItemDisplay(
+    var item: MutableState<Item?> = mutableStateOf<Item?>(null)
+) {
     var show by mutableStateOf(false)
-    val showItemDisplayOverlayAsWindow = mutableStateOf(false)
-    var item by mutableStateOf<Item?>(null)
     var window by mutableStateOf<CustomWindow?>(null)
 
     val classes = listOf("Nahkampf-Waffe", "Fernkampf-Waffe", "Verbrauchsgegenstände", "Rüstung", "Trank", "Verschiedenes")
     var selectedClass by mutableStateOf(classes[0])
     var hasSelected by mutableStateOf(false)
 
-    fun showItemDisplayStructure(item: Item? = null) {
-        if(item != null) this.item = item
-        show = true
-    }
-
     fun draw() {
-        if (!showItemDisplayOverlayAsWindow.value) {
-            Overlay.showOverlay {
-                itemDisplayContent()
-            }
-        } else if(window == null) {
+        if(window == null) {
             window = WindowManager.openNewWindow(
                 onCloseRequest = {
-                    showItemDisplayOverlayAsWindow.value = false
-                    window!!.close()
-                    window = null
+                    ItemDisplayManager.removeItemDisplay(this)
                 },
                 content = { itemDisplayContent() },
-                title = mutableStateOf("Item Display")
+                title = mutableStateOf("Item Display: ${item.value?.name}")
             )
-            println("Did create window")
         }
-        else println("Did not create window")
     }
 
     fun close() {
         show = false
-        item = null
-        showItemDisplayOverlayAsWindow.value = false
+        item.value = null
         if(window != null) {
             window!!.close()
             window = null
@@ -129,14 +115,13 @@ object ItemDisplay {
         }
 
         //InvDisplay overlay
-        BoxWithConstraints(Modifier.fillMaxSize().background(if(showItemDisplayOverlayAsWindow.value) Color.Gray else Color.Transparent)) {
-            val itemDisplayWith: Dp by remember(this.maxWidth) { mutableStateOf(if (this.maxWidth > 1000.dp) 1000.dp else this.maxWidth) }
+        BoxWithConstraints(Modifier.fillMaxSize().background(Color.Gray)) {
             //ItemDisplay
             Box(
                 Modifier
                     .align(Alignment.Center)
                     .zIndex(11f)
-                    .size(if(showItemDisplayOverlayAsWindow.value) this.maxWidth else itemDisplayWith, if(showItemDisplayOverlayAsWindow.value) this.maxHeight else 700.dp)
+                    .size(this.maxWidth, this.maxHeight)
                     .onKeyEvent { keyEvent ->
                         if (keyEvent.key == Key.Escape || keyEvent.key == Key.Enter) {
                             focusManager.clearFocus()
@@ -221,15 +206,15 @@ object ItemDisplay {
                                 hasSelected = true
                                 //create an empty item
                                 when (selectedClass) {
-                                    "Nahkampf-Waffe" -> item = ShortRangeWeapon("", "", 1, 1, 1, "")
-                                    "Fernkampf-Waffe" -> item = LongRangeWeapon("", "", 1, 1, 1, "")
-                                    "Verbrauchsgegenstände" -> item = Consumable("", "", 1, 1, 1)
-                                    "Rüstung" -> item = Armor("", "", 1, 1, 1, 10, ArmorClasses.MEDIUM)
-                                    "Trank" -> item = Potion("", "", 1, 1, 1)
-                                    "Verschiedenes" -> item = Miscellaneous("", "", 1, 1, 1)
+                                    "Nahkampf-Waffe" -> item.value = ShortRangeWeapon("", "", 1, 1, 1, "")
+                                    "Fernkampf-Waffe" -> item.value = LongRangeWeapon("", "", 1, 1, 1, "")
+                                    "Verbrauchsgegenstände" -> item.value = Consumable("", "", 1, 1, 1)
+                                    "Rüstung" -> item.value = Armor("", "", 1, 1, 1, 10, ArmorClasses.MEDIUM)
+                                    "Trank" -> item.value = Potion("", "", 1, 1, 1)
+                                    "Verschiedenes" -> item.value = Miscellaneous("", "", 1, 1, 1)
                                 }
-                                println("Created $item")
-                                CharacterManager.selectedInventory.value!!.addItem(item!!)
+                                println("Created ${item.value}")
+                                CharacterManager.selectedInventory.value!!.addItem(item.value!!)
                             }
                         )
                         Text(option)
@@ -244,13 +229,13 @@ object ItemDisplay {
         key(item) {
             Column(Modifier.fillMaxSize()) {
                 //Name
-                val nameInput = remember { mutableStateOf(TextFieldValue(item!!.name)) }
+                val nameInput = remember { mutableStateOf(TextFieldValue(item.value!!.name)) }
                 TextField(
                     value = nameInput.value,
                     onValueChange = {
                         nameInput.value = it
-                        item!!.name = it.text
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                        item.value!!.name = it.text
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                     },
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -261,13 +246,13 @@ object ItemDisplay {
                 )
 
                 //Description
-                val descInput = remember { mutableStateOf(TextFieldValue(item!!.description)) }
+                val descInput = remember { mutableStateOf(TextFieldValue(item.value!!.description)) }
                 TextField(
                     value = descInput.value,
                     onValueChange = {
                         descInput.value = it
-                        item!!.description = it.text
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                        item.value!!.description = it.text
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                     },
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -277,16 +262,16 @@ object ItemDisplay {
                     singleLine = true,
                 )
 
-                if (item is Weapon) {
+                if (item.value is Weapon) {
                     //Damage
-                    val weapon: Weapon = item as Weapon
+                    val weapon: Weapon = item.value as Weapon
                     val dmgInput = remember { mutableStateOf(TextFieldValue(weapon.damage)) }
                     TextField(
                         value = dmgInput.value,
                         onValueChange = {
                             dmgInput.value = it
                             weapon.damage = it.text
-                            CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                            CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                         },
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -295,12 +280,12 @@ object ItemDisplay {
                         },
                         singleLine = true,
                     )
-                    item = weapon
+                    item.value = weapon
                 }
 
-                if (item is Armor) {
+                if (item.value is Armor) {
                     //Armor Value
-                    val armor: Armor = item as Armor
+                    val armor: Armor = item.value as Armor
                     val armorValue = remember { mutableStateOf(armor.armorValue) }
                     val armorValueRange = IntRange(0, 20)
 
@@ -310,12 +295,12 @@ object ItemDisplay {
                         armorValue,
                         {
                             armor.armorValue += 1
-                            CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                            CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                             println("Increased 1 to ${armor.armorValue}")
                         },
                         {
                             armor.armorValue -= 1
-                            CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                            CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                         }
                     )
 
@@ -335,7 +320,7 @@ object ItemDisplay {
                                 mutableStateOf(armor.armorClass.toString()),
                                 { newClass ->
                                     armor.armorClass = ArmorClasses.valueOf(newClass)
-                                    CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                                    CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                                     println("Armor class value changed to ${armor.armorClass}")
                                 }
                             )
@@ -345,7 +330,7 @@ object ItemDisplay {
                 }
 
                 //Weight
-                val weightValue = remember { mutableStateOf(item!!.weight) }
+                val weightValue = remember { mutableStateOf(item.value!!.weight) }
                 val weightRange = IntRange(0, 500)
 
                 StepShifterIntBig(
@@ -353,17 +338,17 @@ object ItemDisplay {
                     weightRange,
                     weightValue,
                     { increase ->
-                        item!!.weight += increase
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                        item.value!!.weight += increase
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                     },
                     { decrease ->
-                        item!!.weight -= decrease
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                        item.value!!.weight -= decrease
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                     }
                 )
 
                 //Value
-                val valueValue = remember { mutableStateOf(item!!.valueInGold) }
+                val valueValue = remember { mutableStateOf(item.value!!.valueInGold) }
                 val valueRange = IntRange(0, 1000)
 
                 StepShifterIntBig(
@@ -371,17 +356,17 @@ object ItemDisplay {
                     valueRange,
                     valueValue,
                     { increase ->
-                        item!!.valueInGold += increase
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                        item.value!!.valueInGold += increase
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                     },
                     { decrease ->
-                        item!!.valueInGold -= decrease
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                        item.value!!.valueInGold -= decrease
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                     }
                 )
 
                 //Amount
-                val amountValue = remember { mutableStateOf(item!!.amount) }
+                val amountValue = remember { mutableStateOf(item.value!!.amount) }
                 val amountRange = IntRange(0, 500)
 
                 StepShifterIntBig(
@@ -389,20 +374,20 @@ object ItemDisplay {
                     amountRange,
                     amountValue,
                     { increase ->
-                        item!!.amount += increase
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                        item.value!!.amount += increase
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                     },
                     { decrease ->
-                        item!!.amount -= decrease
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                        item.value!!.amount -= decrease
+                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                     }
                 )
 
                 //Equipped
                 val equipped = remember(
-                    item,
-                    item!!.equipped
-                ) { mutableStateOf(item!!.equipped) }
+                    item.value,
+                    item.value!!.equipped
+                ) { mutableStateOf(item.value!!.equipped) }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(4.dp)
@@ -415,9 +400,9 @@ object ItemDisplay {
                         Checkbox(
                             checked = equipped.value,
                             onCheckedChange = {
-                                item!!.equipped = it
+                                item.value!!.equipped = it
                                 equipped.value = it
-                                CharacterManager.selectedInventory.value?.notifyItemChanged(item!!)
+                                CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                             },
                             modifier = Modifier
                                 .width(30.dp)
@@ -436,9 +421,9 @@ object ItemDisplay {
                     "Bild zurücksetzen",
                     Modifier.clickable(
                         onClick = {
-                            item!!.userIconName = null
+                            item.value!!.userIconName = null
                             reloadKey.value++
-                            println("Reset userIconName of item ${item!!.name}")
+                            println("Reset userIconName of item ${item.value!!.name}")
                         }
                     )
                 )
@@ -452,11 +437,11 @@ object ItemDisplay {
         val window = WindowManager.LocalWindow.current
 
         Box(Modifier.fillMaxSize()) {
-            if (item == null) {
+            if (item.value == null) {
                 Text("No image for this item found")
             } else {
                 key(reloadKey.value) {
-                    val painter: Painter = remember(item!!.icon) { item!!.icon.toPainter() }
+                    val painter: Painter = remember(item.value!!.icon) { item.value!!.icon.toPainter() }
                     var showPopUp by remember { mutableStateOf(false) }
                     var path by remember { mutableStateOf("") }
                     val selectedFile: MutableState<File?> = remember { mutableStateOf(null) }
@@ -537,7 +522,7 @@ object ItemDisplay {
                                 ) {
                                     Button(
                                         onClick = {
-                                            InventoryDisplay.setImage(path, selectedFile.value!!.name, item, reloadKey)
+                                            InventoryDisplay.setImage(path, selectedFile.value!!.name, item.value, reloadKey)
                                             showPopUp = false
                                         }
                                     ) {
@@ -572,7 +557,7 @@ object ItemDisplay {
 
                                     if (isWindows) {
                                         try {
-                                            InventoryDisplay.setImage(directory, preFile, item, reloadKey)
+                                            InventoryDisplay.setImage(directory, preFile, item.value, reloadKey)
                                         } catch (e: NullPointerException) {
                                             println("Could not get image from filepicker")
                                             e.printStackTrace()
@@ -583,20 +568,6 @@ object ItemDisplay {
                             ),
                         contentScale = ContentScale.Fit
                     )
-                }
-            }
-
-            if (!showItemDisplayOverlayAsWindow.value) {
-                Column {
-                    Row {
-                        Box(Modifier.weight(1f))
-                        openAsWindowIconButton(onClick = {
-                            showItemDisplayOverlayAsWindow.value = true
-                            Overlay.closeOverlay()
-                            showItemDisplayStructure()
-                        })
-                    }
-                    Box(Modifier.weight(1f))
                 }
             }
         }

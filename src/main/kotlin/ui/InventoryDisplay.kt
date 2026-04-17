@@ -74,6 +74,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import disk.ImageLoader
 import data.CharacterManager.selectedInventory
+import data.ItemDisplayManager
 import data.TabManager
 import itemClasses.EmptySlot
 import itemClasses.Item
@@ -164,9 +165,7 @@ object InventoryDisplay {
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    private fun sceneryAndBackPackTop(
-        slotSize: MutableState<Dp>
-    ) {
+    private fun sceneryAndBackPackTop(slotSize: MutableState<Dp>) {
         Box(
             Modifier
                 .fillMaxWidth()
@@ -363,7 +362,7 @@ object InventoryDisplay {
 
                             Button(
                                 onClick = {
-                                    ItemDisplay.showItemDisplayStructure()
+                                    ItemDisplayManager.openNewItemDisplay()
                                 },
                                 content = {
                                     Text("+")
@@ -379,10 +378,7 @@ object InventoryDisplay {
                         }
                     }
 
-                    Box(
-                        Modifier
-                            .weight(1f)
-                    )
+                    Box(Modifier.weight(1f))
                 }
             }
         }
@@ -448,9 +444,7 @@ object InventoryDisplay {
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     @Composable
-    private fun backPack(
-        slotSize: MutableState<Dp>
-    ) {
+    private fun backPack(slotSize: MutableState<Dp>) {
         val dragMode = remember { mutableStateOf(false) }
         val draggedItem = remember { mutableStateOf<Item?>(null) }
         val draggedItemIndexBuffer = remember { mutableStateOf<Int?>(null) }
@@ -549,7 +543,7 @@ object InventoryDisplay {
                                     .height(50.dp)
                                     .clickable {
                                         println("deleted item " + draggedItem.value!!.name)
-                                        if(ItemDisplay.item == draggedItem.value) ItemDisplay.close()
+                                        ItemDisplayManager.checkForDeletedItem(draggedItem.value!!)
                                         draggedItemIndexBuffer.value = null
                                         draggedItem.value = null
                                         dragMode.value = false
@@ -735,7 +729,7 @@ object InventoryDisplay {
                                     draggedItem.value = null
                                     dragMode.value = false
                                 }
-                                else if (item !is EmptySlot) ItemDisplay.showItemDisplayStructure(item)
+                                else if (item !is EmptySlot) ItemDisplayManager.openNewItemDisplay(item)
                             },
                             onLongPress = {
                                 if (item !is EmptySlot && draggedItem.value == null) {
@@ -801,7 +795,7 @@ object InventoryDisplay {
                 }
             }
         }
- else {
+    else {
             Box(
                 Modifier
                     .size(100.dp)

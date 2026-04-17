@@ -24,6 +24,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import data.CharacterManager.selectedInventory
+import data.ItemDisplayManager
 import data.TabManager.sectionSwitch
 import data.TabManager.showCharDetailsTab
 import data.TabManager.showEquippedItemsTab
@@ -109,7 +110,6 @@ fun App() {
                             detectTapGestures(
                                 onTap = {
                                     closeOverlay()
-                                    ItemDisplay.show = false
                                 }
                             )
                         },
@@ -121,10 +121,6 @@ fun App() {
                 }
             }
         }
-    }
-
-    LaunchedEffect(ItemDisplay.show, ItemDisplay.window, ItemDisplay.showItemDisplayOverlayAsWindow.value) {
-        if (ItemDisplay.show) ItemDisplay.draw()
     }
 }
 
