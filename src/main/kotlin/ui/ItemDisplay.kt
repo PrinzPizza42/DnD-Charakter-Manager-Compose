@@ -88,9 +88,7 @@ class ItemDisplay(
     fun draw() {
         if(window == null) {
             window = WindowManager.openNewWindow(
-                onCloseRequest = {
-                    ItemDisplayManager.removeItemDisplay(this)
-                },
+                onCloseRequest = { ItemDisplayManager.removeItemDisplay(this) },
                 content = { itemDisplayContent() },
                 title = mutableStateOf("Item Display: ${item.value?.name}")
             )
