@@ -134,8 +134,7 @@ class ItemDisplay(
                         })
                     }
             ) {
-                val itemDisplayBackGround =
-                    remember { ImageLoader.loadImageFromResources("itemDisplayBackGround.png").get().toPainter() }
+                val itemDisplayBackGround = remember { ImageLoader.loadImageFromResources("itemDisplayBackGround.png").get().toPainter() }
                 Image(
                     itemDisplayBackGround,
                     "itemDisplayBackGround",
@@ -159,6 +158,8 @@ class ItemDisplay(
                             itemDisplayStats(reloadKey)
                         }
 
+                        Box(Modifier.fillMaxHeight().weight(0.1f))
+
                         //Item image
                         Box(Modifier.weight(1f)) {
                             itemDisplayImage(reloadKey)
@@ -177,11 +178,11 @@ class ItemDisplay(
     private fun itemDisplayStats(reloadKey: MutableState<Int>) {
         Row(Modifier.fillMaxSize()) {
             //Item Create
-            if (item == null && !hasSelected) {
+            if (item.value == null && !hasSelected) {
                 itemDisplayStatsCreateDisplay()
             }
             //Normal Display
-            else if (item != null) {
+            else if (item.value != null) {
                 itemDisplayStatsNormalDisplay(reloadKey)
             } else println("Something went wrong")
         }
@@ -237,8 +238,7 @@ class ItemDisplay(
                         item.value!!.name = it.text
                         CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                     },
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     label = {
                         Text("Name")
                     },
@@ -436,7 +436,10 @@ class ItemDisplay(
     private fun itemDisplayImage(reloadKey: MutableState<Int>) {
         val window = WindowManager.LocalWindow.current
 
-        Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             if (item.value == null) {
                 Text("No image for this item found")
             } else {

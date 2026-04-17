@@ -20,20 +20,8 @@ object ItemDisplayManager {
     }
 
     fun checkForDeletedItem(item: Item) {
-        println("Checking for deleted item ${item.name}")
-        var found = false
         for(display in itemDisplays) {
-            if(display.item.value == item) {
-                removeItemDisplay(display)
-                found = true
-            }
-        }
-        println("Finished check, found: $found")
-    }
-
-    fun closeAllDisplays() {
-        for (display in itemDisplays) {
-            removeItemDisplay(display)
+            if(display.item.value == item) removeItemDisplay(display)
         }
     }
 }
