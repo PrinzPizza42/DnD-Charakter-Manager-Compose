@@ -2,6 +2,13 @@ package data
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import data.equippmentSlots.ArmorSlot
+import data.equippmentSlots.ConsumableSlot
+import data.equippmentSlots.ItemSlot
+import data.equippmentSlots.PotionSlot
+import data.equippmentSlots.weapons.LongRangeWeaponSlot
+import data.equippmentSlots.weapons.ShortRangeWeaponSlot
 import itemClasses.Item
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
@@ -26,14 +33,7 @@ class Inventory(
     var spellSlotsMax: MutableList<Int> = ArrayList(),
     var maxCarryingCapacity: Float = 100f,
     @SerialName("equippedItems")
-    private var _equippedSpecialItems: MutableList<Item> = mutableListOf(),
-    var specialItemsSlots: MutableList<Item> = mutableListOf(
-        Armor(),
-        ShortRangeWeapon(),
-        LongRangeWeapon(),
-        Potion(),
-        Consumable()
-    )
+    private var _serializedEquipmentSlotsList: MutableList<ItemSlot<out Item>> = mutableListOf()
 ) {
     val uuid: String = UUID.randomUUID().toString()
     val totalSlots = 50
@@ -42,7 +42,13 @@ class Inventory(
     val items = mutableStateListOf<Item>()
 
     @Transient
-    val equippedSpecialItems = mutableStateListOf<Item>()
+    var equipmentSlotsList: SnapshotStateList<ItemSlot<out Item>> = mutableStateListOf(
+        ArmorSlot(),
+        ShortRangeWeaponSlot(),
+        LongRangeWeaponSlot(),
+        PotionSlot(),
+        ConsumableSlot()
+    )
 
     @Transient
     private var loadedLevels = false
@@ -69,13 +75,17 @@ class Inventory(
     fun prepareForSaving() {
         _serializedItems = items.toMutableList()
 
-        _equippedSpecialItems = equippedSpecialItems.toMutableList()
+        _serializedEquipmentSlotsList = equipmentSlotsList
+
+        for(slot in _serializedEquipmentSlotsList) {
+            slot.prepareForSave()
+        }
     }
 
     constructor(other: Inventory) : this(
         name = other.name,
         _serializedItems = ArrayList(other.items),
-        _equippedSpecialItems = ArrayList(other.equippedSpecialItems),
+        _serializedEquipmentSlotsList = ArrayList(other.equipmentSlotsList),
         spells = ArrayList(other.spells),
         spellSlotsUsed = ArrayList(other.spellSlotsUsed),
         spellSlotsMax = ArrayList(other.spellSlotsMax),

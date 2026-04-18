@@ -669,7 +669,7 @@ object InventoryDisplay {
                 if (item != null && item !is EmptySlot) lerp(
                     Color.Transparent,
                     Color.Black,
-                    0.1f
+                    0.3f
                 ) else Color.LightGray.copy(alpha = 0.2f)
             )
         }
@@ -702,11 +702,6 @@ object InventoryDisplay {
                 animationSpec = tween(durationMillis = 150)
             )
 
-            val elevation by animateDpAsState(
-                targetValue = if (isHovered && item !is EmptySlot && !dragMode.value) 6.dp else if (item !is EmptySlot) 2.dp else 0.dp,
-                animationSpec = tween(durationMillis = 150)
-            )
-
             Box(
                 modifier = Modifier
                     .padding(4.dp)
@@ -717,7 +712,6 @@ object InventoryDisplay {
                         this.scaleX = scale
                         this.scaleY = scale
                     }
-                    .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
                     .background(backGroundColor.value, shape = boxShape.value)
                     .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
                     .pointerInput(Unit) {
