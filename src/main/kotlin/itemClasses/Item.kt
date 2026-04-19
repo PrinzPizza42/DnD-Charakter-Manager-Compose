@@ -32,6 +32,10 @@ abstract class Item() {
     @Transient
     var mutationCount by mutableStateOf(0)
 
+    fun mutate() {
+        mutationCount += 1
+    }
+
     val icon: BufferedImage
         get() {
             userIconName?.let { uName ->

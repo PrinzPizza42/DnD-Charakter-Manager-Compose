@@ -154,7 +154,7 @@ class Inventory(
      * Increments the mutationCount inside the item which is observed by Compose.
      */
     fun notifyItemChanged(item: Item) {
-        item.mutationCount++
+        item.mutate()
         val index = items.indexOf(item)
         if (index != -1) {
             items[index] = item

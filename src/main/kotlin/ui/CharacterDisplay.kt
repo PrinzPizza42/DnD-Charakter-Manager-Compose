@@ -22,6 +22,7 @@ import androidx.compose.foundation.onClick
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -30,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,6 +50,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import data.CharacterManager.selectedInventory
 import data.equippmentSlots.ItemSlot
 import itemClasses.Item
@@ -176,6 +180,9 @@ object CharacterDisplay {
             animationSpec = tween(durationMillis = 150)
         )
 
+        var showEditPopup by remember { mutableStateOf(false) }
+        val showDeletePopup = remember { mutableStateOf(false) }
+
         Row(
             modifier = Modifier
                 .padding(4.dp)
@@ -195,13 +202,41 @@ object CharacterDisplay {
                     .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
                     .background(backGroundColor.value, shape = boxShape.value)
                     .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
-                    .onClick {
-                        println("Clicked ${slot.name.value}")
-
-
-                    }
+                    .onClick { if(slot.item.value != null) showEditPopup = true else showDeletePopup.value = true }
                     .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
             ) {
+                if(showEditPopup) {
+                    Popup(
+                        onDismissRequest = { showEditPopup = false },
+                        alignment = Alignment.Center,
+                        properties = PopupProperties(focusable = true, dismissOnBackPress = true)
+                    ) {
+                        Row(
+                            Modifier.background(Color.LightGray, RoundedCornerShape(10.dp))
+                        ) {
+                            Button(
+                                onClick = {
+                                    slot.item.value?.equipped = false
+                                    slot.item.value?.mutate()
+                                    slot.item.value = null
+                                    showEditPopup = false
+                                },
+                                content = { Text("Item entfernen") }
+                            )
+                            Button(
+                                onClick = {
+                                    showDeletePopup.value = true
+                                    showEditPopup = false
+                                },
+                                content = { Text("Item ersetzen") }
+                            )
+                        }
+                    }
+                }
+                if(showDeletePopup.value) {
+                    ItemSlotItemPickerPopup(showDeletePopup, slot)
+                }
+
                 if(slot.item.value != null) {
                     //BackgroundIcon
                     val icon = remember(slot.item.value!!.icon) { slot.item.value!!.icon.toPainter() }

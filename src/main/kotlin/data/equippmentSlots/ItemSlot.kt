@@ -29,6 +29,10 @@ open class ItemSlot<T : Item>(
     @Transient
     open val itemClassName: String = "Item"
 
+    open fun accepts(item: Item): Boolean {
+        return true
+    }
+
     fun prepareForSave() {
         this.savedItem = this.item.value
         this.savedName = this.name.value

@@ -1,5 +1,6 @@
 package ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,7 +9,11 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
@@ -18,21 +23,26 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -46,7 +56,15 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.TextToolbar
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import data.CharacterManager.selectedInventory
+import data.ItemDisplayManager
+import data.equippmentSlots.ItemSlot
+import itemClasses.Item
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -317,6 +335,104 @@ fun getFloatInputOverlay(
                         Text("Abbrechen")
                     }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun <T : Item> ItemSlotItemPickerPopup(showPopup: MutableState<Boolean> = mutableStateOf(true), slot: ItemSlot<T>) {
+    val filteredList = remember(selectedInventory.value) {
+        selectedInventory.value!!.items
+            .filter { item -> slot.accepts(item) }
+            .map { @Suppress("UNCHECKED_CAST") (it as T) }
+            .toMutableStateList()
+    }
+
+    listPopupStructure(
+        { item: T ->
+            Row(
+                Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth()
+                    .shadow(5.dp, RoundedCornerShape(10.dp))
+                    .background(Color.Gray, RoundedCornerShape(10.dp))
+            ) {
+                Text(item.name, Modifier.padding(5.dp))
+                Box(Modifier.weight(1f))
+                IconButton(
+                    onClick = {
+                        // Update old item
+                        val oldItem = slot.item.value
+                        oldItem?.equipped = false
+                        oldItem?.mutate()
+
+                        // Set new item
+                        slot.item.value = item
+                        item.equipped = true
+                        item.mutate()
+
+                        showPopup.value = false
+                    },
+                    content = { Icon(Icons.Default.Check, "Select") },
+                    modifier = Modifier.padding(5.dp)
+                )
+                IconButton(
+                    onClick = {
+                        ItemDisplayManager.openNewItemDisplay(item)
+                    },
+                    content = { Icon(Icons.Default.Menu, "Open in ItemDisplay") },
+                    modifier = Modifier.padding(5.dp)
+                )
+            }
+        },
+        filteredList,
+        showPopup,
+        title = mutableStateOf(slot.itemClassName)
+    )
+}
+
+@Composable
+fun ItemEquipPopup() {
+
+}
+
+@Composable
+fun <T> listPopupStructure(
+    listElement: @Composable (item: T) -> Unit,
+    list: SnapshotStateList<T>,
+    showPopup: MutableState<Boolean>,
+    popupSize: Pair<Dp, Dp> = Pair(300.dp, 500.dp), // Width, Height
+    title: MutableState<String?> = mutableStateOf(null)
+) {
+    Popup(
+        onDismissRequest = { showPopup.value = false },
+        alignment = Alignment.Center,
+        properties = PopupProperties(focusable = true, dismissOnBackPress = true)
+    ) {
+        Column(
+            Modifier
+                .size(popupSize.first, popupSize.second)
+                .background(Color.LightGray, RoundedCornerShape(10.dp))
+                .padding(5.dp)
+        ) {
+            Row(
+                Modifier.padding(bottom = 10.dp)
+            ) {
+                if(title.value != null) {
+                    Box(Modifier.weight(1f))
+                    Text(title.value!!)
+                }
+                Box(Modifier.weight(1f))
+                IconButton(
+                    onClick = { showPopup.value = false },
+                    content = { Icon(Icons.Default.Close, "Close") }
+                )
+            }
+            LazyColumn {
+                items(list) { currentItem ->
+                    listElement(currentItem)
+                }
             }
         }
     }
