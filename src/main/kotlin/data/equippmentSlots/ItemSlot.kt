@@ -11,13 +11,17 @@ import kotlin.uuid.Uuid
 @Serializable
 open class ItemSlot<T : Item>(
     var savedItem: T? = null,
-    var slotName: String = "Item"
+    var savedName: String = "Item",
+    var savedQuickViewStat: String = savedItem?.valueInGold.toString()
 ) {
     @Transient
     var item: MutableState<T?> = mutableStateOf(savedItem)
 
     @Transient
-    var name: MutableState<String> = mutableStateOf(slotName)
+    var name: MutableState<String> = mutableStateOf(savedName)
+
+    @Transient
+    var quickViewStat: MutableState<String> = mutableStateOf(savedQuickViewStat)
 
     @OptIn(ExperimentalUuidApi::class)
     val uuid: String = Uuid.random().toString()
@@ -27,6 +31,7 @@ open class ItemSlot<T : Item>(
 
     fun prepareForSave() {
         this.savedItem = this.item.value
-        this.slotName = this.name.value
+        this.savedName = this.name.value
+        this.savedQuickViewStat = this.quickViewStat.value
     }
 }

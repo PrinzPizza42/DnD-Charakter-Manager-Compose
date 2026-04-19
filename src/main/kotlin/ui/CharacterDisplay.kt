@@ -197,6 +197,8 @@ object CharacterDisplay {
                     .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
                     .onClick {
                         println("Clicked ${slot.name.value}")
+
+
                     }
                     .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
             ) {
@@ -250,8 +252,7 @@ object CharacterDisplay {
             ) {
                 Text(slot.name.value, Modifier.weight(1f))
                 Column(Modifier.weight(1f)) {
-                    Text("Klasse:")
-                    Text(slot.itemClassName)
+                    if(slot.item.value != null) Text(slot.quickViewStat.value)
                 }
             }
         }

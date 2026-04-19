@@ -7,6 +7,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 class ShortRangeWeaponSlot(
     var shortRangeWeapon: ShortRangeWeapon? = null
-) : ItemSlot<ShortRangeWeapon>(savedItem = shortRangeWeapon, slotName = "Nahkampf-Waffe") {
+) : ItemSlot<ShortRangeWeapon>(savedItem = shortRangeWeapon, savedName = "Nahkampf-Waffe") {
     override val itemClassName = "Nahkampf-Waffe"
 }
