@@ -25,6 +25,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -393,7 +395,8 @@ fun <T : Item> ItemSlotItemPickerPopup(showPopup: MutableState<Boolean> = mutabl
         },
         filteredList,
         showPopup,
-        title = mutableStateOf(slot.itemClassName)
+        title = mutableStateOf(slot.itemClassName),
+        searchStringSelector = { item -> item.name }
     )
 }
 
@@ -407,9 +410,22 @@ fun <T> listPopupStructure(
     listElement: @Composable (item: T) -> Unit,
     list: SnapshotStateList<T>,
     showPopup: MutableState<Boolean>,
-    popupSize: Pair<Dp, Dp> = Pair(300.dp, 500.dp), // Width, Height
-    title: MutableState<String?> = mutableStateOf(null)
+    popupSize: Pair<Dp, Dp> = Pair(300.dp, 500.dp),
+    title: MutableState<String?> = mutableStateOf(null),
+    searchStringSelector: ((T) -> String)? = null
 ) {
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredList = remember(list, searchQuery) {
+        if (searchQuery.isBlank() || searchStringSelector == null) {
+            list
+        } else {
+            list.filter { item ->
+                searchStringSelector(item).contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
+
     Popup(
         onDismissRequest = { showPopup.value = false },
         alignment = Alignment.Center,
@@ -418,32 +434,50 @@ fun <T> listPopupStructure(
         Column(
             Modifier
                 .size(popupSize.first, popupSize.second)
+                .shadow(10.dp, RoundedCornerShape(10.dp))
                 .background(Color.LightGray, RoundedCornerShape(10.dp))
-                .padding(5.dp)
+                .padding(10.dp)
         ) {
             Row(
-                Modifier.padding(bottom = 10.dp).height(45.dp)
+                Modifier.padding(bottom = 10.dp).height(45.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if(title.value != null) {
+                if (title.value != null) {
                     Box(Modifier.weight(1f))
                     Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                         Text(title.value!!)
                     }
                 }
-                Box(Modifier.weight(1f))
-                IconButton(
-                    onClick = { showPopup.value = false },
-                    content = { Icon(Icons.Default.Close, "Close") }
-                )
-            }
-            if(list.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Keine Elemente gefunden")
+                Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                    IconButton(
+                        onClick = { showPopup.value = false },
+                        content = { Icon(Icons.Default.Close, "Close") }
+                    )
                 }
             }
-            else {
-                LazyColumn {
-                    items(list) { currentItem ->
+            if (searchStringSelector != null) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 10.dp),
+                    placeholder = { Text("Suchen...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Suche") },
+                    singleLine = true,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        backgroundColor = Color.White
+                    )
+                )
+            }
+
+            if (filteredList.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(if (list.isEmpty()) "Keine Elemente gefunden" else "Keine Treffer für die Suche")
+                }
+            } else {
+                LazyColumn(Modifier.fillMaxSize()) {
+                    items(filteredList) { currentItem ->
                         listElement(currentItem)
                     }
                 }
