@@ -1,5 +1,13 @@
 package disk
 
+import data.equippmentSlots.ArmorSlot
+import data.equippmentSlots.ConsumableSlot
+import data.equippmentSlots.ItemSlot
+import data.equippmentSlots.MiscellaneousSlot
+import data.equippmentSlots.PotionSlot
+import data.equippmentSlots.weapons.LongRangeWeaponSlot
+import data.equippmentSlots.weapons.ShortRangeWeaponSlot
+import data.equippmentSlots.weapons.WeaponSlot
 import itemClasses.Armor
 import itemClasses.Consumable
 import itemClasses.EmptySlot
@@ -8,6 +16,7 @@ import itemClasses.Miscellaneous
 import itemClasses.Potion
 import itemClasses.weapons.LongRangeWeapon
 import itemClasses.weapons.ShortRangeWeapon
+import itemClasses.weapons.Weapon
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -33,6 +42,15 @@ object JsonUtil {
                 subclass(Miscellaneous::class)
                 subclass(Armor::class)
                 subclass(EmptySlot::class)
+            }
+            polymorphic(ItemSlot::class) {
+                subclass(ShortRangeWeaponSlot::class)
+                subclass(LongRangeWeaponSlot::class)
+                subclass(ConsumableSlot::class)
+                subclass(WeaponSlot::class)
+                subclass(PotionSlot::class)
+                subclass(MiscellaneousSlot::class)
+                subclass(ArmorSlot::class)
             }
         }
     }

@@ -10,6 +10,7 @@ import data.equippmentSlots.PotionSlot
 import data.equippmentSlots.weapons.LongRangeWeaponSlot
 import data.equippmentSlots.weapons.ShortRangeWeaponSlot
 import itemClasses.Item
+import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Transient
@@ -33,7 +34,7 @@ class Inventory(
     var spellSlotsMax: MutableList<Int> = ArrayList(),
     var maxCarryingCapacity: Float = 100f,
     @SerialName("equippedItems")
-    private var _serializedEquipmentSlotsList: MutableList<ItemSlot<out Item>> = mutableListOf()
+    private var _serializedEquipmentSlotsList: MutableList<@Polymorphic ItemSlot<out Item>> = mutableListOf()
 ) {
     val uuid: String = UUID.randomUUID().toString()
     val totalSlots = 50
@@ -57,21 +58,27 @@ class Inventory(
     private val _spellLevels = ArrayList<Pair<Int, Int>>()
 
     init {
-        // If this is a truly new inventory (not being deserialized)
-        if (spellSlotsUsed.isEmpty() && spellSlotsMax.isEmpty() && _serializedItems.isEmpty() && spells.isEmpty()) {
+        if (spellSlotsUsed.isEmpty() && spellSlotsMax.isEmpty() && _serializedItems.isEmpty() && spells.isEmpty() && _serializedEquipmentSlotsList.isEmpty()) {
             addLastSpellLevel(3 to 3)
         }
 
-        // Initialize SnapshotStateList from serialized items
         items.addAll(_serializedItems)
+
+        if (_serializedEquipmentSlotsList.isNotEmpty()) {
+            equipmentSlotsList.clear()
+            equipmentSlotsList.addAll(_serializedEquipmentSlotsList)
+        }
         
-        // Ensure the list always has 50 slots
+        // Sync the @Transient states for all loaded slots
+        for (slot in equipmentSlotsList) {
+            slot.load()
+        }
+        
         while (items.size < totalSlots) {
             items.add(EmptySlot())
         }
     }
 
-    // Call this before serializing to JSON
     fun prepareForSaving() {
         _serializedItems = items.toMutableList()
 

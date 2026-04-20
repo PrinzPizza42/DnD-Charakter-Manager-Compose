@@ -3,11 +3,13 @@ package data.equippmentSlots
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import itemClasses.Item
+import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+@Polymorphic
 @Serializable
 open class ItemSlot<T : Item>(
     var savedItem: T? = null,
@@ -37,5 +39,11 @@ open class ItemSlot<T : Item>(
         this.savedItem = this.item.value
         this.savedName = this.name.value
         this.savedQuickViewStat = this.quickViewStat.value
+    }
+
+    fun load() {
+        this.item.value = this.savedItem
+        this.name.value = this.savedName
+        this.quickViewStat.value = this.savedQuickViewStat
     }
 }

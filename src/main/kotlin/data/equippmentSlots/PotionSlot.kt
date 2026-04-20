@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class PotionSlot(
-    var potion: Potion? = null
-) : ItemSlot<Potion>(savedItem = potion, savedName = "Trank") {
+    val initialPotion: Potion? = null
+) : ItemSlot<Potion>(savedItem = initialPotion, savedName = "Trank") {
     override val itemClassName = "Trank"
     override fun accepts(item: Item): Boolean {
         return item is Potion
