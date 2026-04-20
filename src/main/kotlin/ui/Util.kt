@@ -422,13 +422,6 @@ fun ItemEquipPopup(showPopup: MutableState<Boolean> = mutableStateOf(true), item
                     content = { Icon(Icons.Default.Check, "Select") },
                     modifier = Modifier.padding(5.dp)
                 )
-                IconButton(
-                    onClick = {
-                        ItemDisplayManager.openNewItemDisplay(item)
-                    },
-                    content = { Icon(Icons.Default.Menu, "Open in ItemDisplay") },
-                    modifier = Modifier.padding(5.dp)
-                )
             }
         },
         filteredList,
