@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -355,11 +358,13 @@ fun <T : Item> ItemSlotItemPickerPopup(showPopup: MutableState<Boolean> = mutabl
                 Modifier
                     .padding(5.dp)
                     .fillMaxWidth()
+                    .height(50.dp)
                     .shadow(5.dp, RoundedCornerShape(10.dp))
                     .background(Color.Gray, RoundedCornerShape(10.dp))
             ) {
-                Text(item.name, Modifier.padding(5.dp))
-                Box(Modifier.weight(1f))
+                Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterStart){
+                    Text(item.name, Modifier.padding(5.dp))
+                }
                 IconButton(
                     onClick = {
                         // Update old item
@@ -417,11 +422,13 @@ fun <T> listPopupStructure(
                 .padding(5.dp)
         ) {
             Row(
-                Modifier.padding(bottom = 10.dp)
+                Modifier.padding(bottom = 10.dp).height(45.dp)
             ) {
                 if(title.value != null) {
                     Box(Modifier.weight(1f))
-                    Text(title.value!!)
+                    Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
+                        Text(title.value!!)
+                    }
                 }
                 Box(Modifier.weight(1f))
                 IconButton(
@@ -429,9 +436,16 @@ fun <T> listPopupStructure(
                     content = { Icon(Icons.Default.Close, "Close") }
                 )
             }
-            LazyColumn {
-                items(list) { currentItem ->
-                    listElement(currentItem)
+            if(list.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Keine Elemente gefunden")
+                }
+            }
+            else {
+                LazyColumn {
+                    items(list) { currentItem ->
+                        listElement(currentItem)
+                    }
                 }
             }
         }
