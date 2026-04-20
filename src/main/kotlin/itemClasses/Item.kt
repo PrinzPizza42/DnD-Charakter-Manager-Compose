@@ -8,6 +8,8 @@ import disk.JsonUtil
 import kotlinx.serialization.*
 import java.awt.image.BufferedImage
 import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Serializable
 @Polymorphic
@@ -27,7 +29,8 @@ abstract class Item() {
     var userIconName: String? = null
     var equipped: Boolean = false
     
-    val uuid: String = UUID.randomUUID().toString()
+    @OptIn(ExperimentalUuidApi::class)
+    var uuid: String = Uuid.random().toString()
 
     @Transient
     var mutationCount by mutableStateOf(0)
@@ -52,11 +55,13 @@ abstract class Item() {
             return ImageLoader.loadImageFromResources(standardIconName).get()
         }
 
-    constructor(name: String, description: String, weight: Int, valueInGold: Int, amount: Int) : this() {
+    @OptIn(ExperimentalUuidApi::class)
+    constructor(name: String, description: String, weight: Int, valueInGold: Int, amount: Int, uuid: String? = null) : this() {
         this.name = name
         this.description = description
         this.weight = weight
         this.valueInGold = valueInGold
         this.amount = amount
+        if(uuid != null) this.uuid = uuid
     }
 }

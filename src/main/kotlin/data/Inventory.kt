@@ -23,6 +23,8 @@ import itemClasses.weapons.LongRangeWeapon
 import itemClasses.weapons.ShortRangeWeapon
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Serializable
 class Inventory(
@@ -51,6 +53,12 @@ class Inventory(
         ConsumableSlot()
     )
 
+    fun removeItemFromSlots(item: Item) {
+        equipmentSlotsList.filter { it.item.value?.uuid == item.uuid }.forEach {
+            it.unequipItem()
+        }
+    }
+
     @Transient
     private var loadedLevels = false
     
@@ -71,7 +79,7 @@ class Inventory(
         
         // Sync the @Transient states for all loaded slots
         for (slot in equipmentSlotsList) {
-            slot.load()
+            slot.load(this)
         }
         
         while (items.size < totalSlots) {
@@ -87,6 +95,11 @@ class Inventory(
         for(slot in _serializedEquipmentSlotsList) {
             slot.prepareForSave()
         }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun getItemFromUuID(string: String): Item? {
+        return this.items.firstOrNull { it.uuid == string }
     }
 
     constructor(other: Inventory) : this(

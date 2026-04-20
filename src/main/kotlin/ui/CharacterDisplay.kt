@@ -148,26 +148,24 @@ object CharacterDisplay {
         slot: ItemSlot<out Item>,
         slotSize: MutableState<Dp>
     ) {
-        val backGroundColor = remember {
-            mutableStateOf(
-                if (slot.item.value != null) Color.Gray else Color.LightGray
-            )
+        val backGroundColor = remember(slot.item.value) {
+            if (slot.item.value != null) Color.Gray else Color.LightGray
         }
 
-        val boxShape = remember(slot.item.value?.equipped) { mutableStateOf(if (slot.item.value != null && !slot.item.value!!.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)) }
+        val boxShape = remember(slot.item.value, slot.item.value?.equipped) {
+            if (slot.item.value != null && !slot.item.value!!.equipped) RoundedCornerShape(10.dp) else CutCornerShape(10.dp)
+        }
 
         var isHovered by remember { mutableStateOf(false) }
 
-        val borderColor = remember(slot.item.value?.equipped, isHovered) {
-            mutableStateOf(
-                if (slot.item.value == null) {
-                    Color.Black.copy(alpha = 0.1f)
-                } else if (!slot.item.value!!.equipped) {
-                    Color.Black.copy(
-                        alpha = 0.3f
-                    )
-                } else Color.Yellow.copy(alpha = 0.7f)
-            )
+        val borderColor = remember(slot.item.value, slot.item.value?.equipped, isHovered) {
+            if (slot.item.value == null) {
+                Color.Black.copy(alpha = 0.1f)
+            } else if (!slot.item.value!!.equipped) {
+                Color.Black.copy(
+                    alpha = 0.3f
+                )
+            } else Color.Yellow.copy(alpha = 0.7f)
         }
 
         val scale by animateFloatAsState(
@@ -200,8 +198,8 @@ object CharacterDisplay {
                         this.scaleY = scale
                     }
                     .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
-                    .background(backGroundColor.value, shape = boxShape.value)
-                    .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
+                    .background(backGroundColor, shape = boxShape)
+                    .border(width = 2.dp, color = borderColor, shape = boxShape)
                     .onClick { if(slot.item.value != null) showEditPopup = true else showDeletePopup.value = true }
                     .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
             ) {
@@ -216,9 +214,8 @@ object CharacterDisplay {
                         ) {
                             Button(
                                 onClick = {
-                                    slot.item.value?.equipped = false
-                                    slot.item.value?.mutate()
-                                    slot.item.value = null
+                                    slot.unequipItem()
+
                                     showEditPopup = false
                                 },
                                 content = { Text("Item entfernen") }

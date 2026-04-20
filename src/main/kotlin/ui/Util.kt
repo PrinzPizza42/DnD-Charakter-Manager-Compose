@@ -369,15 +369,7 @@ fun <T : Item> ItemSlotItemPickerPopup(showPopup: MutableState<Boolean> = mutabl
                 }
                 IconButton(
                     onClick = {
-                        // Update old item
-                        val oldItem = slot.item.value
-                        oldItem?.equipped = false
-                        oldItem?.mutate()
-
-                        // Set new item
-                        slot.item.value = item
-                        item.equipped = true
-                        item.mutate()
+                        slot.equipNewItem(item)
 
                         showPopup.value = false
                     },
@@ -401,14 +393,55 @@ fun <T : Item> ItemSlotItemPickerPopup(showPopup: MutableState<Boolean> = mutabl
 }
 
 @Composable
-fun ItemEquipPopup() {
+fun ItemEquipPopup(showPopup: MutableState<Boolean> = mutableStateOf(true), item: Item) {
+    val filteredList = remember(selectedInventory.value) {
+        selectedInventory.value!!.equipmentSlotsList
+            .filter { slot -> slot.accepts(item) }
+            .toMutableStateList()
+    }
 
+    listPopupStructure(
+        { slot ->
+            Row(
+                Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .shadow(5.dp, RoundedCornerShape(10.dp))
+                    .background(Color.Gray, RoundedCornerShape(10.dp))
+            ) {
+                Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterStart){
+                    Text(slot.name.value, Modifier.padding(5.dp))
+                }
+                IconButton(
+                    onClick = {
+                        slot.equipNewItem(item)
+
+                        showPopup.value = false
+                    },
+                    content = { Icon(Icons.Default.Check, "Select") },
+                    modifier = Modifier.padding(5.dp)
+                )
+                IconButton(
+                    onClick = {
+                        ItemDisplayManager.openNewItemDisplay(item)
+                    },
+                    content = { Icon(Icons.Default.Menu, "Open in ItemDisplay") },
+                    modifier = Modifier.padding(5.dp)
+                )
+            }
+        },
+        filteredList,
+        showPopup,
+        title = mutableStateOf("${item.name} equipped"),
+        searchStringSelector = { slot -> slot.name.value }
+    )
 }
 
 @Composable
 fun <T> listPopupStructure(
     listElement: @Composable (item: T) -> Unit,
-    list: SnapshotStateList<T>,
+    list: List<T>,
     showPopup: MutableState<Boolean>,
     popupSize: Pair<Dp, Dp> = Pair(300.dp, 500.dp),
     title: MutableState<String?> = mutableStateOf(null),

@@ -387,11 +387,9 @@ object InventoryDisplay {
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun backPackTopValue(modifier: Modifier, value: MutableState<Float>, maxValue: Float?, title: String) {
-        val valueCorrelatingColor by remember(value, maxValue) {
-            mutableStateOf(
-                if (maxValue == null) Color.DarkGray
-                else lerp(Color.DarkGray, Color.Red, value.value / maxValue)
-            )
+        val valueCorrelatingColor = remember(value.value, maxValue) {
+            if (maxValue == null) Color.DarkGray
+            else lerp(Color.DarkGray, Color.Red, value.value / maxValue)
         }
 
         val backGroundColor = remember { lerp(Color.Transparent, Color.Black, 0.2f) }
@@ -542,8 +540,8 @@ object InventoryDisplay {
                                     .align(Alignment.Center)
                                     .height(50.dp)
                                     .clickable {
-                                        println("deleted item " + draggedItem.value!!.name)
                                         ItemDisplayManager.checkForDeletedItem(draggedItem.value!!)
+                                        selectedInventory.value!!.removeItemFromSlots(draggedItem.value!!)
                                         draggedItemIndexBuffer.value = null
                                         draggedItem.value = null
                                         dragMode.value = false
@@ -665,36 +663,30 @@ object InventoryDisplay {
         val mutation = item?.mutationCount ?: 0
 
         val backGroundColor = remember(item, mutation) {
-            mutableStateOf(
-                if (item != null && item !is EmptySlot) lerp(
-                    Color.Transparent,
-                    Color.Black,
-                    0.3f
-                ) else Color.LightGray.copy(alpha = 0.2f)
-            )
+            if (item != null && item !is EmptySlot) lerp(
+                Color.Transparent,
+                Color.Black,
+                0.3f
+            ) else Color.LightGray.copy(alpha = 0.2f)
         }
 
         if (item != null) {
             val boxShape = remember(item, mutation, item.equipped) {
-                mutableStateOf(
-                    if (!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(
-                        10.dp
-                    )
+                if (!item.equipped) RoundedCornerShape(10.dp) else CutCornerShape(
+                    10.dp
                 )
             }
             var isHovered by remember { mutableStateOf(false) }
             val borderColor = remember(item, mutation, item.equipped, dragMode.value, isHovered) {
-                mutableStateOf(
-                    if (dragMode.value && isHovered) {
-                        Color.Red
-                    } else if (item is EmptySlot) {
-                        Color.Black.copy(alpha = 0.1f)
-                    } else if (!item.equipped) {
-                        Color.Black.copy(
-                            alpha = 0.3f
-                        )
-                    } else Color.Yellow.copy(alpha = 0.7f)
-                )
+                if (dragMode.value && isHovered) {
+                    Color.Red
+                } else if (item is EmptySlot) {
+                    Color.Black.copy(alpha = 0.1f)
+                } else if (!item.equipped) {
+                    Color.Black.copy(
+                        alpha = 0.3f
+                    )
+                } else Color.Yellow.copy(alpha = 0.7f)
             }
 
             val scale by animateFloatAsState(
@@ -712,8 +704,8 @@ object InventoryDisplay {
                         this.scaleX = scale
                         this.scaleY = scale
                     }
-                    .background(backGroundColor.value, shape = boxShape.value)
-                    .border(width = 2.dp, color = borderColor.value, shape = boxShape.value)
+                    .background(backGroundColor, shape = boxShape)
+                    .border(width = 2.dp, color = borderColor, shape = boxShape)
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onTap = {
@@ -794,7 +786,7 @@ object InventoryDisplay {
                 Modifier
                     .size(100.dp)
                     .background(
-                        backGroundColor.value.copy(alpha = 0.5f),
+                        backGroundColor.copy(alpha = 0.5f),
                         RoundedCornerShape(10.dp)
                     )
             )

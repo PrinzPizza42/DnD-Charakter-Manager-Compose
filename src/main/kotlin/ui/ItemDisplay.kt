@@ -59,6 +59,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import data.CharacterManager
+import data.CharacterManager.selectedInventory
 import data.CustomWindow
 import data.ItemDisplayManager
 import data.WindowManager
@@ -373,19 +374,17 @@ class ItemDisplay(
                     amountValue,
                     { increase ->
                         item.value!!.amount += increase
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                        selectedInventory.value?.notifyItemChanged(item.value!!)
                     },
                     { decrease ->
                         item.value!!.amount -= decrease
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                        selectedInventory.value?.notifyItemChanged(item.value!!)
                     }
                 )
 
                 //Equipped
-                val equipped = remember(
-                    item.value,
-                    item.value!!.equipped
-                ) { mutableStateOf(item.value!!.equipped) }
+                val showPopup = remember { mutableStateOf(false) }
+                if(showPopup.value) ItemEquipPopup(showPopup, item.value!!)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(4.dp)
@@ -396,11 +395,18 @@ class ItemDisplay(
                         contentAlignment = Alignment.Center
                     ) {
                         Checkbox(
-                            checked = equipped.value,
+                            checked = item.value!!.equipped,
                             onCheckedChange = {
-                                item.value!!.equipped = it
-                                equipped.value = it
-                                CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                                if(item.value!!.equipped) {
+                                    val currentSlot = selectedInventory.value?.equipmentSlotsList?.find { it.item.value == item.value }
+                                    currentSlot?.unequipItem()
+                                }
+                                else {
+                                    showPopup.value = true
+                                }
+//                                item.value!!.equipped = it
+//                                equipped.value = it
+//                                CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                             },
                             modifier = Modifier
                                 .width(30.dp)
