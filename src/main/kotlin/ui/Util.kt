@@ -439,7 +439,7 @@ fun <T> listPopupStructure(
                 .padding(10.dp)
         ) {
             Row(
-                Modifier.padding(bottom = 10.dp).height(45.dp),
+                Modifier.height(45.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (title.value != null) {
