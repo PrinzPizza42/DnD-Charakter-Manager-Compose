@@ -98,7 +98,7 @@ object CharacterDisplay {
     }
 
     @Composable
-    fun equipmentTabTop(animatedExtended: Dp, maxWith1: Dp) {
+    fun equipmentTabTop(animatedExtended: Dp, maxWith: Dp) {
         Row(horizontalArrangement = Arrangement.Center) {
             if(animatedExtended == maxWith) {
                 Text("Ausrüstung")
@@ -133,13 +133,11 @@ object CharacterDisplay {
                 ) {
                     Icon(Icons.AutoMirrored.Default.ArrowForward, "Toggle", Modifier.padding(10.dp))
                 }
-                if (animatedExtended != 0.dp) {
-                    if(selectedInventory.value != null) {
-                        LazyColumn(Modifier.width(animatedExtended)) {
-                            if(animatedExtended == maxWith) {
-                                items(selectedInventory.value!!.equipmentSlotsList) { slot ->
-                                    equippedItemSlot(slot, slotSize)
-                                }
+                if(animatedExtended != 0.dp && selectedInventory.value != null) {
+                    LazyColumn(Modifier.width(animatedExtended)) {
+                        if(animatedExtended == maxWith) {
+                            items(selectedInventory.value!!.equipmentSlotsList) { slot ->
+                                equippedItemSlot(slot, slotSize)
                             }
                         }
                     }
