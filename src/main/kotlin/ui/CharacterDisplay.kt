@@ -18,20 +18,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.onClick
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,6 +62,8 @@ import itemClasses.Item
 import org.jetbrains.skiko.Cursor
 
 object CharacterDisplay {
+    var equipmentEditMode by mutableStateOf(false)
+
     @Composable
     fun displayCharInfo() {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -74,12 +80,12 @@ object CharacterDisplay {
     fun displayCharEquipment() {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if(selectedInventory.value != null) {
-                val background = remember { lerp(Color.Gray, Color.Transparent, 0.5f) }
+                val background = remember { lerp(Color.Gray, Color.Transparent, 0.3f) }
                 val slotSize = remember { mutableStateOf(130.dp) }
                 Box {
                     getRandomCharacterImage()
                     Row(Modifier.fillMaxSize()) {
-                        equippedElementTab(background, slotSize)
+                        equippedElementTab(slotSize, background)
                         Box(Modifier.weight(1f))
                     }
                 }
@@ -92,22 +98,21 @@ object CharacterDisplay {
     }
 
     @Composable
-    fun getRandomCharacterImage() {
-        val imagePath = remember { "standardCharacters/" + (1..2).random() + ".png" }
-        return Image(
-            painterResource(imagePath),
-            "Standard Character Image",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
+    fun equipmentTabTop(animatedExtended: Dp, maxWith1: Dp) {
+        Row(horizontalArrangement = Arrangement.Center) {
+            if(animatedExtended == maxWith) {
+                Text("Ausrüstung")
+                IconButton(
+                    onClick = { equipmentEditMode = !equipmentEditMode },
+                    content = { Icon(imageVector = if(!equipmentEditMode) Icons.Default.Edit else Icons.Default.ArrowBack, contentDescription = "Edit") }
+                )
+            }
+        }
     }
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun equippedElementTab(
-        background: Color,
-        slotSize: MutableState<Dp>
-    ) {
+    fun equippedElementTab(slotSize: MutableState<Dp>, background: Color) {
         val maxWith = remember { 300.dp }
 
         var isExtended by remember { mutableStateOf(false) }
@@ -117,29 +122,31 @@ object CharacterDisplay {
             animationSpec = tween(durationMillis = 150)
         )
 
-        Row(
-            Modifier
-                .background(background)
-                .fillMaxHeight()
-        ) {
-            Box(
-                Modifier
-                    .onClick { isExtended = !isExtended }
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.AutoMirrored.Default.ArrowForward, "Toggle", Modifier.padding(10.dp))
-            }
-            if (animatedExtended != 0.dp) {
-                Column(Modifier.width(animatedExtended)) {
-                    if(animatedExtended == maxWith) {
-                        for(slot in selectedInventory.value!!.equipmentSlotsList) {
-                            equippedItemSlot(slot, slotSize)
+        Column(Modifier.fillMaxHeight().background(background, RoundedCornerShape(10.dp))) {
+            equipmentTabTop(animatedExtended, maxWith)
+            Row(Modifier.fillMaxHeight()) {
+                Box(
+                    Modifier
+                        .onClick { isExtended = !isExtended }
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.AutoMirrored.Default.ArrowForward, "Toggle", Modifier.padding(10.dp))
+                }
+                if (animatedExtended != 0.dp) {
+                    if(selectedInventory.value != null) {
+                        LazyColumn(Modifier.width(animatedExtended)) {
+                            if(animatedExtended == maxWith) {
+                                items(selectedInventory.value!!.equipmentSlotsList) { slot ->
+                                    equippedItemSlot(slot, slotSize)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+
     }
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
@@ -288,5 +295,16 @@ object CharacterDisplay {
                 }
             }
         }
+    }
+
+    @Composable
+    fun getRandomCharacterImage() {
+        val imagePath = remember { "standardCharacters/" + (1..2).random() + ".png" }
+        return Image(
+            painterResource(imagePath),
+            "Standard Character Image",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
