@@ -38,7 +38,6 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import data.CharacterManager
 import data.CharacterManager.selectedInventory
 import data.CustomWindow
 import data.Inventory
@@ -251,7 +250,8 @@ object TabSelector {
                     .onPointerEvent(PointerEventType.Exit) {
                         hoveredOver = false
                     }
-            ) {
+            )
+            {
                 Image(
                     painter = icon,
                     contentScale = ContentScale.FillWidth,
@@ -283,7 +283,8 @@ object TabSelector {
                         windowState.value = null
                         showPanel.value = true
                     }
-                }
+                },
+                showPanel
             )
         }
     }

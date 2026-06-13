@@ -1,5 +1,7 @@
 package ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,11 +43,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -61,7 +63,6 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.platform.TextToolbar
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.Popup
@@ -255,7 +256,12 @@ fun loadPainterFromFile(path: String): Painter? {
 }
 
 @Composable
-fun openAsWindowIconButton(onClick: () -> Unit) {
+fun openAsWindowIconButton(onClick: () -> Unit, showPanel: MutableState<Boolean>) {
+    val animatedRotation by animateFloatAsState(
+        targetValue = if(!showPanel.value) -90f else 0f,
+        animationSpec = tween(durationMillis = 150)
+    )
+
     IconButton(
         onClick = {
             onClick()
@@ -265,7 +271,8 @@ fun openAsWindowIconButton(onClick: () -> Unit) {
                 imageVector = Icons.Default.Menu,
                 contentDescription = "Open as window"
             )
-        }
+        },
+        modifier = Modifier.rotate(animatedRotation)
     )
 }
 
