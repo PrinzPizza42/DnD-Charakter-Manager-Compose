@@ -7,7 +7,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +36,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -74,8 +74,6 @@ import data.equippmentSlots.weapons.ShortRangeWeaponSlot
 import data.equippmentSlots.weapons.WeaponSlot
 import itemClasses.Item
 import org.jetbrains.skiko.Cursor
-import org.w3c.dom.Text
-import javax.swing.Icon
 
 object CharacterDisplay {
     var equipmentEditMode by mutableStateOf(false)
@@ -94,6 +92,7 @@ object CharacterDisplay {
 
     @Composable
     fun displayCharEquipment() {
+        val fullWindow = remember { mutableStateOf(false) }
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if(selectedInventory.value != null) {
                 val background = remember { lerp(Color.Gray, Color.Transparent, 0.3f) }
@@ -101,8 +100,8 @@ object CharacterDisplay {
                 Box {
                     getRandomCharacterImage()
                     Row(Modifier.fillMaxSize()) {
-                        equippedElementTab(slotSize, background)
-                        Box(Modifier.weight(1f))
+                        equippedElementTab(slotSize, background, fullWindow)
+                        if(!fullWindow.value) Box(Modifier.weight(1f))
                     }
                 }
 
@@ -114,7 +113,7 @@ object CharacterDisplay {
     }
 
     @Composable
-    fun equipmentTabTop(animatedExtended: Dp, maxWith: Dp) {
+    fun equipmentTabTop(animatedExtended: Dp, maxWith: Dp, fullWindow: MutableState<Boolean>) {
         val showPopup = remember { mutableStateOf(false) }
 
         Box(contentAlignment = Alignment.Center, modifier = Modifier.width(if(animatedExtended == maxWith) maxWith else 0.dp).height(50.dp)) {
@@ -137,6 +136,15 @@ object CharacterDisplay {
                         )
                     }
                     Text("Ausrüstung")
+                    val animatedRotation by animateFloatAsState(
+                        targetValue = if(fullWindow.value) -90f else 0f,
+                        animationSpec = tween(durationMillis = 150)
+                    )
+                    IconButton(
+                        onClick = { fullWindow.value = !fullWindow.value },
+                        content = { Icon(imageVector = Icons.Default.Menu, contentDescription = "Toggle full window") },
+                        modifier = Modifier.rotate(animatedRotation)
+                    )
                 }
             }
 
@@ -178,7 +186,7 @@ object CharacterDisplay {
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun equippedElementTab(slotSize: MutableState<Dp>, background: Color) {
+    fun equippedElementTab(slotSize: MutableState<Dp>, background: Color, fullWindow: MutableState<Boolean>) {
         val maxWith = remember { 300.dp }
 
         var isExtended by remember { mutableStateOf(false) }
@@ -189,7 +197,7 @@ object CharacterDisplay {
         )
 
         Column(Modifier.fillMaxHeight().background(background, RoundedCornerShape(10.dp))) {
-            equipmentTabTop(animatedExtended, maxWith)
+            equipmentTabTop(animatedExtended, maxWith, fullWindow)
             Row(Modifier.fillMaxHeight()) {
                 Box(
                     Modifier
@@ -200,7 +208,8 @@ object CharacterDisplay {
                     Icon(Icons.AutoMirrored.Default.ArrowForward, "Toggle", Modifier.padding(10.dp))
                 }
                 if(animatedExtended != 0.dp && selectedInventory.value != null) {
-                    LazyColumn(Modifier.width(animatedExtended)) {
+                    val mod = if(fullWindow.value) Modifier.fillMaxSize() else Modifier.width(animatedExtended)
+                    LazyColumn(mod) {
                         if(animatedExtended == maxWith && selectedInventory.value != null) {
                             items(selectedInventory.value!!.equipmentSlotsList) { slot ->
                                 equippedItemSlot(slot, slotSize)
