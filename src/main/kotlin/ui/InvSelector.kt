@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
@@ -197,7 +199,8 @@ object InvSelector {
                     }
                 }
             }
-            //Inv display
+
+            // Inv display
             Row(
                 Modifier
                     .height(100.dp)
@@ -223,7 +226,19 @@ object InvSelector {
                 Modifier
                     .fillMaxSize()
                     .zIndex(1f)
-            ) {
+            )
+            {
+                if(inv.userIconName != null) {
+                    Image(
+                        bitmap = inv.icon.toComposeImageBitmap(),
+                        contentScale = ContentScale.FillHeight,
+                        contentDescription = "Character Image",
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .background(Color.White, RoundedCornerShape(5.dp))
+                            .size(90.dp)
+                    )
+                }
                 Box(
                     Modifier
                         .fillMaxHeight()
