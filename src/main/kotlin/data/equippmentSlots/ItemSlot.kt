@@ -41,6 +41,7 @@ open class ItemSlot<T : Item>(
 
     fun prepareForSave() {
         if(this.item.value != null) this.savedItemUuID = this.item.value!!.uuid
+        else this.savedItemUuID = ""
         this.savedName = this.name.value
         this.savedQuickViewStat = this.quickViewStat.value
     }

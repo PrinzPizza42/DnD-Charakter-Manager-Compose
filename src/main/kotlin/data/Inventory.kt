@@ -59,6 +59,31 @@ class Inventory(
         }
     }
 
+    fun removeSlot(index: Int) {
+        equipmentSlotsList[index].item.value?.equipped = false
+        equipmentSlotsList.removeAt(index)
+    }
+
+    fun moveSlotUp(index: Int) {
+        switchSlot(index, index + 1)
+    }
+
+    fun moveSlotDown(index: Int) {
+        switchSlot(index, index - 1)
+    }
+
+    private fun switchSlot(index1: Int, index2: Int) {
+        if(index1 < 0 || index2 < 0 || index1 >= equipmentSlotsList.size || index2 >= equipmentSlotsList.size) return
+
+        val bufferSlot = equipmentSlotsList[index1]
+        equipmentSlotsList[index1] = equipmentSlotsList[index2]
+        equipmentSlotsList[index2] = bufferSlot
+    }
+
+    fun addSlot(slot: ItemSlot<out Item>) {
+        equipmentSlotsList.addLast(slot)
+    }
+
     @Transient
     private var loadedLevels = false
     
@@ -193,13 +218,6 @@ class Inventory(
         }
     }
 
-    fun removeItem(item: Item) {
-        val index = items.indexOf(item)
-        if (index != -1) {
-            items[index] = EmptySlot()
-        }
-    }
-
     /**
      * Places an item at a specific slot (the slot where hoveredItem is).
      */
@@ -222,17 +240,6 @@ class Inventory(
             }
         } else {
             addItem(item)
-        }
-    }
-
-    fun updateSpellSlotsFromLevels() {
-        if (loadedLevels) {
-            spellSlotsUsed.clear()
-            spellSlotsMax.clear()
-            for (level in _spellLevels) {
-                spellSlotsUsed.add(level.first)
-                spellSlotsMax.add(level.second)
-            }
         }
     }
 }

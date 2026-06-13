@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,8 +30,12 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -41,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -56,10 +62,20 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.zIndex
 import data.CharacterManager.selectedInventory
+import data.equippmentSlots.ArmorSlot
+import data.equippmentSlots.ConsumableSlot
 import data.equippmentSlots.ItemSlot
+import data.equippmentSlots.MiscellaneousSlot
+import data.equippmentSlots.PotionSlot
+import data.equippmentSlots.weapons.LongRangeWeaponSlot
+import data.equippmentSlots.weapons.ShortRangeWeaponSlot
+import data.equippmentSlots.weapons.WeaponSlot
 import itemClasses.Item
 import org.jetbrains.skiko.Cursor
+import org.w3c.dom.Text
+import javax.swing.Icon
 
 object CharacterDisplay {
     var equipmentEditMode by mutableStateOf(false)
@@ -99,13 +115,63 @@ object CharacterDisplay {
 
     @Composable
     fun equipmentTabTop(animatedExtended: Dp, maxWith: Dp) {
-        Row(horizontalArrangement = Arrangement.Center) {
-            if(animatedExtended == maxWith) {
-                Text("Ausrüstung")
-                IconButton(
-                    onClick = { equipmentEditMode = !equipmentEditMode },
-                    content = { Icon(imageVector = if(!equipmentEditMode) Icons.Default.Edit else Icons.Default.ArrowBack, contentDescription = "Edit") }
-                )
+        val showPopup = remember { mutableStateOf(false) }
+
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.width(if(animatedExtended == maxWith) maxWith else 0.dp).height(50.dp)) {
+            Row(Modifier
+                .background(Color.LightGray, RoundedCornerShape(10.dp))
+                .padding(horizontal = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            )
+            {
+                if(animatedExtended == maxWith) {
+                    IconButton(
+                        onClick = { equipmentEditMode = !equipmentEditMode },
+                        content = { Icon(imageVector = if(!equipmentEditMode) Icons.Default.Edit else Icons.Default.ArrowBack, contentDescription = "Edit") }
+                    )
+                    if(equipmentEditMode) {
+                        IconButton(
+                            onClick = { showPopup.value = true },
+
+                            content = { Icon(imageVector = Icons.Default.Add, contentDescription = "Add") }
+                        )
+                    }
+                    Text("Ausrüstung")
+                }
+            }
+
+            if(showPopup.value) {
+                listPopupStructure(
+                    listElement = { slot ->
+                        Row(
+                            Modifier
+                                .padding(5.dp)
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .shadow(5.dp, RoundedCornerShape(10.dp))
+                                .background(Color.Gray, RoundedCornerShape(10.dp))
+                        ) {
+                            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterStart){
+                                Text(slot.itemClassName, Modifier.padding(5.dp))
+                            }
+                            IconButton(
+                                onClick = {
+                                    selectedInventory.value?.addSlot(slot)
+                                    showPopup.value = false
+                                },
+                                content = { Icon(Icons.Default.Check, "Select") },
+                                modifier = Modifier.padding(5.dp)
+                            )
+                        }
+                    },
+                    listOf(
+                        ArmorSlot(), WeaponSlot(), ShortRangeWeaponSlot(), LongRangeWeaponSlot(),
+                        ConsumableSlot(), PotionSlot(), MiscellaneousSlot()
+                    ),
+                    showPopup,
+                    title = mutableStateOf("Item Klasse für den Slot auswählen"),
+                    searchStringSelector = { slot -> slot.itemClassName }
+                    )
             }
         }
     }
@@ -135,7 +201,7 @@ object CharacterDisplay {
                 }
                 if(animatedExtended != 0.dp && selectedInventory.value != null) {
                     LazyColumn(Modifier.width(animatedExtended)) {
-                        if(animatedExtended == maxWith) {
+                        if(animatedExtended == maxWith && selectedInventory.value != null) {
                             items(selectedInventory.value!!.equipmentSlotsList) { slot ->
                                 equippedItemSlot(slot, slotSize)
                             }
@@ -186,110 +252,141 @@ object CharacterDisplay {
         var showEditPopup by remember { mutableStateOf(false) }
         val showDeletePopup = remember { mutableStateOf(false) }
 
-        Row(
+        Box(
             modifier = Modifier
-                .padding(4.dp)
-                .fillMaxWidth()
-                .background(Color.LightGray.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-        ) {
-            Box(
-                Modifier
+            .padding(4.dp)
+            .fillMaxWidth()
+            .background(Color.LightGray.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+        )
+        {
+            if(equipmentEditMode) {
+                Box(Modifier
+                    .zIndex(2f)
                     .padding(3.dp)
-                    .size(slotSize.value)
-                    .onPointerEvent(PointerEventType.Enter) { isHovered = true }
-                    .onPointerEvent(PointerEventType.Exit) { isHovered = false }
-                    .graphicsLayer {
-                        this.scaleX = scale
-                        this.scaleY = scale
-                    }
-                    .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
-                    .background(backGroundColor, shape = boxShape)
-                    .border(width = 2.dp, color = borderColor, shape = boxShape)
-                    .onClick { if(slot.item.value != null) showEditPopup = true else showDeletePopup.value = true }
-                    .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
-            ) {
-                if(showEditPopup) {
-                    Popup(
-                        onDismissRequest = { showEditPopup = false },
-                        alignment = Alignment.Center,
-                        properties = PopupProperties(focusable = true, dismissOnBackPress = true)
-                    ) {
-                        Row(
-                            Modifier.background(Color.LightGray, RoundedCornerShape(10.dp))
-                        ) {
-                            Button(
-                                onClick = {
-                                    slot.unequipItem()
-
-                                    showEditPopup = false
-                                },
-                                content = { Text("Item entfernen") }
-                            )
-                            Button(
-                                onClick = {
-                                    showDeletePopup.value = true
-                                    showEditPopup = false
-                                },
-                                content = { Text("Item ersetzen") }
-                            )
-                        }
-                    }
-                }
-                if(showDeletePopup.value) {
-                    ItemSlotItemPickerPopup(showDeletePopup, slot)
-                }
-
-                if(slot.item.value != null) {
-                    //BackgroundIcon
-                    val icon = remember(slot.item.value!!.icon) { slot.item.value!!.icon.toPainter() }
-                    Image(
-                        icon,
-                        slot.item.value!!.iconName,
-                        Modifier.fillMaxSize()
-                    )
-                    //Name
-                    Text(
-                        slot.item.value!!.name,
-                        Modifier
-                            .padding(5.dp, 0.dp)
-                            .background(
-                                color = lerp(Color.Transparent, Color.White, 0.8f),
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(15.dp)
-                            )
-                            .padding(10.dp, 0.dp)
-                    )
+                    .height(slotSize.value)
+                    .fillMaxWidth()
+                    .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                    .onClick {},
+                    contentAlignment = Alignment.Center
+                )
+                {
                     Row(
-                        Modifier
-                            .align(Alignment.BottomEnd)
-                            .fillMaxWidth()
+                        Modifier.background(Color.LightGray, RoundedCornerShape(10.dp))
                     ) {
-                        //Filler
-                        Box(
-                            Modifier.weight(4f)
+                        IconButton(onClick = {selectedInventory.value?.moveSlotDown(selectedInventory.value!!.equipmentSlotsList.indexOf(slot))},
+                            content = {Icon(imageVector = Icons.AutoMirrored.Default.ArrowBack, contentDescription = "move back", modifier = Modifier.rotate(90f))}
                         )
-                        //Amount
-                        Text(
-                            slot.item.value!!.amount.toString(),
-                            Modifier
-                                .padding(5.dp, 0.dp)
-                                .background(
-                                    color = lerp(Color.Transparent, Color.White, 0.8f),
-                                    shape = CircleShape
-                                )
-                                .padding(10.dp, 0.dp)
+                        Spacer(Modifier.width(5.dp))
+                        IconButton(onClick = {selectedInventory.value?.moveSlotUp(selectedInventory.value!!.equipmentSlotsList.indexOf(slot))},
+                            content = {Icon(imageVector = Icons.AutoMirrored.Default.ArrowForward, contentDescription = "move forward", modifier = Modifier.rotate(90f))}
+                        )
+                        Spacer(Modifier.width(5.dp))
+                        IconButton(onClick = {selectedInventory.value?.removeSlot(selectedInventory.value!!.equipmentSlotsList.indexOf(slot))},
+                            content = {Icon(imageVector = Icons.Default.Delete, contentDescription = "delete")}
                         )
                     }
                 }
             }
-            Column(
-                Modifier
-                    .height(slotSize.value)
-                    .weight(1f)
-                    .padding(5.dp)
-            ) {
-                Text(slot.name.value, Modifier.weight(1f))
-                Column(Modifier.weight(1f)) {
-                    if(slot.item.value != null) Text(slot.quickViewStat.value)
+            Row(Modifier.zIndex(1f)){
+                Box(
+                    Modifier
+                        .padding(3.dp)
+                        .size(slotSize.value)
+                        .onPointerEvent(PointerEventType.Enter) { isHovered = true }
+                        .onPointerEvent(PointerEventType.Exit) { isHovered = false }
+                        .graphicsLayer {
+                            this.scaleX = scale
+                            this.scaleY = scale
+                        }
+                        .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
+                        .background(backGroundColor, shape = boxShape)
+                        .border(width = 2.dp, color = borderColor, shape = boxShape)
+                        .onClick { if(slot.item.value != null) showEditPopup = true else showDeletePopup.value = true }
+                        .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
+                ) {
+                    if(showEditPopup) {
+                        Popup(
+                            onDismissRequest = { showEditPopup = false },
+                            alignment = Alignment.Center,
+                            properties = PopupProperties(focusable = true, dismissOnBackPress = true)
+                        ) {
+                            Row(
+                                Modifier.background(Color.LightGray, RoundedCornerShape(10.dp))
+                            ) {
+                                Button(
+                                    onClick = {
+                                        slot.unequipItem()
+
+                                        showEditPopup = false
+                                    },
+                                    content = { Text("Item entfernen") }
+                                )
+                                Button(
+                                    onClick = {
+                                        showDeletePopup.value = true
+                                        showEditPopup = false
+                                    },
+                                    content = { Text("Item ersetzen") }
+                                )
+                            }
+                        }
+                    }
+                    if(showDeletePopup.value) {
+                        ItemSlotItemPickerPopup(showDeletePopup, slot)
+                    }
+
+                    if(slot.item.value != null) {
+                        //BackgroundIcon
+                        val icon = remember(slot.item.value!!.icon) { slot.item.value!!.icon.toPainter() }
+                        Image(
+                            icon,
+                            slot.item.value!!.iconName,
+                            Modifier.fillMaxSize()
+                        )
+                        //Name
+                        Text(
+                            slot.item.value!!.name,
+                            Modifier
+                                .padding(5.dp, 0.dp)
+                                .background(
+                                    color = lerp(Color.Transparent, Color.White, 0.8f),
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(15.dp)
+                                )
+                                .padding(10.dp, 0.dp)
+                        )
+                        Row(
+                            Modifier
+                                .align(Alignment.BottomEnd)
+                                .fillMaxWidth()
+                        ) {
+                            //Filler
+                            Box(
+                                Modifier.weight(4f)
+                            )
+                            //Amount
+                            Text(
+                                slot.item.value!!.amount.toString(),
+                                Modifier
+                                    .padding(5.dp, 0.dp)
+                                    .background(
+                                        color = lerp(Color.Transparent, Color.White, 0.8f),
+                                        shape = CircleShape
+                                    )
+                                    .padding(10.dp, 0.dp)
+                            )
+                        }
+                    }
+                }
+                Column(
+                    Modifier
+                        .height(slotSize.value)
+                        .weight(1f)
+                        .padding(5.dp)
+                ) {
+                    Text(slot.name.value, Modifier.weight(1f))
+                    Column(Modifier.weight(1f)) {
+                        if(slot.item.value != null) Text(slot.quickViewStat.value)
+                    }
                 }
             }
         }
