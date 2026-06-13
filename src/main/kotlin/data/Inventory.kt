@@ -9,6 +9,8 @@ import data.equippmentSlots.ItemSlot
 import data.equippmentSlots.PotionSlot
 import data.equippmentSlots.weapons.LongRangeWeaponSlot
 import data.equippmentSlots.weapons.ShortRangeWeaponSlot
+import disk.ImageLoader
+import disk.JsonUtil
 import itemClasses.Item
 import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.Serializable
@@ -21,6 +23,7 @@ import itemClasses.Miscellaneous
 import itemClasses.Potion
 import itemClasses.weapons.LongRangeWeapon
 import itemClasses.weapons.ShortRangeWeapon
+import java.awt.image.BufferedImage
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.uuid.ExperimentalUuidApi
@@ -40,6 +43,23 @@ class Inventory(
 ) {
     val uuid: String = UUID.randomUUID().toString()
     val totalSlots = 50
+    var userIconName: String? = null
+
+    val icon: BufferedImage
+        get() {
+            userIconName?.let { uName ->
+                try {
+                    return ImageLoader.loadImageFromFile(
+                        JsonUtil.userImagesPath.resolve(uName).toAbsolutePath().toString()
+                    ).get()
+                } catch (e: Exception) {
+                    println("Could not find user icon $uName for $name")
+                    userIconName = null
+                    println("Reset user icon name for $name")
+                }
+            }
+            return ImageLoader.loadImageFromResources("standardCharacters/" + (1..2).random() + ".png").get()
+        }
 
     @Transient
     val items = mutableStateListOf<Item>()
@@ -135,7 +155,9 @@ class Inventory(
         spellSlotsUsed = ArrayList(other.spellSlotsUsed),
         spellSlotsMax = ArrayList(other.spellSlotsMax),
         maxCarryingCapacity = other.maxCarryingCapacity
-    )
+    ) {
+        this.userIconName = other.userIconName
+    }
 
     fun addLastSpellLevel(level: Pair<Int, Int>) {
         spellSlotsUsed.add(level.first)

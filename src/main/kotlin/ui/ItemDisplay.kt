@@ -404,9 +404,6 @@ class ItemDisplay(
                                 else {
                                     showPopup.value = true
                                 }
-//                                item.value!!.equipped = it
-//                                equipped.value = it
-//                                CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
                             },
                             modifier = Modifier
                                 .width(30.dp)
