@@ -12,4 +12,5 @@ class PotionSlot(
     override fun accepts(item: Item): Boolean {
         return item is Potion
     }
+
 }

@@ -412,6 +412,9 @@ object CharacterDisplay {
         var showEditPopup by remember { mutableStateOf(false) }
         val showChooseItemPopup = remember { mutableStateOf(false) }
 
+        val showEditQuickViewStatPopup = remember { mutableStateOf(false) }
+        var editStat1 by remember { mutableStateOf(true) }
+
         Box(
             modifier = Modifier
                 .padding(4.dp)
@@ -419,6 +422,36 @@ object CharacterDisplay {
                 .background(Color.LightGray.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
         )
         {
+            if (showEditQuickViewStatPopup.value) {
+                listPopupStructure(
+                    listElement = { stat ->
+                        Row(
+                            Modifier
+                                .padding(5.dp)
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .shadow(5.dp, RoundedCornerShape(10.dp))
+                                .background(Color.Gray, RoundedCornerShape(10.dp))
+                        ) {
+                            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterStart) {
+                                Text(stat.name, Modifier.padding(5.dp))
+                            }
+                            IconButton(
+                                onClick = {
+                                    if(editStat1) slot.quickViewStat1.value = stat else slot.quickViewStat2.value = stat
+                                    showEditQuickViewStatPopup.value = false
+                                },
+                                content = { Icon(Icons.Default.Check, "Select") },
+                                modifier = Modifier.padding(5.dp)
+                            )
+                        }
+                    },
+                    ItemSlot.quickViewStats.entries,
+                    showEditQuickViewStatPopup,
+                    title = mutableStateOf("Eigenschaft für die Übersicht auswählen"),
+                    searchStringSelector = { stat -> stat.name }
+                )
+            }
             if (equipmentEditMode) {
                 Box(
                     Modifier
@@ -431,53 +464,73 @@ object CharacterDisplay {
                     contentAlignment = Alignment.Center
                 )
                 {
-                    Row(
-                        Modifier.background(Color.LightGray, RoundedCornerShape(10.dp))
-                    ) {
-                        IconButton(
-                            onClick = {
-                                selectedInventory.value?.moveSlotDown(
-                                    selectedInventory.value!!.equipmentSlotsList.indexOf(
-                                        slot
+                    Row {
+                        Row(
+                            Modifier.background(Color.LightGray, RoundedCornerShape(10.dp))
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    selectedInventory.value?.moveSlotDown(
+                                        selectedInventory.value!!.equipmentSlotsList.indexOf(
+                                            slot
+                                        )
                                     )
-                                )
-                            },
-                            content = {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                    contentDescription = "move back",
-                                    modifier = Modifier.rotate(90f)
-                                )
-                            }
-                        )
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                        contentDescription = "move back",
+                                        modifier = Modifier.rotate(90f)
+                                    )
+                                }
+                            )
+                            Spacer(Modifier.width(5.dp))
+                            IconButton(
+                                onClick = {
+                                    selectedInventory.value?.moveSlotUp(
+                                        selectedInventory.value!!.equipmentSlotsList.indexOf(
+                                            slot
+                                        )
+                                    )
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Default.ArrowForward,
+                                        contentDescription = "move forward",
+                                        modifier = Modifier.rotate(90f)
+                                    )
+                                }
+                            )
+                            Spacer(Modifier.width(5.dp))
+                            IconButton(
+                                onClick = {
+                                    selectedInventory.value?.removeSlot(
+                                        selectedInventory.value!!.equipmentSlotsList.indexOf(
+                                            slot
+                                        )
+                                    )
+                                },
+                                content = { Icon(imageVector = Icons.Default.Delete, contentDescription = "delete") }
+                            )
+                        }
                         Spacer(Modifier.width(5.dp))
-                        IconButton(
-                            onClick = {
-                                selectedInventory.value?.moveSlotUp(
-                                    selectedInventory.value!!.equipmentSlotsList.indexOf(
-                                        slot
-                                    )
-                                )
-                            },
-                            content = {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Default.ArrowForward,
-                                    contentDescription = "move forward",
-                                    modifier = Modifier.rotate(90f)
-                                )
-                            }
-                        )
-                        Spacer(Modifier.width(5.dp))
-                        IconButton(
-                            onClick = {
-                                selectedInventory.value?.removeSlot(
-                                    selectedInventory.value!!.equipmentSlotsList.indexOf(
-                                        slot
-                                    )
-                                )
-                            },
-                            content = { Icon(imageVector = Icons.Default.Delete, contentDescription = "delete") }
-                        )
+                        Column(Modifier.background(Color.LightGray, RoundedCornerShape(10.dp))) {
+                            IconButton(
+                                onClick = {
+                                    editStat1 = true
+                                    showEditQuickViewStatPopup.value = true
+                                },
+                                content = { Icon(imageVector = Icons.Default.Edit, contentDescription = "edit quickViewStat1") }
+                            )
+                            Spacer(Modifier.width(5.dp))
+                            IconButton(
+                                onClick = {
+                                    editStat1 = false
+                                    showEditQuickViewStatPopup.value = true
+                                },
+                                content = { Icon(imageVector = Icons.Default.Edit, contentDescription = "edit quickViewStat2") }
+                            )
+                        }
                     }
                 }
             }
@@ -584,9 +637,12 @@ object CharacterDisplay {
                         .weight(1f)
                         .padding(5.dp)
                 ) {
-                    Text(slot.name.value, Modifier.weight(1f))
+                    Text(slot.name.value, Modifier.weight(0.25f))
                     Column(Modifier.weight(1f)) {
-                        if (slot.item.value != null) Text(slot.quickViewStat.value)
+                        if (slot.item.value != null) {
+                            Text(slot.getQuickViewStat1())
+                            Text(slot.getQuickViewStat2())
+                        }
                     }
                 }
             }

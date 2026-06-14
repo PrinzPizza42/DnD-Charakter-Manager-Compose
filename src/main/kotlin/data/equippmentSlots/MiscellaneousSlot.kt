@@ -12,4 +12,5 @@ class MiscellaneousSlot(
     override fun accepts(item: Item): Boolean {
         return item is Miscellaneous
     }
+
 }

@@ -13,4 +13,20 @@ class WeaponSlot(
     override fun accepts(item: Item): Boolean {
         return item is Weapon
     }
+
+    override fun getQuickViewStat1(): String {
+        return when (quickViewStat1.value) {
+            quickViewStats.DESC -> item.value?.description ?: ""
+            quickViewStats.DAMAGE -> item.value?.damage ?: ""
+            else -> ""
+        }
+    }
+
+    override fun getQuickViewStat2(): String {
+        return when (quickViewStat2.value) {
+            quickViewStats.DESC -> item.value?.description ?: ""
+            quickViewStats.DAMAGE -> item.value?.damage ?: ""
+            else -> ""
+        }
+    }
 }
