@@ -68,14 +68,13 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import data.CharacterManager.selectedInventory
+import data.ItemDisplayManager
 import data.WindowManager
 import data.equippmentSlots.ArmorSlot
 import data.equippmentSlots.ConsumableSlot
@@ -411,7 +410,7 @@ object CharacterDisplay {
         )
 
         var showEditPopup by remember { mutableStateOf(false) }
-        val showDeletePopup = remember { mutableStateOf(false) }
+        val showChooseItemPopup = remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
@@ -496,7 +495,7 @@ object CharacterDisplay {
                         .shadow(elevation, shape = RoundedCornerShape(8.dp), clip = false)
                         .background(backGroundColor, shape = boxShape)
                         .border(width = 2.dp, color = borderColor, shape = boxShape)
-                        .onClick { if (slot.item.value != null) showEditPopup = true else showDeletePopup.value = true }
+                        .onClick { if (slot.item.value != null) showEditPopup = true else showChooseItemPopup.value = true }
                         .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
                 ) {
                     if (showEditPopup) {
@@ -510,24 +509,31 @@ object CharacterDisplay {
                             ) {
                                 Button(
                                     onClick = {
+                                        showChooseItemPopup.value = true
+                                        showEditPopup = false
+                                    },
+                                    content = { Text("Item ersetzen") }
+                                )
+                                Button(
+                                    onClick = {
+                                        if(slot.item.value != null) ItemDisplayManager.openNewItemDisplay(slot.item.value!!)
+                                        showEditPopup = false
+                                    },
+                                    content = { Text("Item anzeigen") }
+                                )
+                                Button(
+                                    onClick = {
                                         slot.unequipItem()
 
                                         showEditPopup = false
                                     },
                                     content = { Text("Item entfernen") }
                                 )
-                                Button(
-                                    onClick = {
-                                        showDeletePopup.value = true
-                                        showEditPopup = false
-                                    },
-                                    content = { Text("Item ersetzen") }
-                                )
                             }
                         }
                     }
-                    if (showDeletePopup.value) {
-                        ItemSlotItemPickerPopup(showDeletePopup, slot)
+                    if (showChooseItemPopup.value) {
+                        ItemSlotItemPickerPopup(showChooseItemPopup, slot)
                     }
 
                     if (slot.item.value != null) {
