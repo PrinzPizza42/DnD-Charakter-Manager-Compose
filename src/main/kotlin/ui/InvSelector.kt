@@ -235,7 +235,7 @@ object InvSelector {
                         contentDescription = "Character Image",
                         modifier = Modifier
                             .padding(5.dp)
-                            .background(Color.White, RoundedCornerShape(5.dp))
+                            .background(Color.Transparent, RoundedCornerShape(5.dp))
                             .size(90.dp)
                     )
                 }
