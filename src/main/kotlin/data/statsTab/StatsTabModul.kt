@@ -13,7 +13,7 @@ sealed class StatsTabModulData {
     data class TextModul(
         override val title: String = "",
         override val fillMaxWidth: Boolean = false,
-        override val heightValue: Float = 50f,
+        override val heightValue: Float = 75f,
         override val widthValue: Float = 150f,
         var textContent: String = ""
     ) : StatsTabModulData()

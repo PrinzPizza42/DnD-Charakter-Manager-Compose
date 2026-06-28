@@ -99,9 +99,11 @@ object CharacterDisplay {
     fun displayCharInfo() {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (selectedInventory.value != null) {
-                Text("Character Info")
-                for(modul in selectedInventory.value!!.statsTabModulList) {
-                    StatsTabModulView(modul)
+                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Character Info")
+                    for(modul in selectedInventory.value!!.statsTabModulList) {
+                        StatsTabModulView(modul)
+                    }
                 }
             } else {
                 Text("Kein Inventar ausgewählt")
