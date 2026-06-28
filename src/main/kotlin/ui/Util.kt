@@ -70,6 +70,7 @@ import androidx.compose.ui.window.PopupProperties
 import data.CharacterManager.selectedInventory
 import data.ItemDisplayManager
 import data.equippmentSlots.ItemSlot
+import data.statsTab.StatsTabModulData
 import itemClasses.Item
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -512,6 +513,47 @@ fun <T> listPopupStructure(
                 LazyColumn(Modifier.fillMaxSize()) {
                     items(filteredList) { currentItem ->
                         listElement(currentItem)
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun StatsTabModulView(modulData: StatsTabModulData) {
+        val baseModifier = Modifier
+            .padding(10.dp)
+            .background(Color.LightGray, RoundedCornerShape(10.dp))
+            .padding(5.dp)
+
+        val layoutModifier = if (modulData.fillMaxWidth) {
+            baseModifier
+                .fillMaxWidth()
+                .height(modulData.heightValue.dp)
+        } else {
+            baseModifier
+                .width(modulData.widthValue.dp)
+                .height(modulData.heightValue.dp)
+        }
+
+        Box(modifier = layoutModifier) {
+            when (modulData) {
+                is StatsTabModulData.TextModul -> {
+                    Column(layoutModifier) {
+                        Text(modulData.title, Modifier
+                            .background(Color.Gray, RoundedCornerShape(10.dp))
+                            .padding(5.dp)
+                        )
+                        TextField(modulData.textContent, { modulData.textContent = it })
+                    }
+                }
+                is StatsTabModulData.CounterModul -> {
+                    Column(layoutModifier) {
+                        Text(modulData.title, Modifier
+                            .background(Color.Gray, RoundedCornerShape(10.dp))
+                            .padding(5.dp)
+                        )
+                        StepShifterIntBig("", IntRange(modulData.intRange1, modulData.intRange2), mutableStateOf(modulData.counter), { modulData.counter -= 1 }, { modulData.counter += 1 }, modulData.bigStepSize)
                     }
                 }
             }

@@ -9,6 +9,7 @@ import data.equippmentSlots.ItemSlot
 import data.equippmentSlots.PotionSlot
 import data.equippmentSlots.weapons.LongRangeWeaponSlot
 import data.equippmentSlots.weapons.ShortRangeWeaponSlot
+import data.statsTab.StatsTabModulData
 import disk.ImageLoader
 import disk.JsonUtil
 import itemClasses.Item
@@ -39,7 +40,9 @@ class Inventory(
     var spellSlotsMax: MutableList<Int> = ArrayList(),
     var maxCarryingCapacity: Float = 100f,
     @SerialName("equippedItems")
-    private var _serializedEquipmentSlotsList: MutableList<@Polymorphic ItemSlot<out Item>> = mutableListOf()
+    private var _serializedEquipmentSlotsList: MutableList<@Polymorphic ItemSlot<out Item>> = mutableListOf(),
+    @SerialName("slotsTabModulList")
+    private var _serializedStatsTabModulList: MutableList<StatsTabModulData> = mutableListOf()
 ) {
     val uuid: String = UUID.randomUUID().toString()
     val totalSlots = 50
@@ -71,6 +74,13 @@ class Inventory(
         LongRangeWeaponSlot(),
         PotionSlot(),
         ConsumableSlot()
+    )
+
+    @Transient
+    var statsTabModulList: SnapshotStateList<StatsTabModulData> = mutableStateListOf(
+        StatsTabModulData.CounterModul(),
+        StatsTabModulData.TextModul(),
+        StatsTabModulData.TextModul()
     )
 
     fun removeItemFromSlots(item: Item) {
@@ -121,12 +131,17 @@ class Inventory(
             equipmentSlotsList.clear()
             equipmentSlotsList.addAll(_serializedEquipmentSlotsList)
         }
-        
+
         // Sync the @Transient states for all loaded slots
         for (slot in equipmentSlotsList) {
             slot.load(this)
         }
-        
+
+        if(_serializedStatsTabModulList.isNotEmpty()) {
+            statsTabModulList.clear()
+            statsTabModulList.addAll(_serializedStatsTabModulList)
+        }
+
         while (items.size < totalSlots) {
             items.add(EmptySlot())
         }
@@ -140,6 +155,8 @@ class Inventory(
         for(slot in _serializedEquipmentSlotsList) {
             slot.prepareForSave()
         }
+
+        _serializedStatsTabModulList = statsTabModulList
     }
 
     @OptIn(ExperimentalUuidApi::class)

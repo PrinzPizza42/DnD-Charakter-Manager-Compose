@@ -1,49 +1,32 @@
 package data.statsTab
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import kotlinx.serialization.Serializable
 
-abstract class StatsTabModul {
-    var height: Dp = 50.dp
-    var width: Dp = 150.dp
-    var fillMaxWidth: Boolean = false
-    var title: String = ""
-    val modifier: Modifier = if(fillMaxWidth)
-    {
-        Modifier
-            .padding(10.dp)
-            .fillMaxWidth()
-            .height(height)
-            .background(Color.LightGray, RoundedCornerShape(10.dp))
-            .padding(5.dp)
-    }
-    else
-    {
-        Modifier
-            .padding(10.dp)
-            .width(width)
-            .height(height)
-            .background(Color.LightGray, RoundedCornerShape(10.dp))
-            .padding(5.dp)
-    }
+@Serializable
+sealed class StatsTabModulData {
+    abstract val title: String
+    abstract val fillMaxWidth: Boolean
+    abstract val heightValue: Float
+    abstract val widthValue: Float
 
-    @Composable
-    abstract fun paint()
+    @Serializable
+    data class TextModul(
+        override val title: String = "",
+        override val fillMaxWidth: Boolean = false,
+        override val heightValue: Float = 50f,
+        override val widthValue: Float = 150f,
+        var textContent: String = ""
+    ) : StatsTabModulData()
 
-    @Composable
-    fun paintSizeSettingPopup() {
-
-    }
-
-    @Composable
-    abstract fun paintModuleSettingsPopup()
+    @Serializable
+    data class CounterModul(
+        override val title: String = "",
+        override val fillMaxWidth: Boolean = false,
+        override val heightValue: Float = 50f,
+        override val widthValue: Float = 150f,
+        var counter: Int = 0,
+        var intRange1: Int = -1000,
+        var intRange2: Int = 1000,
+        var bigStepSize: Int = 5
+    ) : StatsTabModulData()
 }
