@@ -84,6 +84,7 @@ import data.equippmentSlots.PotionSlot
 import data.equippmentSlots.weapons.LongRangeWeaponSlot
 import data.equippmentSlots.weapons.ShortRangeWeaponSlot
 import data.equippmentSlots.weapons.WeaponSlot
+import data.statsTab.StatsTabModulData
 import disk.ImageLoader
 import itemClasses.Item
 import org.jetbrains.skiko.Cursor
@@ -99,8 +100,52 @@ object CharacterDisplay {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (selectedInventory.value != null) {
                 Text("Character Info")
+                for(modul in selectedInventory.value!!.statsTabModulList) {
+                    StatsTabModulView(modul)
+                }
             } else {
                 Text("Kein Inventar ausgewählt")
+            }
+        }
+    }
+
+    @Composable
+    fun StatsTabModulView(modulData: StatsTabModulData) {
+        val baseModifier = Modifier
+            .padding(10.dp)
+            .background(Color.LightGray, RoundedCornerShape(10.dp))
+            .padding(5.dp)
+
+        val layoutModifier = if (modulData.fillMaxWidth) {
+            baseModifier
+                .fillMaxWidth()
+                .height(modulData.heightValue.dp)
+        } else {
+            baseModifier
+                .width(modulData.widthValue.dp)
+                .height(modulData.heightValue.dp)
+        }
+
+        Box(modifier = layoutModifier) {
+            when (modulData) {
+                is StatsTabModulData.TextModul -> {
+                    Column(layoutModifier) {
+                        Text(modulData.title, Modifier
+                            .background(Color.Gray, RoundedCornerShape(10.dp))
+                            .padding(5.dp)
+                        )
+                        TextField(modulData.textContent, { modulData.textContent = it })
+                    }
+                }
+                is StatsTabModulData.CounterModul -> {
+                    Column(layoutModifier) {
+                        Text(modulData.title, Modifier
+                            .background(Color.Gray, RoundedCornerShape(10.dp))
+                            .padding(5.dp)
+                        )
+                        StepShifterIntBig("", IntRange(modulData.intRange1, modulData.intRange2), mutableStateOf(modulData.counter), { modulData.counter -= 1 }, { modulData.counter += 1 }, modulData.bigStepSize)
+                    }
+                }
             }
         }
     }
