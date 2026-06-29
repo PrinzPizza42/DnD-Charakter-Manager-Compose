@@ -284,7 +284,8 @@ fun FloatInputOverlay(
     startValue: Float,
     text: String,
     onConfirm: (Float) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    showCancelButton: Boolean = true
 ) {
     Box(
         modifier,
@@ -297,7 +298,7 @@ fun FloatInputOverlay(
             modifier = Modifier
                 .width(IntrinsicSize.Min),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             TextField(
                 value = input.value,
@@ -332,7 +333,7 @@ fun FloatInputOverlay(
                 isError = isError
             )
             Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             ) {
                 Button(
                     onClick = {
@@ -343,12 +344,14 @@ fun FloatInputOverlay(
                         Text("Bestätigen")
                     }
                 )
-                Button(
-                    onClick = { onDismiss() },
-                    content = {
-                        Text("Abbrechen")
-                    }
-                )
+                if(showCancelButton) {
+                    Button(
+                        onClick = { onDismiss() },
+                        content = {
+                            Text("Abbrechen")
+                        }
+                    )
+                }
             }
         }
     }

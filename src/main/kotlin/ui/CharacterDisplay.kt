@@ -71,6 +71,8 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
@@ -285,90 +287,96 @@ object CharacterDisplay {
         ) {
             Column(
                 Modifier
+                    .padding(7.dp)
                     .shadow(10.dp, RoundedCornerShape(10.dp))
-                    .padding(7.dp)
                     .background(Color.LightGray, RoundedCornerShape(10.dp))
-                    .padding(7.dp)
+                    .padding(7.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Dimensions
-                Text("Größe")
-                Row {
-                    Text("Gesamte Breite einnehmen")
-                    var checked by remember { mutableStateOf(modulData.fillMaxWidth) }
-                    Checkbox(
-                        checked,
-                        onCheckedChange = {
-                            modulData.fillMaxWidth = it
-                            checked = it
-                        }
-                    )
-                }
-                Row {
-                    Text("Breite")
-                    FloatInputOverlay(
-                        Modifier.width(250.dp),
-                        modulData.widthValue,
-                        onConfirm = { modulData.widthValue = it },
-                        onDismiss = {},
-                        text = ""
-                    )
-                }
-                Row {
-                    Text("Höhe")
-                    FloatInputOverlay(
-                        Modifier.width(250.dp),
-                        modulData.heightValue,
-                        onConfirm = { modulData.heightValue = it },
-                        onDismiss = {},
-                        text = ""
-                    )
-                }
+                Text("Größe", fontSize = TextUnit(20f, TextUnitType.Sp))
+
+                var checked by remember { mutableStateOf(modulData.fillMaxWidth) }
+                Text("Gesamte Breite einnehmen")
+                Checkbox(
+                    checked,
+                    onCheckedChange = {
+                        modulData.fillMaxWidth = it
+                        checked = it
+                    }
+                )
+
+                Spacer(Modifier.height(10.dp))
+                Text("Breite")
+                FloatInputOverlay(
+                    Modifier.width(250.dp),
+                    modulData.widthValue,
+                    onConfirm = { modulData.widthValue = it },
+                    onDismiss = {},
+                    text = "",
+                    showCancelButton = false
+                )
+
+                Spacer(Modifier.height(10.dp))
+                Text("Höhe")
+                FloatInputOverlay(
+                    Modifier.width(250.dp),
+                    modulData.heightValue,
+                    onConfirm = { modulData.heightValue = it },
+                    onDismiss = {},
+                    text = "",
+                    showCancelButton = false
+                )
+                Spacer(Modifier.height(20.dp))
 
                 // Modul settings
-                Row {
-                    Text("Titel")
-                    var titel by remember { mutableStateOf(modulData.title) }
-                    TextField(
-                        modifier = Modifier.width(250.dp),
-                        value = titel,
-                        onValueChange = { newText ->
-                            modulData.title = newText
-                            titel = newText
-                        },
-                        singleLine = true
-                    )
-                }
+                Text("Moduleinstellungen", fontSize = TextUnit(20f, TextUnitType.Sp))
+
+                var titel by remember { mutableStateOf(modulData.title) }
+                Text("Titel")
+                TextField(
+                    modifier = Modifier.width(250.dp),
+                    value = titel,
+                    onValueChange = { newText ->
+                        modulData.title = newText
+                        titel = newText
+                    },
+                    singleLine = true
+                )
+
                 if(modulData is StatsTabModulData.CounterModul) {
-                    Row {
-                        Text("Große Schritte Größe")
-                        FloatInputOverlay(
-                            Modifier.width(250.dp),
-                            modulData.bigStepSize.toFloat(),
-                            onConfirm = { modulData.bigStepSize = it.toInt() },
-                            onDismiss = {},
-                            text = ""
-                        )
-                    }
-                    Row {
-                        Text("Mindest Wert")
-                        FloatInputOverlay(
-                            Modifier.width(250.dp),
-                            modulData.intRangeMin.toFloat(),
-                            onConfirm = { modulData.intRangeMin = it.toInt() },
-                            onDismiss = {},
-                            text = ""
-                        )
-                    }
-                    Row {
-                        Text("Maximal Wert")
-                        FloatInputOverlay(
-                            Modifier.width(250.dp),
-                            modulData.intRangeMax.toFloat(),
-                            onConfirm = { modulData.intRangeMax = it.toInt() },
-                            onDismiss = {},
-                            text = ""
-                        )
-                    }
+                    Spacer(Modifier.height(10.dp))
+                    Text("Schrittgröße")
+                    FloatInputOverlay(
+                        Modifier.width(250.dp),
+                        modulData.bigStepSize.toFloat(),
+                        onConfirm = { modulData.bigStepSize = it.toInt() },
+                        onDismiss = {},
+                        text = "",
+                        showCancelButton = false
+                    )
+
+                    Spacer(Modifier.height(10.dp))
+                    Text("Mindest Wert")
+                    FloatInputOverlay(
+                        Modifier.width(250.dp),
+                        modulData.intRangeMin.toFloat(),
+                        onConfirm = { modulData.intRangeMin = it.toInt() },
+                        onDismiss = {},
+                        text = "",
+                        showCancelButton = false
+                    )
+
+                    Spacer(Modifier.height(10.dp))
+                    Text("Maximal Wert")
+                    FloatInputOverlay(
+                        Modifier.width(250.dp),
+                        modulData.intRangeMax.toFloat(),
+                        onConfirm = { modulData.intRangeMax = it.toInt() },
+                        onDismiss = {},
+                        text = "",
+                        showCancelButton = false
+                    )
                 }
             }
 
