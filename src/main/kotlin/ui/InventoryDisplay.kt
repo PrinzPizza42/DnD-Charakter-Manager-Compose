@@ -1,7 +1,6 @@
 package ui
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -324,7 +323,7 @@ object InventoryDisplay {
                                             )
                                         }
 
-                                        getFloatInputOverlay(
+                                        FloatInputOverlay(
                                             Modifier
                                                 .background(
                                                     weightChangerColor,

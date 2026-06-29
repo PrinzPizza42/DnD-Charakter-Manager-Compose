@@ -70,7 +70,6 @@ import androidx.compose.ui.window.PopupProperties
 import data.CharacterManager.selectedInventory
 import data.ItemDisplayManager
 import data.equippmentSlots.ItemSlot
-import data.statsTab.StatsTabModulData
 import itemClasses.Item
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -280,7 +279,7 @@ fun openAsWindowIconButton(onClick: () -> Unit, showPanel: MutableState<Boolean>
 }
 
 @Composable
-fun getFloatInputOverlay(
+fun FloatInputOverlay(
     modifier: Modifier,
     startValue: Float,
     text: String,
@@ -327,7 +326,7 @@ fun getFloatInputOverlay(
                         }
                     },
                 label = {
-                    Text(text)
+                    if(text.isNotBlank() && text != null) Text(text)
                 },
                 singleLine = true,
                 isError = isError

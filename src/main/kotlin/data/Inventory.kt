@@ -114,6 +114,30 @@ class Inventory(
         equipmentSlotsList.addLast(slot)
     }
 
+    fun removeModul(index: Int) {
+        statsTabModulList.removeAt(index)
+    }
+
+    fun moveModulUp(index: Int) {
+        switchModul(index, index + 1)
+    }
+
+    fun moveModulDown(index: Int) {
+        switchModul(index, index - 1)
+    }
+
+    private fun switchModul(index1: Int, index2: Int) {
+        if(index1 < 0 || index2 < 0 || index1 >= statsTabModulList.size || index2 >= statsTabModulList.size) return
+
+        val bufferSlot = statsTabModulList[index1]
+        statsTabModulList[index1] = statsTabModulList[index2]
+        statsTabModulList[index2] = bufferSlot
+    }
+
+    fun addModul(modul: StatsTabModulData) {
+        statsTabModulList.addLast(modul)
+    }
+
     @Transient
     private var loadedLevels = false
     

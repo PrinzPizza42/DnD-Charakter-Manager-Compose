@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.Icon
@@ -94,13 +95,38 @@ import java.util.UUID
 
 object CharacterDisplay {
     var equipmentEditMode by mutableStateOf(false)
+    var statsEditMode by mutableStateOf(false)
 
     @Composable
     fun displayCharInfo() {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (selectedInventory.value != null) {
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Character Info")
+                    Row {
+                        Text("Character Info")
+                        IconButton(
+                            onClick = {
+                                selectedInventory.value?.addModul(
+                                    StatsTabModulData.CounterModul()
+                                )
+                            },
+                            content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add counter") }
+                        )
+                        IconButton(
+                            onClick = {
+                                selectedInventory.value?.addModul(
+                                    StatsTabModulData.TextModul()
+                                )
+                            },
+                            content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add text") }
+                        )
+                        IconButton(
+                            onClick = {
+                                statsEditMode = !statsEditMode
+                            },
+                            content = { Icon(imageVector = if(statsEditMode) Icons.AutoMirrored.Default.ArrowBack else Icons.Default.Edit, contentDescription = "Edit mode") }
+                        )
+                    }
                     for((index, modul) in selectedInventory.value!!.statsTabModulList.withIndex()) {
                         StatsTabModulView(modul, index)
                     }
@@ -111,6 +137,7 @@ object CharacterDisplay {
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     fun StatsTabModulView(modulData: StatsTabModulData, index: Int) {
         val baseModifier = Modifier
@@ -129,42 +156,222 @@ object CharacterDisplay {
                 .height(modulData.heightValue.dp)
         }
 
-        when (modulData) {
-            is StatsTabModulData.TextModul -> {
-                Column(modifier = layoutModifier) {
-                    Text(modulData.title, Modifier
-                        .background(Color.Gray, RoundedCornerShape(10.dp))
-                        .padding(5.dp)
-                    )
-                    TextField(
-                        value = modulData.textContent,
-                        onValueChange = { newText ->
-                            selectedInventory.value?.statsTabModulList?.set(index, modulData.copy(textContent = newText))
+        val editModulDimensions = remember { mutableStateOf(false) }
+
+        Box(layoutModifier) {
+            if(editModulDimensions.value) {
+                ModulSettingsPopUp(modulData, editModulDimensions, index)
+            }
+            if (statsEditMode) {
+                Box(
+                    Modifier
+                        .zIndex(2f)
+                        .padding(3.dp)
+                        .height(modulData.heightValue.dp)
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                        .onClick {},
+                    contentAlignment = Alignment.Center
+                )
+                {
+                    Row {
+                        Row(
+                            Modifier.background(Color.LightGray, RoundedCornerShape(10.dp))
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    selectedInventory.value?.moveModulDown(
+                                        selectedInventory.value!!.statsTabModulList.indexOf(
+                                            modulData
+                                        )
+                                    )
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                        contentDescription = "move back",
+                                        modifier = Modifier.rotate(90f)
+                                    )
+                                }
+                            )
+                            Spacer(Modifier.width(5.dp))
+                            IconButton(
+                                onClick = {
+                                    selectedInventory.value?.moveModulUp(
+                                        selectedInventory.value!!.statsTabModulList.indexOf(
+                                            modulData
+                                        )
+                                    )
+                                },
+                                content = {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Default.ArrowForward,
+                                        contentDescription = "move forward",
+                                        modifier = Modifier.rotate(90f)
+                                    )
+                                }
+                            )
+                            Spacer(Modifier.width(5.dp))
+                            IconButton(
+                                onClick = {
+                                    selectedInventory.value?.removeModul(
+                                        selectedInventory.value!!.statsTabModulList.indexOf(
+                                            modulData
+                                        )
+                                    )
+                                },
+                                content = { Icon(imageVector = Icons.Default.Delete, contentDescription = "delete") }
+                            )
+                        }
+                        Spacer(Modifier.width(5.dp))
+                        Column(Modifier.background(Color.LightGray, RoundedCornerShape(10.dp))) {
+                            IconButton(
+                                onClick = {
+                                    editModulDimensions.value = true
+                                },
+                                content = { Icon(imageVector = Icons.Default.Edit, contentDescription = "edit modul dimensions") }
+                            )
+                        }
+                    }
+                }
+            }
+            when (modulData) {
+                is StatsTabModulData.TextModul -> {
+                    Column(Modifier.fillMaxSize()) {
+                        Text(modulData.title, Modifier
+                            .background(Color.Gray, RoundedCornerShape(10.dp))
+                            .padding(2.dp)
+                        )
+                        TextField(
+                            modifier = Modifier.fillMaxSize(),
+                            value = modulData.textContent,
+                            onValueChange = { newText ->
+                                selectedInventory.value?.statsTabModulList?.set(index, modulData.copy(textContent = newText))
+                            }
+                        )
+                    }
+                }
+                is StatsTabModulData.CounterModul -> {
+                    Column(Modifier.fillMaxSize()) {
+                        Text(modulData.title, Modifier
+                            .background(Color.Gray, RoundedCornerShape(10.dp))
+                            .padding(2.dp)
+                        )
+                        val counterState = remember(modulData.counter) { mutableStateOf(modulData.counter) }
+                        StepShifterIntBig(
+                            label = "",
+                            range = IntRange(modulData.intRangeMin, modulData.intRangeMax),
+                            value = counterState,
+                            onDecrease = { step ->
+                                selectedInventory.value?.statsTabModulList?.set(index, modulData.copy(counter = modulData.counter - step))
+                            },
+                            onIncrease = { step ->
+                                selectedInventory.value?.statsTabModulList?.set(index, modulData.copy(counter = modulData.counter + step))
+                            },
+                            bigStep = modulData.bigStepSize
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun ModulSettingsPopUp(modulData: StatsTabModulData, editModulDimensions: MutableState<Boolean>, index: Int) {
+        Popup(
+            onDismissRequest = { editModulDimensions.value = false },
+            alignment = Alignment.Center,
+            properties = PopupProperties(focusable = true)
+        ) {
+            Column(
+                Modifier
+                    .shadow(10.dp, RoundedCornerShape(10.dp))
+                    .padding(7.dp)
+                    .background(Color.LightGray, RoundedCornerShape(10.dp))
+                    .padding(7.dp)
+            ) {
+                // Dimensions
+                Text("Größe")
+                Row {
+                    Text("Gesamte Breite einnehmen")
+                    var checked by remember { mutableStateOf(modulData.fillMaxWidth) }
+                    Checkbox(
+                        checked,
+                        onCheckedChange = {
+                            modulData.fillMaxWidth = it
+                            checked = it
                         }
                     )
                 }
-            }
-            is StatsTabModulData.CounterModul -> {
-                Column(modifier = layoutModifier) {
-                    Text(modulData.title, Modifier
-                        .background(Color.Gray, RoundedCornerShape(10.dp))
-                        .padding(5.dp)
-                    )
-                    val counterState = remember(modulData.counter) { mutableStateOf(modulData.counter) }
-                    StepShifterIntBig(
-                        label = "", 
-                        range = IntRange(modulData.intRange1, modulData.intRange2), 
-                        value = counterState, 
-                        onDecrease = { step -> 
-                            selectedInventory.value?.statsTabModulList?.set(index, modulData.copy(counter = modulData.counter - step)) 
-                        }, 
-                        onIncrease = { step -> 
-                            selectedInventory.value?.statsTabModulList?.set(index, modulData.copy(counter = modulData.counter + step)) 
-                        }, 
-                        bigStep = modulData.bigStepSize
+                Row {
+                    Text("Breite")
+                    FloatInputOverlay(
+                        Modifier.width(250.dp),
+                        modulData.widthValue,
+                        onConfirm = { modulData.widthValue = it },
+                        onDismiss = {},
+                        text = ""
                     )
                 }
+                Row {
+                    Text("Höhe")
+                    FloatInputOverlay(
+                        Modifier.width(250.dp),
+                        modulData.heightValue,
+                        onConfirm = { modulData.heightValue = it },
+                        onDismiss = {},
+                        text = ""
+                    )
+                }
+
+                // Modul settings
+                Row {
+                    Text("Titel")
+                    var titel by remember { mutableStateOf(modulData.title) }
+                    TextField(
+                        modifier = Modifier.width(250.dp),
+                        value = titel,
+                        onValueChange = { newText ->
+                            modulData.title = newText
+                            titel = newText
+                        },
+                        singleLine = true
+                    )
+                }
+                if(modulData is StatsTabModulData.CounterModul) {
+                    Row {
+                        Text("Große Schritte Größe")
+                        FloatInputOverlay(
+                            Modifier.width(250.dp),
+                            modulData.bigStepSize.toFloat(),
+                            onConfirm = { modulData.bigStepSize = it.toInt() },
+                            onDismiss = {},
+                            text = ""
+                        )
+                    }
+                    Row {
+                        Text("Mindest Wert")
+                        FloatInputOverlay(
+                            Modifier.width(250.dp),
+                            modulData.intRangeMin.toFloat(),
+                            onConfirm = { modulData.intRangeMin = it.toInt() },
+                            onDismiss = {},
+                            text = ""
+                        )
+                    }
+                    Row {
+                        Text("Maximal Wert")
+                        FloatInputOverlay(
+                            Modifier.width(250.dp),
+                            modulData.intRangeMax.toFloat(),
+                            onConfirm = { modulData.intRangeMax = it.toInt() },
+                            onDismiss = {},
+                            text = ""
+                        )
+                    }
+                }
             }
+
         }
     }
 
