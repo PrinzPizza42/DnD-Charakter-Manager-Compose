@@ -156,7 +156,7 @@ class Inventory(
             slot.prepareForSave()
         }
 
-        _serializedStatsTabModulList = statsTabModulList
+        _serializedStatsTabModulList = statsTabModulList.toMutableList()
     }
 
     @OptIn(ExperimentalUuidApi::class)
@@ -171,7 +171,8 @@ class Inventory(
         spells = ArrayList(other.spells),
         spellSlotsUsed = ArrayList(other.spellSlotsUsed),
         spellSlotsMax = ArrayList(other.spellSlotsMax),
-        maxCarryingCapacity = other.maxCarryingCapacity
+        maxCarryingCapacity = other.maxCarryingCapacity,
+        _serializedStatsTabModulList = ArrayList(other.statsTabModulList)
     ) {
         this.userIconName = other.userIconName
     }

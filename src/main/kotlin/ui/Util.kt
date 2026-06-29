@@ -165,7 +165,9 @@ fun StepShifterIntBig(
         modifier = Modifier
             .padding(4.dp)
     ) {
-        Text(label, modifier = Modifier.width(150.dp))
+        if (label.isNotEmpty()) {
+            Text(label, modifier = Modifier.width(150.dp))
+        }
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxWidth()

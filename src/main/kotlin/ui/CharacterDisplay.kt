@@ -101,8 +101,8 @@ object CharacterDisplay {
             if (selectedInventory.value != null) {
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Character Info")
-                    for(modul in selectedInventory.value!!.statsTabModulList) {
-                        StatsTabModulView(modul)
+                    for((index, modul) in selectedInventory.value!!.statsTabModulList.withIndex()) {
+                        StatsTabModulView(modul, index)
                     }
                 }
             } else {
@@ -112,41 +112,57 @@ object CharacterDisplay {
     }
 
     @Composable
-    fun StatsTabModulView(modulData: StatsTabModulData) {
+    fun StatsTabModulView(modulData: StatsTabModulData, index: Int) {
         val baseModifier = Modifier
-            .padding(10.dp)
+            .padding(2.dp)
             .background(Color.LightGray, RoundedCornerShape(10.dp))
             .padding(5.dp)
 
+        val actualWidth = if (modulData is StatsTabModulData.CounterModul && modulData.widthValue < 260f) 260f else modulData.widthValue
         val layoutModifier = if (modulData.fillMaxWidth) {
             baseModifier
                 .fillMaxWidth()
                 .height(modulData.heightValue.dp)
         } else {
             baseModifier
-                .width(modulData.widthValue.dp)
+                .width(actualWidth.dp)
                 .height(modulData.heightValue.dp)
         }
 
-        Box(modifier = layoutModifier) {
-            when (modulData) {
-                is StatsTabModulData.TextModul -> {
-                    Column(layoutModifier) {
-                        Text(modulData.title, Modifier
-                            .background(Color.Gray, RoundedCornerShape(10.dp))
-                            .padding(5.dp)
-                        )
-                        TextField(modulData.textContent, { modulData.textContent = it })
-                    }
+        when (modulData) {
+            is StatsTabModulData.TextModul -> {
+                Column(modifier = layoutModifier) {
+                    Text(modulData.title, Modifier
+                        .background(Color.Gray, RoundedCornerShape(10.dp))
+                        .padding(5.dp)
+                    )
+                    TextField(
+                        value = modulData.textContent,
+                        onValueChange = { newText ->
+                            selectedInventory.value?.statsTabModulList?.set(index, modulData.copy(textContent = newText))
+                        }
+                    )
                 }
-                is StatsTabModulData.CounterModul -> {
-                    Column(layoutModifier) {
-                        Text(modulData.title, Modifier
-                            .background(Color.Gray, RoundedCornerShape(10.dp))
-                            .padding(5.dp)
-                        )
-                        StepShifterIntBig("", IntRange(modulData.intRange1, modulData.intRange2), mutableStateOf(modulData.counter), { modulData.counter -= 1 }, { modulData.counter += 1 }, modulData.bigStepSize)
-                    }
+            }
+            is StatsTabModulData.CounterModul -> {
+                Column(modifier = layoutModifier) {
+                    Text(modulData.title, Modifier
+                        .background(Color.Gray, RoundedCornerShape(10.dp))
+                        .padding(5.dp)
+                    )
+                    val counterState = remember(modulData.counter) { mutableStateOf(modulData.counter) }
+                    StepShifterIntBig(
+                        label = "", 
+                        range = IntRange(modulData.intRange1, modulData.intRange2), 
+                        value = counterState, 
+                        onDecrease = { step -> 
+                            selectedInventory.value?.statsTabModulList?.set(index, modulData.copy(counter = modulData.counter - step)) 
+                        }, 
+                        onIncrease = { step -> 
+                            selectedInventory.value?.statsTabModulList?.set(index, modulData.copy(counter = modulData.counter + step)) 
+                        }, 
+                        bigStep = modulData.bigStepSize
+                    )
                 }
             }
         }
