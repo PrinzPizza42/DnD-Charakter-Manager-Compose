@@ -69,6 +69,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -101,33 +102,39 @@ object CharacterDisplay {
 
     @Composable
     fun displayCharInfo() {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().background(Color.Gray), contentAlignment = Alignment.Center) {
             if (selectedInventory.value != null) {
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row {
-                        Text("Character Info")
-                        IconButton(
-                            onClick = {
-                                selectedInventory.value?.addModul(
-                                    StatsTabModulData.CounterModul()
-                                )
-                            },
-                            content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add counter") }
-                        )
-                        IconButton(
-                            onClick = {
-                                selectedInventory.value?.addModul(
-                                    StatsTabModulData.TextModul()
-                                )
-                            },
-                            content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add text") }
-                        )
-                        IconButton(
-                            onClick = {
-                                statsEditMode = !statsEditMode
-                            },
-                            content = { Icon(imageVector = if(statsEditMode) Icons.AutoMirrored.Default.ArrowBack else Icons.Default.Edit, contentDescription = "Edit mode") }
-                        )
+                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
+                            IconButton(
+                                onClick = {
+                                    selectedInventory.value?.addModul(
+                                        StatsTabModulData.TextModul()
+                                    )
+                                },
+                                content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add text") }
+                            )
+                            IconButton(
+                                onClick = {
+                                    selectedInventory.value?.addModul(
+                                        StatsTabModulData.CounterModul()
+                                    )
+                                },
+                                content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add counter") }
+                            )
+                        }
+                        Spacer(Modifier.width(15.dp))
+                        Text("Charakter Info", fontSize = TextUnit(30f, TextUnitType.Sp))
+                        Spacer(Modifier.width(15.dp))
+                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Start) {
+                            IconButton(
+                                onClick = {
+                                    statsEditMode = !statsEditMode
+                                },
+                                content = { Icon(imageVector = if(statsEditMode) Icons.AutoMirrored.Default.ArrowBack else Icons.Default.Edit, contentDescription = "Edit mode") }
+                            )
+                        }
                     }
                     for((index, modul) in selectedInventory.value!!.statsTabModulList.withIndex()) {
                         StatsTabModulView(modul, index)
