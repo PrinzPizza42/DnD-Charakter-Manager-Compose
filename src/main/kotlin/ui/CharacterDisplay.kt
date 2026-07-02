@@ -401,7 +401,7 @@ object CharacterDisplay {
 
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (selectedInventory.value != null) {
-                val background = remember { lerp(Color.Gray, Color.Transparent, 0.3f) }
+                val background = remember { lerp(Color.Gray, Color.Transparent, 0.2f) }
                 val slotSize = remember { mutableStateOf(130.dp) }
                 if (showPopUp) {
                     Popup(
@@ -632,7 +632,14 @@ object CharacterDisplay {
             animationSpec = tween(durationMillis = 150)
         )
 
-        Column(Modifier.fillMaxHeight().background(background, RoundedCornerShape(10.dp))) {
+        val icon = if(isExtended) Icons.AutoMirrored.Default.ArrowForward else Icons.AutoMirrored.Default.ArrowBack
+
+        Column(
+            Modifier
+                .fillMaxHeight()
+                .background(background, RoundedCornerShape(10.dp))
+                .onClick {}
+        ) {
             equipmentTabTop(animatedExtended, maxWith, fullWindow)
             Row(Modifier.fillMaxHeight()) {
                 Box(
@@ -641,7 +648,7 @@ object CharacterDisplay {
                         .fillMaxHeight(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.AutoMirrored.Default.ArrowForward, "Toggle", Modifier.padding(10.dp))
+                    Icon(icon, "Toggle", Modifier.padding(10.dp))
                 }
                 if (animatedExtended != 0.dp && selectedInventory.value != null) {
                     val mod = if (fullWindow.value) Modifier.fillMaxSize() else Modifier.width(animatedExtended)
