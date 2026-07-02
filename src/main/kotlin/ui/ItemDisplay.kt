@@ -88,11 +88,21 @@ class ItemDisplay(
 
     fun draw() {
         if(window == null) {
-            window = WindowManager.openNewWindow(
-                onCloseRequest = { ItemDisplayManager.removeItemDisplay(this) },
-                content = { itemDisplayContent() },
-                title = mutableStateOf("Item Display: ${item.value?.name}")
-            )
+            if(item.value != null) {
+                window = WindowManager.openNewWindow(
+                    onCloseRequest = { ItemDisplayManager.removeItemDisplay(this) },
+                    content = { itemDisplayContent() },
+                    title = mutableStateOf("Item Display: ${item.value?.name}"),
+                    icon = item.value!!.icon.toPainter()
+                )
+            }
+            else {
+                window = WindowManager.openNewWindow(
+                    onCloseRequest = { ItemDisplayManager.removeItemDisplay(this) },
+                    content = { itemDisplayContent() },
+                    title = mutableStateOf("Item Display: ${item.value?.name}")
+                )
+            }
         }
     }
 

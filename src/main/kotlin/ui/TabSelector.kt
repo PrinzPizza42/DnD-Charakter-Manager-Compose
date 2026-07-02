@@ -274,7 +274,8 @@ object TabSelector {
                         windowState.value = WindowManager.openNewWindow(
                             onCloseRequest = {},
                             content = windowContent,
-                            openTabState = showPanel
+                            openTabState = showPanel,
+                            icon = icon
                         )
                         showPanel.value = false
                     }
