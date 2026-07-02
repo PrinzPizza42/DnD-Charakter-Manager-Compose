@@ -131,14 +131,14 @@ object TabSelector {
                 tabElement(
                     {},
                     showCharDetailsTab,
-                    ImageLoader.loadImageFromResources("icon.png").get().toPainter(),
+                    ImageLoader.loadImageFromResources("scroll.png").get().toPainter(),
                     { CharacterDisplay.displayCharInfo() },
                     windowState = TabManager.charInfoWindow
                 )
                 tabElement(
                     {},
                     showEquippedItemsTab,
-                    ImageLoader.loadImageFromResources("icon.png").get().toPainter(),
+                    ImageLoader.loadImageFromResources("armor.png").get().toPainter(),
                     { CharacterDisplay.displayCharEquipment() },
                     windowState = TabManager.equippedItemsWindow
                 )
