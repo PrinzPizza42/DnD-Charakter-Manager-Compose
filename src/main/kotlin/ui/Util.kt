@@ -274,7 +274,7 @@ fun openAsWindowIconButton(onClick: () -> Unit, showPanel: MutableState<Boolean>
                 contentDescription = "Open as window"
             )
         },
-        modifier = Modifier.rotate(animatedRotation)
+        modifier = Modifier.rotate(animatedRotation).width(50.dp)
     )
 }
 
