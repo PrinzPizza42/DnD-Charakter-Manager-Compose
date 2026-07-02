@@ -38,6 +38,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Window
 import data.CharacterManager.selectedInventory
 import data.CustomWindow
 import data.Inventory
@@ -178,6 +179,7 @@ object TabSelector {
                             Write.safe(selectedInventory.value!!)
                             selectedInventory.value = null
                             Read.readData()
+                            WindowManager.mainWindowTitle.value = "Inventarauswahl"
                         }
                     })
                     .onPointerEvent(PointerEventType.Enter) {

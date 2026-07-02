@@ -50,6 +50,7 @@ import disk.ImageLoader
 import disk.Write
 import data.CharacterManager
 import data.Inventory
+import data.WindowManager
 import itemClasses.EmptySlot
 
 object InvSelector {
@@ -209,9 +210,9 @@ object InvSelector {
             ) {
                 Button(
                     onClick = {
-                        println("opening inv " + inv.name)
                         CharacterManager.selectedInventory.value = Inventory(inv)
                         inv.items.forEach { item -> if(item !is EmptySlot) println("${inv.items.indexOf(item)} : ${item.name} : ${item.uuid}") }
+                        WindowManager.mainWindowTitle.value = inv.name
                     },
                     content = {
                         Text(inv.name)

@@ -12,7 +12,7 @@ import disk.ImageLoader
 import kotlin.uuid.ExperimentalUuidApi
 
 object WindowManager {
-    val mainWindowTitle = mutableStateOf("DnD-Fight-Manager-KMP")
+    val mainWindowTitle = mutableStateOf("Inventarauswahl")
     val iconRessource = ImageLoader.loadImageFromResources("icon.png").get().toPainter()
     val windowList = mutableStateListOf<CustomWindow>()
 

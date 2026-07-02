@@ -32,6 +32,7 @@ import data.TabManager.showInventoryTab
 import data.TabManager.showScrollTab
 import data.WindowManager
 import data.WindowManager.LocalWindow
+import data.WindowManager.mainWindowTitle
 import ui.CharacterDisplay
 import ui.InvSelector.inventorySelector
 import ui.InventoryDisplay.displayInv
@@ -52,7 +53,7 @@ fun main() = application {
         state = rememberWindowState(
             size = DpSize(1920.dp, 1200.dp)
         ),
-        title = "DnD-Charakter-Manager",
+        title = mainWindowTitle.value,
         icon = icon
     ) {
         CompositionLocalProvider(LocalWindow provides window) {
