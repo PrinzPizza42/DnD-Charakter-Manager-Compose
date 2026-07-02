@@ -92,7 +92,7 @@ class ItemDisplay(
                 window = WindowManager.openNewWindow(
                     onCloseRequest = { ItemDisplayManager.removeItemDisplay(this) },
                     content = { itemDisplayContent() },
-                    title = mutableStateOf("Item Display: ${item.value?.name}"),
+                    title = mutableStateOf(if(item.value != null) "Item Display: ${item.value?.name}" else "Item Erstellung"),
                     icon = item.value!!.icon.toPainter()
                 )
             }
@@ -100,7 +100,7 @@ class ItemDisplay(
                 window = WindowManager.openNewWindow(
                     onCloseRequest = { ItemDisplayManager.removeItemDisplay(this) },
                     content = { itemDisplayContent() },
-                    title = mutableStateOf("Item Display: ${item.value?.name}")
+                    title = mutableStateOf(if(item.value != null) "Item Display: ${item.value?.name}" else "Item Erstellung")
                 )
             }
         }
@@ -223,8 +223,8 @@ class ItemDisplay(
                                     "Trank" -> item.value = Potion("", "", 1, 1, 1)
                                     "Verschiedenes" -> item.value = Miscellaneous("", "", 1, 1, 1)
                                 }
-                                println("Created ${item.value}")
-                                CharacterManager.selectedInventory.value!!.addItem(item.value!!)
+                                selectedInventory.value!!.addItem(item.value!!)
+                                window?.title?.value = "Item Display: ${item.value?.name}"
                             }
                         )
                         Text(option)
@@ -245,7 +245,8 @@ class ItemDisplay(
                     onValueChange = {
                         nameInput.value = it
                         item.value!!.name = it.text
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                        selectedInventory.value?.notifyItemChanged(item.value!!)
+                        window?.title?.value = "Item Display: ${item.value?.name}"
                     },
                     modifier = Modifier.fillMaxWidth(),
                     label = {
@@ -261,7 +262,7 @@ class ItemDisplay(
                     onValueChange = {
                         descInput.value = it
                         item.value!!.description = it.text
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                        selectedInventory.value?.notifyItemChanged(item.value!!)
                     },
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -280,7 +281,7 @@ class ItemDisplay(
                         onValueChange = {
                             dmgInput.value = it
                             weapon.damage = it.text
-                            CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                            selectedInventory.value?.notifyItemChanged(item.value!!)
                         },
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -304,12 +305,12 @@ class ItemDisplay(
                         armorValue,
                         {
                             armor.armorValue += 1
-                            CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                            selectedInventory.value?.notifyItemChanged(item.value!!)
                             println("Increased 1 to ${armor.armorValue}")
                         },
                         {
                             armor.armorValue -= 1
-                            CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                            selectedInventory.value?.notifyItemChanged(item.value!!)
                         }
                     )
 
@@ -329,7 +330,7 @@ class ItemDisplay(
                                 mutableStateOf(armor.armorClass.toString()),
                                 { newClass ->
                                     armor.armorClass = ArmorClasses.valueOf(newClass)
-                                    CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                                    selectedInventory.value?.notifyItemChanged(item.value!!)
                                     println("Armor class value changed to ${armor.armorClass}")
                                 }
                             )
@@ -348,11 +349,11 @@ class ItemDisplay(
                     weightValue,
                     { increase ->
                         item.value!!.weight += increase
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                        selectedInventory.value?.notifyItemChanged(item.value!!)
                     },
                     { decrease ->
                         item.value!!.weight -= decrease
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                        selectedInventory.value?.notifyItemChanged(item.value!!)
                     }
                 )
 
@@ -366,11 +367,11 @@ class ItemDisplay(
                     valueValue,
                     { increase ->
                         item.value!!.valueInGold += increase
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                        selectedInventory.value?.notifyItemChanged(item.value!!)
                     },
                     { decrease ->
                         item.value!!.valueInGold -= decrease
-                        CharacterManager.selectedInventory.value?.notifyItemChanged(item.value!!)
+                        selectedInventory.value?.notifyItemChanged(item.value!!)
                     }
                 )
 
