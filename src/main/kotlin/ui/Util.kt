@@ -27,6 +27,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldColors
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -50,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -78,12 +80,16 @@ fun DropdownString(
     label: String?,
     options: List<String>,
     selectedOption: MutableState<String>,
-    onChange: (String) -> Unit
+    onChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    textFieldColors: TextFieldColors = TextFieldDefaults.outlinedTextFieldColors(),
+    menuModifier: Modifier = Modifier,
+    itemTextColor: Color = Color.Unspecified
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier.padding(5.dp)
+        modifier = modifier.padding(5.dp)
     ) {
         OutlinedTextField(
             value = selectedOption.value,
@@ -101,16 +107,18 @@ fun DropdownString(
                 .width(200.dp)
                 .onPointerEvent(PointerEventType.Release) {
                     expanded = true
-                }
+                },
+            colors = textFieldColors
         )
 
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = menuModifier
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    content = { Text(text = option) },
+                    content = { Text(text = option, color = itemTextColor) },
                     onClick = {
                         selectedOption.value = option
                         onChange(option)

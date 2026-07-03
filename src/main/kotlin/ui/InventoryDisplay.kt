@@ -38,6 +38,7 @@ import androidx.compose.material.RadioButton
 import androidx.compose.material.RadioButtonDefaults
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
@@ -243,7 +244,7 @@ object InventoryDisplay {
                             .wrapContentSize(Alignment.Center)
                     ) {
                         val options = listOf("Eigene", "Item-Klasse")
-                        var selectedOption by remember { mutableStateOf(options[0]) }
+                        val selectedOption = remember { mutableStateOf(options[0]) }
                         val range = remember { 50f.rangeTo(150f) }
                         Row {
                             if(TabManager.showInventoryTab.value) {
@@ -259,40 +260,27 @@ object InventoryDisplay {
 
                             val backGroundColor = remember { lerp(Color.Transparent, Color.Black, 0.2f) }
 
-                            Column(
-                                Modifier
-                                    .size(150.dp, 100.dp)
-                                    .background(
-                                        backGroundColor,
-                                        RoundedCornerShape(5.dp)
-                                    )
-                                    .clip(RoundedCornerShape(5.dp))
-                            ) {
-                                Text(
-                                    text = "Sortierung:",
-                                    color = Color.White,
-                                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                                )
-
-                                options.forEach { option ->
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        RadioButton(
-                                            selected = (option == selectedOption),
-                                            onClick = {
-                                                selectedOption = option
-                                                showSortedInv.value = (option == "Item-Klasse")
-                                            },
-                                            colors = RadioButtonDefaults.colors(
-                                                selectedColor = Color.LightGray,
-                                                unselectedColor = Color.White
-                                            )
-                                        )
-                                        Text(option, color = Color.White)
-                                    }
-                                }
-                            }
+                            DropdownString(
+                                label = "Sortierung",
+                                options = options,
+                                selectedOption = selectedOption,
+                                onChange = { option ->
+                                    selectedOption.value = option
+                                    showSortedInv.value = (option == "Item-Klasse")
+                                },
+                                modifier = Modifier.background(backGroundColor, RoundedCornerShape(10.dp)),
+                                textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
+                                    textColor = Color.White,
+                                    unfocusedBorderColor = Color.Transparent,
+                                    focusedBorderColor = Color.Transparent,
+                                    unfocusedLabelColor = Color.White,
+                                    focusedLabelColor = Color.White,
+                                    trailingIconColor = Color.White,
+                                    cursorColor = Color.White
+                                ),
+                                menuModifier = Modifier.background(Color.DarkGray),
+                                itemTextColor = Color.White
+                            )
 
                             //BackPack weight
                             val modifier = Modifier.padding(10.dp, 0.dp)
