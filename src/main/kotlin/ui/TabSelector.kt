@@ -274,7 +274,11 @@ object TabSelector {
                 onClick = {
                     if(windowState.value == null) {
                         windowState.value = WindowManager.openNewWindow(
-                            onCloseRequest = {},
+                            onCloseRequest = {
+                                windowState.value?.close()
+                                windowState.value = null
+                                showPanel.value = false
+                            },
                             content = windowContent,
                             openTabState = showPanel,
                             icon = icon
