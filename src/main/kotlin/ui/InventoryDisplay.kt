@@ -287,7 +287,7 @@ object InventoryDisplay {
 
                             val items = selectedInventory.value!!.items
                             val backPackWeight = remember(items) {
-                                mutableStateOf(items.toMutableList().sumOf { it.weight * it.amount }.toFloat())
+                                mutableStateOf(items.toMutableList().sumOf { (it.weight * it.amount).toDouble() }.toFloat())
                             }
                             var backPackWeightUIValue by remember { mutableStateOf(selectedInventory.value!!.maxCarryingCapacity) }
 
@@ -342,7 +342,7 @@ object InventoryDisplay {
                             //BackPack value
                             val backPackValue = remember(items) {
                                 mutableStateOf(
-                                    items.toMutableList().sumOf { it.valueInGold * it.amount }.toFloat()
+                                    items.toMutableList().sumOf { (it.valueInGold * it.amount).toDouble() }.toFloat()
                                 )
                             }
                             backPackTopValue(modifier, backPackValue, null, "Wert in Gold")

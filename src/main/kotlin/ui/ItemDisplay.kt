@@ -341,9 +341,9 @@ class ItemDisplay(
 
                 //Weight
                 val weightValue = remember { mutableStateOf(item.value!!.weight) }
-                val weightRange = IntRange(0, 500)
+                val weightRange = 0f..500f
 
-                StepShifterIntBig(
+                StepShifterFloatBig(
                     "Gewicht:",
                     weightRange,
                     weightValue,
@@ -359,9 +359,9 @@ class ItemDisplay(
 
                 //Value
                 val valueValue = remember { mutableStateOf(item.value!!.valueInGold) }
-                val valueRange = IntRange(0, 1000)
+                val valueRange = 0f..1000f
 
-                StepShifterIntBig(
+                StepShifterFloatBig(
                     "Wert in Gold:",
                     valueRange,
                     valueValue,

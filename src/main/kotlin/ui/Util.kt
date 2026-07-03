@@ -261,6 +261,109 @@ private fun StepShifterInt(
     }
 }
 
+@Composable
+fun StepShifterFloatBig(
+    label: String,
+    range: ClosedFloatingPointRange<Float>,
+    value: MutableState<Float>,
+    onIncrease: (Float) -> Unit,
+    onDecrease: (Float) -> Unit,
+    bigStep: Float = 5f
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(4.dp)
+    ) {
+        if (label.isNotEmpty()) {
+            Text(label, modifier = Modifier.width(150.dp))
+        }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    onClick = {
+                        if (value.value >= range.start + bigStep) {
+                            onDecrease(bigStep)
+                            value.value -= bigStep
+                        }
+                    },
+                    enabled = value.value >= range.start + bigStep
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("$bigStep", textAlign = TextAlign.Center)
+                        Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "MinusBigStep")
+                    }
+                }
+                StepShifterFloat(
+                    range,
+                    value,
+                    { onIncrease(1f) },
+                    { onDecrease(1f) }
+                )
+                IconButton(
+                    onClick = {
+                        if (value.value <= range.endInclusive - bigStep) {
+                            onIncrease(bigStep)
+                            value.value += bigStep
+                        }
+                    },
+                    enabled = value.value <= range.endInclusive - bigStep
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = "PlusBigStep")
+                        Text("$bigStep", textAlign = TextAlign.Center)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StepShifterFloat(
+    range: ClosedFloatingPointRange<Float>,
+    value: MutableState<Float>,
+    onIncrease: () -> Unit,
+    onDecrease: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(
+            onClick = { if (value.value > range.start) {
+                onDecrease()
+                value.value -= 1f
+            } },
+            enabled = value.value > range.start
+        ) {
+            Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Minus")
+        }
+
+        Text(
+            text = "${value.value}",
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        IconButton(
+            onClick = { if (value.value < range.endInclusive) {
+                onIncrease()
+                value.value += 1f
+            }},
+            enabled = value.value < range.endInclusive
+        ) {
+            Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Plus")
+        }
+    }
+}
+
 fun loadPainterFromFile(path: String): Painter? {
     return ImageLoader.loadImageFromFile(path).map { it.toPainter() }.orElse(null)
 }

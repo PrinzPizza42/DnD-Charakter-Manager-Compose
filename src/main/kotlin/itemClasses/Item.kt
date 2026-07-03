@@ -32,7 +32,6 @@ abstract class Item() {
     @OptIn(ExperimentalUuidApi::class)
     var uuid: String = Uuid.random().toString()
 
-    @Transient
     var mutationCount by mutableStateOf(0)
 
     fun mutate() {
