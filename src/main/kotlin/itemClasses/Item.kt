@@ -16,8 +16,8 @@ import kotlin.uuid.Uuid
 abstract class Item() {
     var name: String = ""
     var description: String = ""
-    var weight: Int = 0
-    var valueInGold: Int = 0
+    var weight: Float = 0f
+    var valueInGold: Float = 0f
     var amount: Int = 0
 
     @Transient
@@ -57,6 +57,16 @@ abstract class Item() {
 
     @OptIn(ExperimentalUuidApi::class)
     constructor(name: String, description: String, weight: Int, valueInGold: Int, amount: Int, uuid: String? = null) : this() {
+        this.name = name
+        this.description = description
+        this.weight = weight.toFloat()
+        this.valueInGold = valueInGold.toFloat()
+        this.amount = amount
+        if(uuid != null) this.uuid = uuid
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    constructor(name: String, description: String, weight: Float, valueInGold: Float, amount: Int, uuid: String? = null) : this() {
         this.name = name
         this.description = description
         this.weight = weight

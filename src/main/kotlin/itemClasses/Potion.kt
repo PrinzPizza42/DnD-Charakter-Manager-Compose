@@ -11,6 +11,14 @@ class Potion() : Consumable() {
     constructor(name: String, description: String, weight: Int, valueInGold: Int, amount: Int) : this() {
         this.name = name
         this.description = description
+        this.weight = weight.toFloat()
+        this.valueInGold = valueInGold.toFloat()
+        this.amount = amount
+    }
+
+    constructor(name: String, description: String, weight: Float, valueInGold: Float, amount: Int) : this() {
+        this.name = name
+        this.description = description
         this.weight = weight
         this.valueInGold = valueInGold
         this.amount = amount

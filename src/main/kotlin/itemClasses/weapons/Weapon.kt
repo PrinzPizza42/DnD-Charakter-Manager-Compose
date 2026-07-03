@@ -10,6 +10,15 @@ open class Weapon() : Item() {
     constructor(name: String, description: String, weight: Int, valueInGold: Int, amount: Int, damage: String) : this() {
         this.name = name
         this.description = description
+        this.weight = weight.toFloat()
+        this.valueInGold = valueInGold.toFloat()
+        this.amount = amount
+        this.damage = damage
+    }
+
+    constructor(name: String, description: String, weight: Float, valueInGold: Float, amount: Int, damage: String) : this() {
+        this.name = name
+        this.description = description
         this.weight = weight
         this.valueInGold = valueInGold
         this.amount = amount
