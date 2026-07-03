@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.onClick
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -104,7 +106,7 @@ object CharacterDisplay {
     fun displayCharInfo() {
         Box(Modifier.fillMaxSize().background(Color.Gray), contentAlignment = Alignment.Center) {
             if (selectedInventory.value != null) {
-                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row {
                         Row(Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
                             IconButton(
