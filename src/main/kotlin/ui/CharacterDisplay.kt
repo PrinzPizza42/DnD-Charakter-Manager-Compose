@@ -109,22 +109,28 @@ object CharacterDisplay {
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row {
                         Row(Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
-                            IconButton(
-                                onClick = {
-                                    selectedInventory.value?.addModul(
-                                        StatsTabModulData.TextModul()
-                                    )
-                                },
-                                content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add text") }
-                            )
-                            IconButton(
-                                onClick = {
-                                    selectedInventory.value?.addModul(
-                                        StatsTabModulData.CounterModul()
-                                    )
-                                },
-                                content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add counter") }
-                            )
+                            Box {
+                                IconButton(
+                                    onClick = {
+                                        selectedInventory.value?.addModul(
+                                            StatsTabModulData.TextModul()
+                                        )
+                                    },
+                                    content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add text") }
+                                )
+                                Text("1", Modifier.align(Alignment.BottomEnd))
+                            }
+                            Box {
+                                IconButton(
+                                    onClick = {
+                                        selectedInventory.value?.addModul(
+                                            StatsTabModulData.CounterModul()
+                                        )
+                                    },
+                                    content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add counter") }
+                                )
+                                Text("T", Modifier.align(Alignment.BottomEnd))
+                            }
                         }
                         Spacer(Modifier.width(15.dp))
                         Text("Charakter Info", fontSize = TextUnit(30f, TextUnitType.Sp))
