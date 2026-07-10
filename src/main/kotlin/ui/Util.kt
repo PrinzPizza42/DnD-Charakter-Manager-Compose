@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -49,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -173,7 +175,7 @@ fun StepShifterIntBig(
             .padding(4.dp)
     ) {
         if (label.isNotEmpty()) {
-            Text(label, modifier = Modifier.width(150.dp))
+            Text(label, modifier = Modifier.width(90.dp))
         }
         Box(
             contentAlignment = Alignment.Center,
@@ -276,7 +278,7 @@ fun StepShifterFloatBig(
             .padding(4.dp)
     ) {
         if (label.isNotEmpty()) {
-            Text(label, modifier = Modifier.width(150.dp))
+            Text(label, modifier = Modifier.width(90.dp))
         }
         Box(
             contentAlignment = Alignment.Center,
@@ -302,8 +304,8 @@ fun StepShifterFloatBig(
                 StepShifterFloat(
                     range,
                     value,
-                    { onIncrease(1f) },
-                    { onDecrease(1f) }
+                    onIncrease,
+                    onDecrease
                 )
                 IconButton(
                     onClick = {
@@ -330,15 +332,17 @@ fun StepShifterFloatBig(
 private fun StepShifterFloat(
     range: ClosedFloatingPointRange<Float>,
     value: MutableState<Float>,
-    onIncrease: () -> Unit,
-    onDecrease: () -> Unit
+    onIncrease: (Float) -> Unit,
+    onDecrease: (Float) -> Unit
 ) {
+    var showPopup by remember { mutableStateOf(false) }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(
             onClick = { if (value.value > range.start) {
-                onDecrease()
+                onDecrease(1f)
                 value.value -= 1f
             } },
             enabled = value.value > range.start
@@ -346,15 +350,49 @@ private fun StepShifterFloat(
             Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Minus")
         }
 
-        Text(
-            text = "${value.value}",
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
+        Box {
+            Text(
+                text = "${value.value}",
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.clickable { showPopup = true }.padding(horizontal = 8.dp)
+            )
+
+            if (showPopup) {
+                Popup(
+                    onDismissRequest = { showPopup = false },
+                    properties = PopupProperties(focusable = true)
+                ) {
+                    Box(
+                        Modifier
+                            .shadow(10.dp)
+                            .background(Color.White, RoundedCornerShape(10.dp))
+                            .padding(5.dp)
+                    ) {
+                        FloatInputOverlay(
+                            modifier = Modifier
+                                .background(Color.White, RoundedCornerShape(5.dp))
+                                .clip(RoundedCornerShape(5.dp)),
+                            startValue = value.value,
+                            text = "Neuer Wert",
+                            onConfirm = { newValue ->
+                                val clampedValue = newValue.coerceIn(range)
+                                val diff = clampedValue - value.value
+                                if (diff > 0) onIncrease(diff)
+                                else if (diff < 0) onDecrease(-diff)
+                                value.value = clampedValue
+                                showPopup = false
+                            },
+                            onDismiss = { showPopup = false }
+                        )
+                    }
+                }
+            }
+        }
 
         IconButton(
             onClick = { if (value.value < range.endInclusive) {
-                onIncrease()
+                onIncrease(1f)
                 value.value += 1f
             }},
             enabled = value.value < range.endInclusive
