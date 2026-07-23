@@ -61,8 +61,22 @@ import data.CharacterManager
 import data.Inventory
 import data.WindowManager
 import itemClasses.EmptySlot
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.ExperimentalComposeUiApi
 
 object InvSelector {
+    var hoveredInventory by mutableStateOf<Inventory?>(null)
+
+    @OptIn(ExperimentalAnimationApi::class)
     @Composable
     fun inventorySelector() {
         Box(
@@ -70,6 +84,34 @@ object InvSelector {
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
+            AnimatedContent(
+                targetState = hoveredInventory,
+                transitionSpec = {
+                    if (targetState != null && initialState != null) {
+                        val targetIndex = CharacterManager.inventories.indexOf(targetState)
+                        val initialIndex = CharacterManager.inventories.indexOf(initialState)
+                        if (targetIndex > initialIndex) {
+                            (slideInVertically { height -> height } + fadeIn()).togetherWith(slideOutVertically { height -> -height } + fadeOut())
+                        } else {
+                            (slideInVertically { height -> -height } + fadeIn()).togetherWith(slideOutVertically { height -> height } + fadeOut())
+                        }
+                    } else {
+                        fadeIn().togetherWith(fadeOut())
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            ) { inv ->
+                if (inv?.userIconName != null) {
+                    Image(
+                        bitmap = inv.icon.toComposeImageBitmap(),
+                        contentDescription = "Background",
+                        contentScale = ContentScale.FillHeight,
+                        modifier = Modifier.fillMaxSize().alpha(0.5f)
+                    )
+                } else {
+                    Box(Modifier.fillMaxSize().background(Color.Black))
+                }
+            }
 
             Column(
                 Modifier
@@ -140,12 +182,14 @@ object InvSelector {
         }
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     fun inventoryElementsColumn() {
         LazyColumn(
             Modifier
                 .width(300.dp)
                 .fillMaxHeight()
+                .onPointerEvent(PointerEventType.Exit) { hoveredInventory = null }
         ) {
             items(CharacterManager.inventories) { inv ->
                 Divider(
@@ -159,6 +203,7 @@ object InvSelector {
         }
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     fun invElement(inv: Inventory) {
         var showDelete by remember { mutableStateOf(false) }
@@ -166,6 +211,7 @@ object InvSelector {
         Box(
             Modifier
                 .fillMaxWidth()
+                .onPointerEvent(PointerEventType.Enter) { hoveredInventory = inv }
         ) {
             if (showDelete) {
                 Popup(
