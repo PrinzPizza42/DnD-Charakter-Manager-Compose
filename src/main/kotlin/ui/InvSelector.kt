@@ -19,14 +19,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldColors
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -39,6 +43,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.graphics.toPainter
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -61,6 +70,7 @@ object InvSelector {
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
+
             Column(
                 Modifier
                     .width(300.dp)
@@ -95,7 +105,21 @@ object InvSelector {
                     input.value = it
                 },
                 modifier = Modifier
-                    .width(500.dp),
+                    .width(500.dp)
+                    .onPreviewKeyEvent { event ->
+                        if (event.type == KeyEventType.KeyDown) {
+                            when (event.key) {
+                                Key.Escape -> {
+                                    focusManager.clearFocus()
+                                    true
+                                }
+
+                                else -> false
+                            }
+                        } else {
+                            false
+                        }
+                    },
                 label = {
                     Text("Charakter erstellen")
                 },
@@ -110,7 +134,8 @@ object InvSelector {
                     CharacterManager.inventories.add(Inventory(input.value.text))
                     focusManager.clearFocus()
                     input.value = TextFieldValue("")
-                })
+                }),
+                colors = TextFieldDefaults.textFieldColors(focusedLabelColor = Color.Black, focusedIndicatorColor = Color.Black, cursorColor = Color.Black)
             )
         }
     }
@@ -218,7 +243,8 @@ object InvSelector {
                         Text(inv.name)
                     },
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxSize(),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Gray)
                 )
             }
 
@@ -251,23 +277,14 @@ object InvSelector {
                         .height(30.dp)
                         .width(30.dp)
                 ) {
-                    Button(
+                    IconButton(
                         onClick = {
                             showDelete = true
                         },
-                        content = {},
+                        content = {Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete")},
                         modifier = Modifier
                             .fillMaxSize()
                             .zIndex(0f)
-                    )
-                    val delete = remember { ImageLoader.loadImageFromResources("deleteIconRed.png").get().toPainter() }
-                    Image(
-                        painter = delete,
-                        contentDescription = "delete",
-                        contentScale = ContentScale.FillBounds,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .zIndex(1f)
                     )
                 }
             }
