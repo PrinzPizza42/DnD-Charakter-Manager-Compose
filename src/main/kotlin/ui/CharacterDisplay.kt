@@ -118,7 +118,7 @@ object CharacterDisplay {
                                     },
                                     content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add text") }
                                 )
-                                Text("1", Modifier.align(Alignment.BottomEnd))
+                                Text("T", Modifier.align(Alignment.BottomEnd))
                             }
                             Box {
                                 IconButton(
@@ -129,7 +129,7 @@ object CharacterDisplay {
                                     },
                                     content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add counter") }
                                 )
-                                Text("T", Modifier.align(Alignment.BottomEnd))
+                                Text("1", Modifier.align(Alignment.BottomEnd))
                             }
                         }
                         Spacer(Modifier.width(15.dp))
