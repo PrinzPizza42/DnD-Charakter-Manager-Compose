@@ -184,12 +184,14 @@ fun StepShifterIntBig(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
                     onClick = {
-                        if (value.value >= range.first + bigStep) {
-                            onDecrease(bigStep)
-                            value.value -= bigStep
+                        val availableStep = value.value - range.first
+                        val actualStep = minOf(bigStep, availableStep)
+                        if (actualStep > 0) {
+                            onDecrease(actualStep)
+                            value.value -= actualStep
                         }
                     },
-                    enabled = value.value >= range.first + bigStep
+                    enabled = value.value > range.first
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -206,12 +208,14 @@ fun StepShifterIntBig(
                 )
                 IconButton(
                     onClick = {
-                        if (value.value <= range.last - bigStep) {
-                            onIncrease(bigStep)
-                            value.value += bigStep
+                        val availableStep = range.last - value.value
+                        val actualStep = minOf(bigStep, availableStep)
+                        if (actualStep > 0) {
+                            onIncrease(actualStep)
+                            value.value += actualStep
                         }
                     },
-                    enabled = value.value <= range.last - bigStep
+                    enabled = value.value < range.last
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -287,12 +291,14 @@ fun StepShifterFloatBig(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
                     onClick = {
-                        if (value.value >= range.start + bigStep) {
-                            onDecrease(bigStep)
-                            value.value -= bigStep
+                        val availableStep = value.value - range.start
+                        val actualStep = minOf(bigStep, availableStep)
+                        if (actualStep > 0f) {
+                            onDecrease(actualStep)
+                            value.value -= actualStep
                         }
                     },
-                    enabled = value.value >= range.start + bigStep
+                    enabled = value.value > range.start
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -309,12 +315,14 @@ fun StepShifterFloatBig(
                 )
                 IconButton(
                     onClick = {
-                        if (value.value <= range.endInclusive - bigStep) {
-                            onIncrease(bigStep)
-                            value.value += bigStep
+                        val availableStep = range.endInclusive - value.value
+                        val actualStep = minOf(bigStep, availableStep)
+                        if (actualStep > 0f) {
+                            onIncrease(actualStep)
+                            value.value += actualStep
                         }
                     },
-                    enabled = value.value <= range.endInclusive - bigStep
+                    enabled = value.value < range.endInclusive
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
