@@ -72,6 +72,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.window.PopupProperties
 
 object InvSelector {
     var hoveredInventory by mutableStateOf<Inventory?>(null)
@@ -216,7 +217,8 @@ object InvSelector {
             if (showDelete) {
                 Popup(
                     onDismissRequest = { showDelete = false },
-                    alignment = Alignment.Center
+                    alignment = Alignment.Center,
+                    properties = PopupProperties(focusable = true)
                 ) {
                     Box(
                         Modifier
