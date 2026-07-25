@@ -779,15 +779,4 @@ object InventoryDisplay {
             )
         }
     }
-
-    @Composable
-    private fun getRandomSceneryImage() {
-        val imagePath = remember { "sceneryImages/" + (1..7).random() + ".jpeg" }
-        return Image(
-            painterResource(imagePath),
-            "Scenery Image",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-    }
 }

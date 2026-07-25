@@ -2,6 +2,7 @@ package ui
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -69,6 +70,8 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.Popup
@@ -681,4 +684,20 @@ fun <T> listPopupStructure(
             }
         }
     }
+}
+
+@Composable
+public fun getRandomSceneryImage() {
+    val imagePath = remember { "sceneryImages/" + (1..7).random() + ".jpeg" }
+    return getImage(imagePath, "Scenery Image")
+}
+
+@Composable
+public fun getImage(path: String, description: String = path) {
+    return Image(
+        painterResource(path),
+        description,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.fillMaxSize()
+    )
 }

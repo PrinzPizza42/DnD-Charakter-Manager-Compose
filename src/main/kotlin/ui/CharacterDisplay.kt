@@ -105,8 +105,14 @@ object CharacterDisplay {
     @Composable
     fun displayCharInfo() {
         Box(Modifier.fillMaxSize().background(Color.Gray), contentAlignment = Alignment.Center) {
+            Box(Modifier.zIndex(0f).fillMaxSize()) {
+                getRandomSceneryImage()
+            }
+            Box(Modifier.zIndex(1f).fillMaxSize()) {
+                getImage("questboard_texture.jpg")
+            }
             if (selectedInventory.value != null) {
-                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.zIndex(2f).fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row {
                         Row(Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
                             Box {
@@ -149,7 +155,7 @@ object CharacterDisplay {
                     }
                 }
             } else {
-                Text("Kein Inventar ausgewählt")
+                Text("Kein Inventar ausgewählt", Modifier.zIndex(2f))
             }
         }
     }
