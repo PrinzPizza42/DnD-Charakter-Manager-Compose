@@ -693,6 +693,12 @@ public fun getRandomSceneryImage() {
 }
 
 @Composable
+public fun getRandomPaperImage() {
+    val imagePath = remember { "paperImages/" + (1..4).random() + ".png" }
+    return getImage(imagePath, "Paper Image")
+}
+
+@Composable
 public fun getImage(path: String, description: String = path) {
     return Image(
         painterResource(path),

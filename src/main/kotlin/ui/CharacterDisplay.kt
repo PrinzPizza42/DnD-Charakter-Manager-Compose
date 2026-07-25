@@ -80,6 +80,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
@@ -112,54 +113,69 @@ object CharacterDisplay {
     @Composable
     fun displayCharInfo() {
         Box(Modifier.fillMaxSize().background(Color.Gray), contentAlignment = Alignment.Center) {
+            // Scenery Image
             Box(Modifier.zIndex(0f).fillMaxSize()) {
                 getRandomSceneryImage()
             }
-            Box(Modifier.zIndex(1f).fillMaxSize()) {
-                getImage("questboard_texture.jpg")
+
+            // Board Texture
+            Column {
+                Spacer(Modifier.zIndex(1f).height(30.dp))
+                Box(Modifier.zIndex(1f).weight(1f)) {
+                    getImage("questboard_texture.jpg")
+                }
+                Spacer(Modifier.zIndex(1f).height(30.dp))
             }
+
+            // Content
             if (selectedInventory.value != null) {
-                Column(Modifier.zIndex(2f).fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row {
-                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
-                            Box {
+                Column(Modifier.zIndex(2f)) {
+                    Spacer(Modifier.zIndex(1f).height(35.dp))
+
+                    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Row {
+                            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
+                                Box {
+                                    IconButton(
+                                        onClick = {
+                                            selectedInventory.value?.addModul(
+                                                StatsTabModulData.TextModul()
+                                            )
+                                        },
+                                        content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add text") }
+                                    )
+                                    Text("T", Modifier.align(Alignment.BottomEnd))
+                                }
+                                Box {
+                                    IconButton(
+                                        onClick = {
+                                            selectedInventory.value?.addModul(
+                                                StatsTabModulData.CounterModul()
+                                            )
+                                        },
+                                        content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add counter") }
+                                    )
+                                    Text("1", Modifier.align(Alignment.BottomEnd))
+                                }
+                            }
+                            Spacer(Modifier.width(15.dp))
+                            Text("Charakter Info", fontSize = TextUnit(30f, TextUnitType.Sp))
+                            Spacer(Modifier.width(15.dp))
+                            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Start) {
                                 IconButton(
                                     onClick = {
-                                        selectedInventory.value?.addModul(
-                                            StatsTabModulData.TextModul()
-                                        )
+                                        statsEditMode = !statsEditMode
                                     },
-                                    content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add text") }
+                                    content = { Icon(imageVector = if(statsEditMode) Icons.AutoMirrored.Default.ArrowBack else Icons.Default.Edit, contentDescription = "Edit mode") }
                                 )
-                                Text("T", Modifier.align(Alignment.BottomEnd))
-                            }
-                            Box {
-                                IconButton(
-                                    onClick = {
-                                        selectedInventory.value?.addModul(
-                                            StatsTabModulData.CounterModul()
-                                        )
-                                    },
-                                    content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add counter") }
-                                )
-                                Text("1", Modifier.align(Alignment.BottomEnd))
                             }
                         }
-                        Spacer(Modifier.width(15.dp))
-                        Text("Charakter Info", fontSize = TextUnit(30f, TextUnitType.Sp))
-                        Spacer(Modifier.width(15.dp))
-                        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Start) {
-                            IconButton(
-                                onClick = {
-                                    statsEditMode = !statsEditMode
-                                },
-                                content = { Icon(imageVector = if(statsEditMode) Icons.AutoMirrored.Default.ArrowBack else Icons.Default.Edit, contentDescription = "Edit mode") }
-                            )
+                        for((index, modul) in selectedInventory.value!!.statsTabModulList.withIndex()) {
+                            StatsTabModulView(modul, index)
                         }
                     }
-                    for((index, modul) in selectedInventory.value!!.statsTabModulList.withIndex()) {
-                        StatsTabModulView(modul, index)
-                    }
+
+                    Spacer(Modifier.zIndex(1f).height(35.dp))
                 }
             } else {
                 Text("Kein Inventar ausgewählt", Modifier.zIndex(2f))
@@ -171,8 +187,8 @@ object CharacterDisplay {
     @Composable
     fun StatsTabModulView(modulData: StatsTabModulData, index: Int) {
         val baseModifier = Modifier
-            .padding(2.dp)
-            .background(Color.LightGray, RoundedCornerShape(10.dp))
+            .padding(5.dp)
+            .background(Color.Transparent, RoundedCornerShape(10.dp))
             .padding(5.dp)
 
         val actualWidth = if (modulData is StatsTabModulData.CounterModul && modulData.widthValue < 260f) 260f else modulData.widthValue
@@ -189,6 +205,9 @@ object CharacterDisplay {
         val editModulDimensions = remember { mutableStateOf(false) }
 
         Box(layoutModifier) {
+            Box(Modifier.fillMaxSize().zIndex(0f)) {
+                getRandomPaperImage()
+            }
             if(editModulDimensions.value) {
                 ModulSettingsPopUp(modulData, editModulDimensions, index)
             }
@@ -270,9 +289,10 @@ object CharacterDisplay {
             when (modulData) {
                 is StatsTabModulData.TextModul -> {
                     Column(Modifier.fillMaxSize()) {
-                        Text(modulData.title, Modifier
-                            .background(Color.Gray, RoundedCornerShape(10.dp))
-                            .padding(2.dp)
+                        Text(
+                            modulData.title,
+                            Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
                         )
                         TextField(
                             modifier = Modifier
@@ -299,10 +319,11 @@ object CharacterDisplay {
                     }
                 }
                 is StatsTabModulData.CounterModul -> {
-                    Column(Modifier.fillMaxSize()) {
-                        Text(modulData.title, Modifier
-                            .background(Color.Gray, RoundedCornerShape(10.dp))
-                            .padding(2.dp)
+                    Column(Modifier.fillMaxSize().padding(horizontal = 5.dp)) {
+                        Text(
+                            modulData.title,
+                            Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
                         )
                         val counterState = remember(modulData.counter) { mutableStateOf(modulData.counter) }
                         StepShifterIntBig(
