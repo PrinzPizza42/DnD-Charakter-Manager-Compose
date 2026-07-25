@@ -31,6 +31,8 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldColors
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -197,7 +199,7 @@ fun StepShifterIntBig(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("$bigStep", textAlign = TextAlign.Center)
-                        Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "MinusBigStep")
+                        Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, contentDescription = "MinusBigStep")
                     }
                 }
                 StepShifterInt(
@@ -220,7 +222,7 @@ fun StepShifterIntBig(
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = "PlusBigStep")
+                        Icon(Icons.AutoMirrored.Default.KeyboardArrowRight, contentDescription = "PlusBigStep")
                         Text("$bigStep", textAlign = TextAlign.Center)
                     }
                 }
@@ -246,7 +248,7 @@ private fun StepShifterInt(
             } },
             enabled = value.value > range.first
         ) {
-            Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Minus")
+            Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, contentDescription = "Minus")
         }
 
         Text(
@@ -262,7 +264,7 @@ private fun StepShifterInt(
             }},
             enabled = value.value < range.last
         ) {
-            Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Plus")
+            Icon(Icons.AutoMirrored.Default.KeyboardArrowRight, contentDescription = "Plus")
         }
     }
 }
@@ -304,7 +306,7 @@ fun StepShifterFloatBig(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("$bigStep", textAlign = TextAlign.Center)
-                        Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "MinusBigStep")
+                        Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, contentDescription = "MinusBigStep")
                     }
                 }
                 StepShifterFloat(
@@ -327,7 +329,7 @@ fun StepShifterFloatBig(
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = "PlusBigStep")
+                        Icon(Icons.AutoMirrored.Default.KeyboardArrowRight, contentDescription = "PlusBigStep")
                         Text("$bigStep", textAlign = TextAlign.Center)
                     }
                 }
@@ -355,7 +357,7 @@ private fun StepShifterFloat(
             } },
             enabled = value.value > range.start
         ) {
-            Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Minus")
+            Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, contentDescription = "Minus")
         }
 
         Box {
@@ -405,7 +407,7 @@ private fun StepShifterFloat(
             }},
             enabled = value.value < range.endInclusive
         ) {
-            Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Plus")
+            Icon(Icons.AutoMirrored.Default.KeyboardArrowRight, contentDescription = "Plus")
         }
     }
 }
@@ -484,7 +486,7 @@ fun FloatInputOverlay(
                         }
                     },
                 label = {
-                    if(text.isNotBlank() && text != null) Text(text)
+                    if(text.isNotBlank()) Text(text)
                 },
                 singleLine = true,
                 isError = isError
