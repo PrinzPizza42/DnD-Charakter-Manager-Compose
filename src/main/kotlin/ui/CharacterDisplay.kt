@@ -61,17 +61,24 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.graphics.toPainter
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -258,6 +265,8 @@ object CharacterDisplay {
                     }
                 }
             }
+
+            val focusManager = LocalFocusManager.current
             when (modulData) {
                 is StatsTabModulData.TextModul -> {
                     Column(Modifier.fillMaxSize()) {
@@ -266,7 +275,22 @@ object CharacterDisplay {
                             .padding(2.dp)
                         )
                         TextField(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .onPreviewKeyEvent { event ->
+                                if (event.type == KeyEventType.KeyDown) {
+                                    when (event.key) {
+                                        Key.Escape -> {
+                                            focusManager.clearFocus()
+                                            true
+                                        }
+
+                                        else -> false
+                                    }
+                                } else {
+                                    false
+                                }
+                            }
+                                .fillMaxSize(),
                             value = modulData.textContent,
                             onValueChange = { newText ->
                                 selectedInventory.value?.statsTabModulList?.set(index, modulData.copy(textContent = newText))
