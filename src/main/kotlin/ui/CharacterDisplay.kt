@@ -133,43 +133,55 @@ object CharacterDisplay {
                     Spacer(Modifier.zIndex(1f).height(35.dp))
 
                     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Row {
-                            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
-                                Box {
-                                    IconButton(
-                                        onClick = {
-                                            selectedInventory.value?.addModul(
-                                                StatsTabModulData.TextModul()
-                                            )
-                                        },
-                                        content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add text") }
-                                    )
-                                    Text("T", Modifier.align(Alignment.BottomEnd))
-                                }
-                                Box {
-                                    IconButton(
-                                        onClick = {
-                                            selectedInventory.value?.addModul(
-                                                StatsTabModulData.CounterModul()
-                                            )
-                                        },
-                                        content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add counter") }
-                                    )
-                                    Text("1", Modifier.align(Alignment.BottomEnd))
+                        Box {
+                            // Top Background
+                            Row(Modifier.zIndex(0f)) {
+                                Box(Modifier.weight(1f)) {
+                                    getImage("questboard_texture_top_full.jpg", contentScale = ContentScale.Fit)
                                 }
                             }
-                            Spacer(Modifier.width(15.dp))
-                            Text("Charakter Info", fontSize = TextUnit(30f, TextUnitType.Sp))
-                            Spacer(Modifier.width(15.dp))
-                            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Start) {
-                                IconButton(
-                                    onClick = {
-                                        statsEditMode = !statsEditMode
-                                    },
-                                    content = { Icon(imageVector = if(statsEditMode) Icons.AutoMirrored.Default.ArrowBack else Icons.Default.Edit, contentDescription = "Edit mode") }
-                                )
+
+                            // Top Foreground
+                            Row {
+                                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.End) {
+                                    Box {
+                                        IconButton(
+                                            onClick = {
+                                                selectedInventory.value?.addModul(
+                                                    StatsTabModulData.TextModul()
+                                                )
+                                            },
+                                            content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add text") }
+                                        )
+                                        Text("T", Modifier.align(Alignment.BottomEnd))
+                                    }
+                                    Box {
+                                        IconButton(
+                                            onClick = {
+                                                selectedInventory.value?.addModul(
+                                                    StatsTabModulData.CounterModul()
+                                                )
+                                            },
+                                            content = { Icon(imageVector = Icons.Default.Add, contentDescription = "add counter") }
+                                        )
+                                        Text("1", Modifier.align(Alignment.BottomEnd))
+                                    }
+                                }
+                                Spacer(Modifier.width(15.dp))
+                                Text("Charakter Info", fontSize = TextUnit(30f, TextUnitType.Sp))
+                                Spacer(Modifier.width(15.dp))
+                                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Start) {
+                                    IconButton(
+                                        onClick = {
+                                            statsEditMode = !statsEditMode
+                                        },
+                                        content = { Icon(imageVector = if(statsEditMode) Icons.AutoMirrored.Default.ArrowBack else Icons.Default.Edit, contentDescription = "Edit mode") }
+                                    )
+                                }
                             }
                         }
+
+                        // Modules
                         for((index, modul) in selectedInventory.value!!.statsTabModulList.withIndex()) {
                             StatsTabModulView(modul, index)
                         }

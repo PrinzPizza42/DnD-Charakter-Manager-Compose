@@ -699,11 +699,11 @@ public fun getRandomPaperImage() {
 }
 
 @Composable
-public fun getImage(path: String, description: String = path) {
+public fun getImage(path: String, description: String = path, contentScale: ContentScale = ContentScale.Crop) {
     return Image(
         painterResource(path),
         description,
-        contentScale = ContentScale.Crop,
+        contentScale = contentScale,
         modifier = Modifier.fillMaxSize()
     )
 }
